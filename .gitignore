@@ -1,0 +1,24 @@
+# Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Datos generados por el pipeline (se publican en R2, no en git)
+data/raw/
+data/regions/
+
+# Entorno
+.env
+.env.local
+
+.claude/

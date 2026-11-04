@@ -1,0 +1,46 @@
+name: pipeline
+
+# Se corre a mano antes del evento: genera la región y la sube a R2.
+on:
+  workflow_dispatch:
+    inputs:
+      region:
+        description: Región de config/regions.yaml
+        default: jezero
+      command:
+        description: "synthetic (datos de prueba) o build (datos reales en data/raw)"
+        default: synthetic
+        type: choice
+        options: [synthetic, build]
+      publish:
+        description: Subir a Cloudflare R2
+        type: boolean
+        default: false
+
+defaults:
+  run:
+    working-directory: pipeline
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: marsdata ${{ inputs.command }} --region ${{ inputs.region }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: region-${{ inputs.region }}
+          path: data/regions
+      - if: ${{ inputs.publish }}
+        run: marsdata publish
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
