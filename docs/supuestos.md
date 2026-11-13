@@ -46,6 +46,47 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
 - **Sin límite por defecto.** No hay un límite de dosis por EVA con fuente. La API reporta la dosis y
   solo genera una alerta si el cliente manda `max_dose_msv`.
 
+## Costo de O₂ por pendiente (`science/model/eva_cost.py`)
+
+Forma de la curva de costo de caminar según la pendiente, de Minetti et al. (2002), medida en 1 g y
+sin traje (valores del resumen). Solo se usa como multiplicador respecto al terreno plano. Todavía no
+entra al motor de la API.
+
+| Pendiente (subida / avance) | Costo de caminar | Etiqueta | Fuente |
+| --- | --- | --- | --- |
+| -45 % | 3.46 J/kg/m | observed | Minetti et al. (2002) |
+| -10 % (mínimo) | 0.81 J/kg/m | observed | Minetti et al. (2002) |
+| 0 % (plano, 1.0 m/s) | 1.64 J/kg/m | observed | Minetti et al. (2002) |
+| +45 % | 17.33 J/kg/m | observed | Minetti et al. (2002) |
+
+- Entre nudos se interpola linealmente y fuera de ±45 % se satura (`modeled`).
+- En Marte (0.38 g) la penalización por pendiente se acota en un intervalo y no en un valor único:
+  entre g/g_Tierra (el costo en plano no cambia con la gravedad) y 1 (cambia en proporción). Richter
+  et al. (2017) no dan un factor para 0.38 g, así que no se usa ningún número de ahí.
+
+## Riesgo de terreno de NOAH-H (validación, `science/validation/`)
+
+Riesgo por grupo interpretativo del mosaico NOAH-H de Jezero (Wright et al., 2022b), escalado por
+rango según lo que Barrett et al. (2022) afirman de cada grupo. Etiqueta `modeled`. Todavía no entra
+al motor de la API: lo usa la validación de HE3.
+
+| Grupo | Riesgo | Base | Barrett et al. (2022) |
+| --- | --- | --- | --- |
+| Roca madre | 0 | Cita directa | §2.3: da agarre sea rugosa o lisa |
+| No roca madre | 0.25 | Interpolación lineal supuesta | §2.3 y §6.3: peligro incierto, puede ser arena |
+| Campos de rocas | 0.5 | Interpolación lineal supuesta | §7.2: peligro sea cual sea el sustrato |
+| Ondulaciones pequeñas | 0.75 | Interpolación lineal supuesta | §6.3: a veces transitables |
+| Ondulaciones grandes | 1 | Cita directa | §6.3: nunca transitables |
+
+- Los extremos tienen cita directa. El orden de los tres grupos del medio y la escala lineal son
+  supuestos del proyecto.
+- Sin dato (0) y nodata (127) no entran al costo: no se leen como terreno seguro.
+- Las 14 etiquetas de clase de Barrett (Tabla 2), pensadas para el rover ExoMars en Oxia Planum,
+  ponen a la roca madre por encima de la no roca madre si se promedian por área en Jezero, también
+  sobre el camino de Perseverance. Por eso no se usan; quedan como trabajo a futuro.
+- Barrett (§6.3) considera de impacto alto la roca madre rugosa y la fracturada: el 0 del grupo las
+  subestima.
+
 ## Límites conocidos
 
 - Mientras una región tenga `synthetic: true`, sus cifras no describen el terreno real de Marte.
@@ -59,9 +100,26 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
 
 ## Referencias
 
+- Barrett, A. M., Balme, M. R., Woods, M., Karachalios, S., Petrocelli, D., Joudrier, L., &
+  Sefton-Nash, E. (2022). NOAH-H, a deep-learning, terrain classification system for Mars: Results
+  for the ExoMars Rover candidate landing sites. *Icarus, 371*, 114701.
+  https://doi.org/10.1016/j.icarus.2021.114701
 - Hassler, D. M., et al. (2014). Mars' surface radiation environment measured with the Mars Science
   Laboratory's Curiosity rover. *Science, 343*(6169), 1244797. https://doi.org/10.1126/science.1244797
+- Minetti, A. E., Moia, C., Roi, G. S., Susta, D., & Ferretti, G. (2002). Energy cost of walking and
+  running at extreme uphill and downhill slopes. *Journal of Applied Physiology, 93*(3), 1039–1046.
+  https://doi.org/10.1152/japplphysiol.01177.2001
 - NASA Jet Propulsion Laboratory. (2024, 10 de junio). *NASA watches Mars light up during epic solar
   storm*. https://www.jpl.nasa.gov/news/nasa-watches-mars-light-up-during-epic-solar-storm/
+- Richter, C., Braunstein, B., Winnard, A., Nasser, M., & Weber, T. (2017). Human biomechanical and
+  cardiopulmonary responses to partial gravity – A systematic review. *Frontiers in Physiology, 8*,
+  583. https://doi.org/10.3389/fphys.2017.00583
 - Tobler, W. (1993). *Three presentations on geographical analysis and modeling* (Technical Report
   93-1). National Center for Geographic Information and Analysis.
+- Wright, J., Barrett, A. M., Fawdon, P., Favaro, E. A., Balme, M. R., Woods, M. J., &
+  Karachalios, S. (2022a). Jezero crater, Mars: Application of the deep learning NOAH-H terrain
+  classification system. *Journal of Maps, 18*(2), 484–496.
+  https://doi.org/10.1080/17445647.2022.2095935
+- Wright, J., Barrett, A., Fawdon, P., Favaro, E., Balme, M., Woods, M., Karachalios, S., & Gerdes, L.
+  (2022b). *NOAH-H_terrain_classifications_of_Jezero_Crater_Mars.zip* (Versión 2) [Data set]. The
+  Open University. https://doi.org/10.21954/ou.rd.17121482.v2
