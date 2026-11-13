@@ -8,6 +8,7 @@ from app.engine.constraints import SLOPE_WARNING_RATIO
 from app.engine.consumables import (
     AUTONOMY_RESERVE,
     BASE_SPEED_KMH,
+    CAREER_DOSE_LIMIT_MSV,
     CREW_SIZE,
     O2_KG_PER_HOUR,
     RAD_MSV_PER_DAY,
@@ -23,10 +24,13 @@ from app.schemas.route import Provenance, SuitLimits, WalkMode
 
 PENDING_SOURCE = "[__]"
 PROJECT_DECISION = "Decisión del proyecto"
+LUNAR_ON_MARS = "Valor lunar (Artemis) aplicado a Marte: la EVA en Marte sigue en planeación."
 
 LIMITS = [
     "Mientras una región tenga datos sintéticos, sus cifras no describen el terreno real de Marte.",
     "La duración de la EVA solo cuenta la caminata: no incluye el trabajo en las paradas.",
+    "Velocidad, autonomía, pendiente máxima y distancia a la base salen de documentos lunares de"
+    " Artemis y se aplican a Marte sin prueba en 0.38 g.",
     "El regreso se calcula por el mismo camino de la ida.",
     "La tasa de radiación se midió en Gale con Curiosity, no en Jezero, y varía con el ciclo solar"
     " y con la presión atmosférica.",
@@ -59,7 +63,8 @@ def build_assumptions() -> AssumptionsResponse:
             value=BASE_SPEED_KMH,
             unit="km/h",
             provenance=modeled,
-            source=PENDING_SOURCE,
+            source="Coan (2020), EVA-EXP-0042 Rev. B, §4.2.1.3.1.1",
+            note=f"Sobre regolito casi plano, sin pendiente ni rocas. {LUNAR_ON_MARS}",
         ),
         Assumption(
             id="tobler_coefficient",
@@ -91,7 +96,8 @@ def build_assumptions() -> AssumptionsResponse:
             value=_suit_default("autonomy_h"),
             unit="h",
             provenance=modeled,
-            source=PENDING_SOURCE,
+            source="Coan (2020), EVA-EXP-0042 Rev. B, §4.1.4; Drake y Watts (2014), §9.2",
+            note=f"EVA de hasta 8 h (6 ± 2 h), más 1 h de O₂ secundario. {LUNAR_ON_MARS}",
         ),
         Assumption(
             id="autonomy_reserve",
@@ -107,7 +113,8 @@ def build_assumptions() -> AssumptionsResponse:
             value=_suit_default("max_slope_deg"),
             unit="°",
             provenance=modeled,
-            source=PENDING_SOURCE,
+            source="Coan (2020), EVA-EXP-0042 Rev. B, §4.2.1.3",
+            note=f"Subir, bajar o cruzar hasta 20°; Apolo 15 anduvo en ~17°. {LUNAR_ON_MARS}",
         ),
         Assumption(
             id="max_distance",
@@ -115,7 +122,15 @@ def build_assumptions() -> AssumptionsResponse:
             value=_suit_default("max_dist_km"),
             unit="km",
             provenance=modeled,
-            source=PENDING_SOURCE,
+            source=(
+                "Coan (2020), §4.2.1.3.1.1; NASA-STD-3001 Vol. 2 Rev. E, [V2 11030];"
+                " Drake y Watts (2014), §9.2"
+            ),
+            note=(
+                "Regreso a pie de emergencia si falla el rover, como pidieron los astronautas de"
+                " Apolo. En la Luna se asumen 10 km; en Marte está por definir y sin prueba en"
+                " 0.38 g. Para una EVA solo a pie, Coan (2020) da 2 km radiales."
+            ),
         ),
         Assumption(
             id="max_dose",
@@ -123,8 +138,20 @@ def build_assumptions() -> AssumptionsResponse:
             value=None,
             unit="mSv",
             provenance=modeled,
-            source=PENDING_SOURCE,
-            note="Sin valor por defecto: la dosis solo genera alerta si se pide un límite.",
+            source="NASA-STD-3001 Vol. 1 Rev. B, §4.8",
+            note=(
+                "NASA no define un límite por EVA, solo de carrera [V1 4030] y de diseño para un"
+                " evento solar [V1 4031]. La dosis solo genera alerta si se pide un límite."
+            ),
+        ),
+        Assumption(
+            id="career_dose_limit",
+            label="Límite de dosis efectiva de carrera",
+            value=CAREER_DOSE_LIMIT_MSV,
+            unit="mSv",
+            provenance=observed,
+            source="NASA-STD-3001 Vol. 1 Rev. B, [V1 4030]",
+            note="Menor a 600 mSv para cualquier edad y sexo; incluye todas las misiones.",
         ),
         Assumption(
             id="radiation_rate",

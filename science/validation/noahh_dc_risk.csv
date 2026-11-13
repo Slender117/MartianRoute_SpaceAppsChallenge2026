@@ -1,0 +1,15 @@
+dc_value,clase_barrett,etiqueta,nivel,riesgo,ig_value,area_calibracion_km2,area_mosaico_km2
+1,1,Incierta,4,0.5000,1,0.0212,5.6065
+2,5,Aceptable con peligros locales,2,0.1667,2,0.0002,5.5189
+3,12,Peligros locales,3,0.3333,4,0.0000,0.0978
+4,4,Alta,1,0.0000,2,0.0000,1.1239
+5,13,Baja,6,0.8333,4,0.0059,2.9138
+6,11,Baja,6,0.8333,4,0.0058,3.4162
+7,3,Incierta,4,0.5000,1,0.1654,38.9223
+8,2,Baja,6,0.8333,1,0.3461,30.6755
+9,9,Posiblemente baja,5,0.6667,5,0.0012,0.6621
+10,6,Muy baja,7,1.0000,2,0.1902,43.4755
+11,14,Peligros locales,3,0.3333,3,0.0357,14.1937
+12,8,Baja,6,0.8333,5,0.2731,52.0356
+13,7,Peligros locales,3,0.3333,2,0.0402,13.5253
+14,10,Muy baja,7,1.0000,5,0.0054,5.6596

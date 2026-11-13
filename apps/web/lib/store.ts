@@ -50,7 +50,7 @@ export const useMapStore = create<MapState>((set, get) => ({
   manifest: null,
   activeLayers: [],
   mode: "safe",
-  suit: { autonomy_h: 8, max_slope_deg: 25, max_dist_km: 10 },
+  suit: { autonomy_h: 8, max_slope_deg: 20, max_dist_km: 10 },
   start: null,
   end: null,
   routes: {},

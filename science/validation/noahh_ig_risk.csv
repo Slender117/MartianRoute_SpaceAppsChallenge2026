@@ -1,0 +1,8 @@
+ig_value,grupo,clases_barrett,riesgo,base,cita,dataset,procedencia,area_calibracion_km2,respaldo_riesgo_clases_calibracion,respaldo_riesgo_clases_mosaico
+0,Sin dato,,,sin información: no entra al costo,,"Wright et al. (2022b), doi:10.21954/ou.rd.17121482.v2",,,,
+1,No roca madre,1 2 3,0.25,interpolación supuesta,"Barrett et al. (2022), doi:10.1016/j.icarus.2021.114701, §2.3 y §6.3: peligro bastante incierto, puede ser arena","Wright et al. (2022b), doi:10.21954/ou.rd.17121482.v2",modeled,0.5327,0.7166,0.6360
+2,Roca madre,4 5 6 7,0.00,cita directa,"Barrett et al. (2022), doi:10.1016/j.icarus.2021.114701, §2.3: la roca madre da agarre sea rugosa o lisa","Wright et al. (2022b), doi:10.21954/ou.rd.17121482.v2",modeled,0.2307,0.8829,0.7684
+3,Campos de rocas,14,0.50,interpolación supuesta,"Barrett et al. (2022), doi:10.1016/j.icarus.2021.114701, §7.2: peligro de navegación sea cual sea el sustrato","Wright et al. (2022b), doi:10.21954/ou.rd.17121482.v2",modeled,0.0357,0.3333,0.3333
+4,Ondulaciones pequeñas,11 12 13,0.75,interpolación supuesta,"Barrett et al. (2022), doi:10.1016/j.icarus.2021.114701, §6.3: las ondulaciones chicas a veces son transitables","Wright et al. (2022b), doi:10.21954/ou.rd.17121482.v2",modeled,0.0117,0.8333,0.8257
+5,Ondulaciones grandes,8 9 10,1.00,cita directa,"Barrett et al. (2022), doi:10.1016/j.icarus.2021.114701, §6.3: las ondulaciones grandes nunca son transitables","Wright et al. (2022b), doi:10.21954/ou.rd.17121482.v2",modeled,0.2797,0.8358,0.8476
+127,Nodata,,,sin información: no entra al costo,,"Wright et al. (2022b), doi:10.21954/ou.rd.17121482.v2",,0.0000,,

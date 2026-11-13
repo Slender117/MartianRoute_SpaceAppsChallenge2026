@@ -13,7 +13,7 @@ regions:
     demo:
       label: Base al frente del delta (escenario sintético)
       start: { lat: 18.4447, lon: 77.4508 }
-      end: { lat: 18.4855, lon: 77.3720 }
+      end: { lat: 18.4685, lon: 77.3932 }
     traverses: [perseverance]
     sources:
       # Rutas locales a los archivos descargados en data/raw/<region>/.

@@ -18,7 +18,10 @@ riesgo y demostrar con el recorrido real de Perseverance que las rutas son creí
 
 - [ ] Parámetros con fuente en `docs/supuestos.md`: tasas de Apollo vía Bellcomm, curva de Minetti,
       RAD 0.64 mSv/día (H1)
-- [ ] Fijar los tramos: calibración con sol 1000 o menos, medición con los posteriores, no contiguos (H1)
+- [ ] Fijar los tramos: calibración con sol 606 o menos, medición con los posteriores, no contiguos
+      (H1). Dentro del mosaico NOAH-H quedan 18 de calibración y 20 de medición; con el corte en 1000
+      serían 31 y 7, muy pocos para la Wilcoxon pareada
+      (`science/validation/trechos.csv`)
 - [ ] Tabla clase a riesgo de NOAH-H con fuente, para Tulio (H2)
 - [ ] Recorrido de Perseverance recortado y con elevación, junto con Tulio (H2)
 - [ ] Acompañar a Miguel en la integración de su modelo de O₂ (H3)

@@ -26,7 +26,7 @@ class WalkMode(StrEnum):
 
 class SuitLimits(BaseModel):
     autonomy_h: float = Field(8.0, gt=0, description="Autonomía del traje en horas")
-    max_slope_deg: float = Field(25.0, gt=0, le=60, description="Pendiente máxima caminable")
+    max_slope_deg: float = Field(20.0, gt=0, le=60, description="Pendiente máxima caminable")
     max_dist_km: float = Field(10.0, gt=0, description="Distancia máxima a la base")
     max_dose_msv: float | None = Field(
         None,

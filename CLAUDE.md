@@ -107,7 +107,7 @@ pendiente > máx del traje -> infinito (intransitable)
 | Rápida | 0.5 | 1.0 | 0.3 | 0 |
 | Científica | 1.5 | 2.0 | 1.0 | 0.8 |
 
-Consumibles (`engine/consumables.py`): Tobler escalado a 2.5 km/h en plano con traje, distancia 3D por
+Consumibles (`engine/consumables.py`): Tobler escalado a 2 km/h en plano con traje, distancia 3D por
 segmento, duración en horas y soles (1 sol = 24.66 h), O₂ de referencia 0.07 kg/h. Punto de no retorno:
 primer punto donde se gastó la mitad de la autonomía. Paradas: celdas con minerales o hielo > 0.6,
 separadas al menos 15 puntos. Alertas: tramos con más del 80 % de la pendiente máxima, exceso de
