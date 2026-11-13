@@ -80,3 +80,77 @@ main {
 .error {
   color: #ff8a80;
 }
+
+/* Tabla comparativa de rutas */
+.compare {
+  width: 100%;
+  margin-top: 10px;
+  font-size: 12px;
+  border-collapse: collapse;
+}
+
+.compare th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: help;
+}
+
+.compare td,
+.compare th {
+  padding: 3px 4px;
+  vertical-align: top;
+}
+
+.compare caption {
+  caption-side: bottom;
+  text-align: left;
+  font-size: 11px;
+  padding-top: 6px;
+}
+
+/* Panel de supuestos: largo, así que se desplaza por dentro sin tapar el panel de rutas */
+.assumptions .scroll {
+  max-height: 30vh;
+  overflow-y: auto;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.assumptions li {
+  margin-bottom: 6px;
+}
+
+.tag {
+  font-size: 10px;
+  padding: 0 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.tag.observed {
+  color: var(--safe);
+}
+
+.tag.derived {
+  color: var(--science);
+}
+
+.tag.modeled {
+  color: var(--fast);
+}
+
+/* Leyenda del mapa de regreso seguro */
+.legend {
+  list-style: none;
+  padding-left: 0 !important;
+  font-size: 12px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  vertical-align: middle;
+}

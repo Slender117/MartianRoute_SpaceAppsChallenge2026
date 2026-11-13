@@ -1,8 +1,10 @@
 import type {
+  AssumptionsResponse,
   LatLon,
   RegionManifest,
   RegionSummary,
   RouteResponse,
+  SafeReturnResponse,
   SuitLimits,
   TraverseGeoJSON,
   WalkMode,
@@ -30,11 +32,15 @@ export const api = {
     request<TraverseGeoJSON>(`/regions/${id}/traverse/${rover}`),
   route: (body: { region: string; start: LatLon; end: LatLon; mode: WalkMode; suit?: SuitLimits }) =>
     request<RouteResponse>("/routes", { method: "POST", body: JSON.stringify(body) }),
+  // Devuelve los tres modos y la línea base ("baseline").
   compare: (body: { region: string; start: LatLon; end: LatLon; suit?: SuitLimits }) =>
     request<Record<WalkMode, RouteResponse>>("/routes/compare", {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  safeReturn: (body: { region: string; base?: LatLon; suit?: SuitLimits }) =>
+    request<SafeReturnResponse>("/routes/safe-return", { method: "POST", body: JSON.stringify(body) }),
+  assumptions: () => request<AssumptionsResponse>("/assumptions"),
 };
 
 export const assetUrl = (regionId: string, path: string) => `${ASSETS_URL}/${regionId}/${path}`;
