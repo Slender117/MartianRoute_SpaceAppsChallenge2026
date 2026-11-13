@@ -15,7 +15,7 @@ from app.config import get_settings
 from app.engine.planner import compare_routes
 from app.engine.validation import validate_traverse
 from app.geo import latlon_to_cell
-from app.schemas.route import RouteResponse, SuitLimits, WalkMode
+from app.schemas.route import PLANNING_MODES, RouteResponse, SuitLimits, WalkMode
 from app.storage import RegionGrids, load_manifest, load_region, load_traverse
 
 DATA_DIR = Path(__file__).resolve().parents[3] / "data" / "regions"
@@ -51,7 +51,7 @@ def _cells(grids: RegionGrids, route: RouteResponse) -> np.ndarray:
 
 
 def test_modes_take_different_paths(grids, routes):
-    for a, b in combinations(WalkMode, 2):
+    for a, b in combinations(PLANNING_MODES, 2):
         cells_a = {tuple(c) for c in _cells(grids, routes[a])}
         cells_b = {tuple(c) for c in _cells(grids, routes[b])}
         shared = len(cells_a & cells_b) / min(len(cells_a), len(cells_b))
@@ -59,7 +59,7 @@ def test_modes_take_different_paths(grids, routes):
 
 
 def test_modes_have_different_distances(routes):
-    for a, b in combinations(WalkMode, 2):
+    for a, b in combinations(PLANNING_MODES, 2):
         gap = abs(routes[a].distance_km - routes[b].distance_km) / routes[a].distance_km
         assert gap >= 0.05, f"{a} y {b} difieren solo {gap:.1%} en distancia"
 
@@ -82,10 +82,28 @@ def test_all_modes_fit_the_suit_limits(routes):
         assert route.feasible, f"{mode}: {[a.message for a in route.alerts]}"
 
 
-def test_demo_region_is_labeled_as_synthetic(grids, routes):
-    assert grids.manifest.synthetic
-    assert all(route.synthetic_data for route in routes.values())
-    assert grids.manifest.layer_meta["dem"].provenance == "modeled"
+def test_routes_carry_the_synthetic_label_of_the_region(grids, routes):
+    synthetic = grids.manifest.synthetic
+    assert all(route.synthetic_data == synthetic for route in routes.values())
+    if synthetic:
+        assert grids.manifest.layer_meta["dem"].provenance == "modeled"
+
+
+def test_he2_three_modes_differ_on_real_jezero(grids, routes):
+    """HE2: sobre el Jezero real, los tres modos dan rutas distintas.
+
+    Con datos sintéticos se salta: las pruebas de arriba ya cubren la región sintética. Cuando el
+    pipeline publique Jezero real (`synthetic: false`), esta prueba corre sola. Si falla, el plan B
+    es cambiar los puntos de demo en regions.yaml antes de tocar los pesos.
+    """
+    if grids.manifest.synthetic:
+        pytest.skip("Jezero sigue siendo sintético: HE2 se mide al publicar los datos reales")
+
+    for a, b in combinations(PLANNING_MODES, 2):
+        cells_a = {tuple(c) for c in _cells(grids, routes[a])}
+        cells_b = {tuple(c) for c in _cells(grids, routes[b])}
+        shared = len(cells_a & cells_b) / min(len(cells_a), len(cells_b))
+        assert shared < 0.7, f"HE2: {a} y {b} comparten {shared:.0%} de la ruta"
 
 
 def test_jezero_base_follows_the_coordinate_convention(grids):
@@ -103,3 +121,10 @@ def test_rover_traverse_can_be_validated(grids):
     assert result.synthetic_data
     assert result.points_outside == 0
     assert result.traverse.distance_km > 0
+
+
+def test_baseline_is_the_shortest_route(routes):
+    baseline = routes[WalkMode.baseline]
+    for mode in PLANNING_MODES:
+        assert baseline.outbound_km <= routes[mode].outbound_km + 1e-9, mode
+        assert routes[mode].vs_baseline.distance_km >= -1e-9

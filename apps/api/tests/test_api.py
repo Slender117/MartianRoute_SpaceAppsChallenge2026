@@ -32,7 +32,7 @@ def test_regions_and_route(client):
     assert r.json()["mode"] == "safe"
 
     r = client.post("/routes/compare", json=BODY)
-    assert set(r.json()) == {"safe", "fast", "science"}
+    assert set(r.json()) == {"safe", "fast", "science", "baseline"}
 
 
 def test_start_is_optional(client):
@@ -134,11 +134,11 @@ def test_missing_index_is_503(client, assets_dir):
     assert "index.json" in r.json()["detail"]
 
 
-def test_validate_endpoint_reports_three_modes(client):
+def test_validate_endpoint_reports_three_modes_and_baseline(client):
     r = client.post("/routes/validate", json={"region": "test", "rover": "rover"})
     assert r.status_code == 200
     body = r.json()
-    assert set(body["routes"]) == {"safe", "fast", "science"}
+    assert set(body["routes"]) == {"safe", "fast", "science", "baseline"}
     assert body["traverse"]["distance_km"] > 0
     assert body["routes"]["safe"]["mean_separation_m"] >= 0
 

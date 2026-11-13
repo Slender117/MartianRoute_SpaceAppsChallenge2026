@@ -3,7 +3,6 @@
 import numpy as np
 
 from app.engine.consumables import (
-    AUTONOMY_RESERVE,
     SOL_HOURS,
     SOLAR_EVENT_MGY,
     usable_autonomy_h,
@@ -34,7 +33,8 @@ def check_limits(
         i = int(steep[0])
         alerts.append(Alert(at=i, type="slope", message=f"Tramo empinado: {slope_along[i]:.0f}°"))
 
-    round_trip = elapsed_h + back_h
+    # El trabajo fijo se hace en el destino: cuenta para la EVA completa.
+    round_trip = elapsed_h + back_h + suit.task_h
     total = float(round_trip[-1])
     usable = usable_autonomy_h(suit.autonomy_h)
     if total > usable:
@@ -44,8 +44,8 @@ def check_limits(
             f"La EVA de ida y vuelta ({_hours(total)}) supera la autonomía del traje"
             f" ({_hours(suit.autonomy_h)})"
             if over_suit
-            else f"La EVA de ida y vuelta ({_hours(total)}) consume la reserva del"
-            f" {AUTONOMY_RESERVE:.0%}: el límite planeable es {_hours(usable)}"
+            else f"La EVA de ida y vuelta ({_hours(total)}) consume la reserva"
+            f" ({_hours(suit.autonomy_h - usable)}): el límite planeable es {_hours(usable)}"
         )
         alerts.append(
             Alert(
