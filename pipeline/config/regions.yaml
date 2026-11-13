@@ -5,10 +5,12 @@
 regions:
   jezero:
     name: Cráter Jezero
-    bbox: [77.25, 18.30, 77.60, 18.65]
-    size: 512
+    # Recuadro dentro del mosaico NOAH-H de Jezero (Wright et al., 2022: lon 77.3010 a 77.5858,
+    # lat 18.3049 a 18.5956), para que la capa de riesgo cubra toda la región (HE1).
+    bbox: [77.302, 18.305, 77.585, 18.595]
+    size: 600 # ~28.6 m por celda de norte a sur y ~26.7 m de este a oeste
     base: { lat: 18.4447, lon: 77.4508 } # sitio de amartizaje de Perseverance
-    dataset_version: 0.2.0
+    dataset_version: 0.3.0
     # Puntos del escenario de demo para la región sintética. Revisarlos al pasar a datos reales.
     demo:
       label: Base al frente del delta (escenario sintético)

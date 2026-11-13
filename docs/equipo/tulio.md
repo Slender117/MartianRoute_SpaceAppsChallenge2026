@@ -16,8 +16,8 @@ manifest), desplegar la app y llevarla hasta la demo congelada y la entrega. Es 
 
 ## Tareas
 
-- [ ] Decidir hoy el recuadro de la zona: ampliarlo al oeste o recortar el recorrido, porque 4,688
-      puntos de los sols 1698 a 2022 quedan fuera (lon < 77.25) (H2)
+- [x] Recuadro decidido (13 nov): se ajusta al mosaico NOAH-H, `[77.302, 18.305, 77.585, 18.595]`,
+      con grilla de 600 × 600 (~28.6 m por celda). El recorrido se recorta a esa zona (H2)
 - [ ] DEM real recortado y validado como Float32; heightmap y normal map para Jairo (H2)
 - [ ] Ortofoto, mapa mineral de Parente y THEMIS en la grilla común; medir el error de corregistro y
       el % con dato para HE1 (H2)

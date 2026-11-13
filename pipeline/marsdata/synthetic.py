@@ -7,6 +7,9 @@ El piso del cráter está armado para que el escenario de demo de regions.yaml s
 una cresta con un solo paso obliga a todos a desviarse. Después, un campo de rocas cruza el camino
 directo: Rápida lo atraviesa y Segura lo rodea. Científica se desvía hacia una franja de minerales
 sobre sedimento suelto, que Segura evita. apps/api/tests/test_demo_scenario.py lo comprueba.
+
+Las posiciones son fracciones de un marco geográfico fijo por región (FRAMES), no del bbox: así,
+recortar o mover el bbox no desplaza el terreno respecto a los puntos de demo, que van en lat/lon.
 """
 
 import numpy as np
@@ -15,7 +18,11 @@ from scipy.ndimage import gaussian_filter
 from marsdata.process.terrain import normalize, slope_degrees
 from marsdata.region import Region
 
-# Posiciones como fracción de la grilla: (fila, columna), con fila 0 al norte.
+# Marco del escenario (lon_min, lat_min, lon_max, lat_max): el bbox con el que se diseñó. Una región
+# sin marco usa su propio bbox.
+FRAMES = {"jezero": (77.25, 18.30, 77.60, 18.65)}
+
+# Posiciones como fracción del marco: (fila, columna), con fila 0 al norte.
 RIDGE_COL = 0.50
 PASS = (0.62, 0.50)
 ROCK_FIELD = (0.565, 0.40)
@@ -39,10 +46,26 @@ def _strip(yy, xx, a, b, width) -> np.ndarray:
     return np.exp(-(((yy - (ay + t * dy)) ** 2 + (xx - (ax + t * dx)) ** 2) / (2 * width**2)))
 
 
+def _frame(region: Region) -> tuple[float, float, float, float]:
+    return FRAMES.get(region.id, region.bbox)
+
+
+def _frame_coords(region: Region) -> tuple[np.ndarray, np.ndarray]:
+    """(fila, columna) de cada celda como fracción del marco; 0–1 cuando el bbox es el marco."""
+    lon_min, lat_min, lon_max, lat_max = region.bbox
+    f_lon_min, f_lat_min, f_lon_max, f_lat_max = _frame(region)
+    t = np.arange(region.size) / (region.size - 1)
+    lat = lat_max - t * (lat_max - lat_min)
+    lon = lon_min + t * (lon_max - lon_min)
+    yy = (f_lat_max - lat) / (f_lat_max - f_lat_min)
+    xx = (lon - f_lon_min) / (f_lon_max - f_lon_min)
+    return np.meshgrid(yy, xx, indexing="ij")
+
+
 def make_grids(region: Region, seed: int = 7) -> dict[str, np.ndarray]:
     rng = np.random.default_rng(seed)
     n = region.size
-    yy, xx = np.mgrid[0:n, 0:n] / (n - 1)  # 0–1
+    yy, xx = _frame_coords(region)
     r = np.hypot(yy - 0.5, xx - 0.55)
 
     # Cráter: fondo plano, pared empinada y borde elevado (metros).
@@ -90,7 +113,7 @@ def make_grids(region: Region, seed: int = 7) -> dict[str, np.ndarray]:
 def make_traverse(region: Region, seed: int = 7) -> list[tuple[float, float]]:
     """Recorrido falso desde la base, por el paso, hacia el delta, como lista de (lat, lon)."""
     rng = np.random.default_rng(seed)
-    lon_min, lat_min, lon_max, lat_max = region.bbox
+    lon_min, lat_min, lon_max, lat_max = _frame(region)
     dlat, dlon = lat_max - lat_min, lon_max - lon_min
     start = np.array([region.base["lat"], region.base["lon"]])
     gap = np.array([lat_max - PASS[0] * dlat, lon_min + PASS[1] * dlon])

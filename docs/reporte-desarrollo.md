@@ -187,7 +187,9 @@ Piezas principales:
 - `export.py`: escribe el manifest, las grillas `.npy`, el heightmap de 16 bits, las texturas RGBA por capa, los recorridos en GeoJSON y el índice de regiones.
 - `synthetic.py`: cráter con fondo plano, pared empinada, borde elevado y un abanico deltaico al oeste; rocas, inercia térmica, minerales (delta y carbonatos), hielo hacia el norte y un recorrido falso desde el sitio de amartizaje de Perseverance.
 
-La región sintética de Jezero mide 512 × 512 celdas sobre un bbox de 0.35° (unos 40 m por celda).
+La región de Jezero mide 600 × 600 celdas sobre el recuadro del mosaico NOAH-H (0.283° × 0.290°, unos
+28.6 m por celda de norte a sur). El terreno sintético está anclado a un marco geográfico fijo
+(`FRAMES` en `synthetic.py`), así que cambiar el recuadro no lo mueve respecto a los puntos de demo.
 
 ### 6.3 Frontend (Next.js + React Three Fiber)
 
