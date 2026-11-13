@@ -11,15 +11,16 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
 
 | ID | Parámetro | Valor | Etiqueta | Fuente |
 | --- | --- | --- | --- | --- |
-| `base_speed` | Velocidad con traje en terreno plano | 2.5 km/h | modeled | `[__]` |
+| `base_speed` | Velocidad con traje en terreno plano | 2 km/h | modeled | Coan (2020), §4.2.1.3.1.1: ritmo lunar sobre regolito casi plano |
 | `tobler_coefficient` | Coeficiente de la función de Tobler | 3.5 | modeled | Tobler (1993), escalada a la velocidad con traje |
 | `o2_rate` | Consumo de O₂ por persona | 0.07 kg/h | modeled | `[__]` |
 | `crew_size` | Integrantes de la EVA | 2 | modeled | Decisión del proyecto |
-| `autonomy` | Autonomía del traje | 8 h | modeled | `[__]` |
+| `autonomy` | Autonomía del traje | 8 h | modeled | Coan (2020), §4.1.4: EVA de hasta 8 h (6 ± 2 h), más 1 h de O₂ secundario; Drake y Watts (2014), §9.2 |
 | `autonomy_reserve` | Reserva de autonomía | 20 % | modeled | Decisión del proyecto |
-| `max_slope` | Pendiente máxima caminable | 25° | modeled | `[__]` |
-| `max_distance` | Distancia máxima a la base | 10 km | modeled | `[__]` |
-| `max_dose` | Límite de dosis por EVA | sin valor | modeled | `[__]` |
+| `max_slope` | Pendiente máxima caminable | 20° | modeled | Coan (2020), §4.2.1.3: subir, bajar o cruzar pendientes de hasta 20° |
+| `max_distance` | Distancia máxima a la base | 10 km | modeled | Regreso a pie de emergencia: Coan (2020), §4.2.1.3.1.1; NASA (2025), [V2 11030]; Drake y Watts (2014), §9.2 |
+| `max_dose` | Límite de dosis por EVA | sin valor | modeled | NASA (2022), §4.8: no hay límite por EVA |
+| `career_dose_limit` | Límite de dosis efectiva de carrera | 600 mSv | observed | NASA (2022), [V1 4030] |
 | `radiation_rate` | Dosis equivalente en la superficie | 0.64 ± 0.12 mSv/día | observed | Hassler et al. (2014) |
 | `solar_event_dose` | Dosis absorbida del escenario de evento solar | 8.1 mGy | observed | NASA JPL (2024) |
 | `sol_length` | Duración de un sol | 24.6598 h | observed | NASA GISS Mars24 |
@@ -43,8 +44,32 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
   medido por RAD hasta esa fecha. Se aplica completo como peor caso observado, no como predicción: un
   evento futuro podría ser mayor. Es dosis absorbida, así que no se suma a los mSv de fondo: convertirla
   requiere el factor de calidad de ese evento, que no tenemos.
-- **Sin límite por defecto.** No hay un límite de dosis por EVA con fuente. La API reporta la dosis y
-  solo genera una alerta si el cliente manda `max_dose_msv`.
+- **Sin límite por EVA.** NASA-STD-3001 Vol. 1 Rev. B (NASA, 2022, §4.8) no define un límite por
+  EVA. Define dos: la dosis efectiva de carrera debe ser menor a 600 mSv para cualquier edad y sexo,
+  sumando todas las misiones ([V1 4030]), y el diseño debe proteger a la tripulación del evento solar
+  de referencia (los eventos de octubre de 1989) por debajo de 250 mSv ([V1 4031]). La API informa el
+  límite de carrera (`career_dose_limit`), reporta la dosis de la EVA y solo genera una alerta si el
+  cliente manda `max_dose_msv`.
+
+## Notas sobre los límites de la EVA
+
+- **Son valores lunares.** Velocidad, autonomía, pendiente máxima y distancia a la base salen de
+  documentos de Artemis para la Luna. Coan (2020, §4.1.4.4) dice que la planeación de EVA en Marte
+  sigue en curso; se aplican a Marte como supuesto (`modeled`), sin prueba en 0.38 g.
+- **Distancia a la base: 10 km.** Es el límite de regreso a pie si falla el rover. Coan (2020,
+  §4.2.1.3.1.1) da menos de 5 h de caminata a 2 km/h, unos 10 km, todavía por confirmar (TBR). La
+  justificación del requisito [V2 11030] de NASA-STD-3001 Vol. 2 Rev. E (NASA, 2025, §11.2.3.2) recoge
+  que los astronautas de Apolo pidieron agua para un regreso de 10 km si falla el vehículo. La DRA 5.0
+  (Drake y Watts, 2014, §9.2, supuesto l.6) asume 10 km en la Luna y deja Marte por definir, porque no
+  se ha probado en gravedad marciana. Para una EVA solo a pie, sin rover, Coan (2020) da 2 km radiales
+  y 16 km acumulados.
+- **Velocidad: 2 km/h.** Coan (2020) la da sobre regolito casi plano, sin pendiente ni rocas; la
+  función de Tobler del motor la reduce con la pendiente.
+- **Pendiente: 20°.** Coan (2020, §4.2.1.3) pide caminar subiendo, bajando o de través en pendientes de
+  hasta 20°; Apolo 15 anduvo en pendientes de unos 17°.
+- **Autonomía: 8 h.** Coan (2020, §4.1.4) fija EVA de hasta 8 h (6 ± 2 h) con 1 h extra de O₂
+  secundario para contingencias; la DRA 5.0 (§9.2) pide un traje para EVA de 8 h. La reserva del 20 %
+  (`autonomy_reserve`) sigue siendo decisión del proyecto.
 
 ## Costo de O₂ por pendiente (`science/model/eva_cost.py`)
 
@@ -91,6 +116,8 @@ al motor de la API: lo usa la validación de HE3.
 
 - Mientras una región tenga `synthetic: true`, sus cifras no describen el terreno real de Marte.
 - La duración de la EVA solo cuenta la caminata: no incluye el trabajo en las paradas.
+- Velocidad, autonomía, pendiente máxima y distancia a la base salen de documentos lunares de Artemis
+  y se aplican a Marte sin prueba en 0.38 g.
 - El regreso se calcula por el mismo camino de la ida.
 - La tasa de radiación se midió en Gale, no en Jezero.
 - Las distancias siguen una grilla de 8 vecinos, que las sobrestima hasta cerca de 8 %. La validación
@@ -104,11 +131,21 @@ al motor de la API: lo usa la validación de HE3.
   Sefton-Nash, E. (2022). NOAH-H, a deep-learning, terrain classification system for Mars: Results
   for the ExoMars Rover candidate landing sites. *Icarus, 371*, 114701.
   https://doi.org/10.1016/j.icarus.2021.114701
+- Coan, D. (2020). *Exploration EVA system concept of operations* (EVA-EXP-0042, Rev. B). NASA
+  Johnson Space Center. https://ntrs.nasa.gov/citations/20205008200
+- Drake, B. G., & Watts, K. D. (Eds.). (2014). *Human exploration of Mars Design Reference
+  Architecture 5.0, addendum #2* (NASA/SP-2009-566-ADD2). NASA.
+  https://ntrs.nasa.gov/citations/20160003093
 - Hassler, D. M., et al. (2014). Mars' surface radiation environment measured with the Mars Science
   Laboratory's Curiosity rover. *Science, 343*(6169), 1244797. https://doi.org/10.1126/science.1244797
 - Minetti, A. E., Moia, C., Roi, G. S., Susta, D., & Ferretti, G. (2002). Energy cost of walking and
   running at extreme uphill and downhill slopes. *Journal of Applied Physiology, 93*(3), 1039–1046.
   https://doi.org/10.1152/japplphysiol.01177.2001
+- NASA. (2022). *NASA space flight human-system standard, volume 1, revision B: Crew health*
+  (NASA-STD-3001 Vol. 1 Rev. B). https://www.nasa.gov/wp-content/uploads/2020/10/2022-01-05_nasa-std-3001_vol.1_rev._b_final_draft_with_signature_010522.pdf
+- NASA. (2025). *NASA spaceflight human-system standard, volume 2, revision E: Human factors,
+  habitability, and environmental health* (NASA-STD-3001 Vol. 2 Rev. E).
+  https://ntrs.nasa.gov/citations/20250004555
 - NASA Jet Propulsion Laboratory. (2024, 10 de junio). *NASA watches Mars light up during epic solar
   storm*. https://www.jpl.nasa.gov/news/nasa-watches-mars-light-up-during-epic-solar-storm/
 - Richter, C., Braunstein, B., Winnard, A., Nasser, M., & Weber, T. (2017). Human biomechanical and

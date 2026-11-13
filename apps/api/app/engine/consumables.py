@@ -6,8 +6,9 @@ Las fuentes de cada constante están en docs/supuestos.md y en GET /assumptions.
 import numpy as np
 
 SOL_HOURS = 24.6598
-# Velocidad base de un astronauta con traje sobre terreno plano (km/h).
-BASE_SPEED_KMH = 2.5
+# Velocidad base de un astronauta con traje sobre terreno plano (km/h): ritmo lunar sobre regolito
+# casi plano de Coan (2020), aplicado a Marte.
+BASE_SPEED_KMH = 2.0
 # Consumo metabólico de O₂ durante una EVA activa (kg/h por persona), valor de referencia.
 O2_KG_PER_HOUR = 0.07
 # La EVA se hace en pareja.
@@ -20,6 +21,9 @@ RAD_MSV_PER_DAY_ERROR = 0.12
 # Dosis absorbida del mayor evento solar medido por RAD hasta 2024 (mGy). No se suma a la dosis
 # equivalente de fondo: convertirla a mSv requiere el factor de calidad de ese evento.
 SOLAR_EVENT_MGY = 8.1
+# Límite de dosis efectiva de carrera de NASA-STD-3001 Vol. 1 Rev. B [V1 4030] (mSv). No hay límite
+# por EVA: este valor solo se informa, no dispara alertas.
+CAREER_DOSE_LIMIT_MSV = 600.0
 
 
 def walking_speed_kmh(grade: np.ndarray) -> np.ndarray:
