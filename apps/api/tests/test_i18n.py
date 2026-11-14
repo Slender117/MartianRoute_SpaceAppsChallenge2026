@@ -30,6 +30,8 @@ def test_assumptions_in_english_keep_values_and_sources(assets_dir):
     )
     assert by_id["weights_safe"]["value"].startswith("slope ")
     assert by_id["crew_size"]["source"] == "Project decision"
+    assert by_id["o2_rate"]["source"] == "Waligora and Horrigan (1975), table 2; Weir (1949)"
+    assert by_id["o2_rate"]["note"].startswith("Mean of the Apollo")
     assert en["limits"][0].startswith("While a region")
 
 

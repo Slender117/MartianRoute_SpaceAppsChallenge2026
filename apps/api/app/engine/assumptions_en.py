@@ -20,10 +20,15 @@ PARAMETERS_EN: dict[str, tuple[str, str | None]] = {
         "Tobler function coefficient",
         "A walking function for people on Earth, scaled to the suited speed.",
     ),
-    "o2_rate": ("O₂ use per person", None),
+    "o2_rate": (
+        "O₂ use per person",
+        "Mean of the Apollo 11 to 17 lunar EVAs (234 kcal/h): 0.066 to 0.071 kg/h of O₂"
+        " depending on the respiratory quotient (0.7 to 1.0). Measured on the Moon with the A7L"
+        " suit.",
+    ),
     "o2_flat_per_m": (
         "O₂ per meter on flat ground",
-        "O₂ use ÷ flat speed: it inherits the [__] of both figures.",
+        "Hourly O₂ use divided by the flat speed; it absorbs the effect of the suit.",
     ),
     "slope_cost_curve": (
         "Walking cost by slope",
@@ -101,6 +106,9 @@ TEXT_EN = {
     "puntos de la ruta": "route points",
 }
 
+# Palabras en español dentro de las referencias ("Drake y Watts", "tabla 2", "Derivado: ...").
+SOURCE_WORDS_EN = {" y ": " and ", "tabla": "table", "Derivado:": "Derived:"}
+
 # Pesos de los modos: "pendiente 4, riesgo 4, ..." -> "slope 4, hazard 4, ...".
 WEIGHT_WORDS_EN = {
     "pendiente": "slope",
@@ -143,6 +151,14 @@ def _translate_value(value: float | str | None) -> float | str | None:
     return value
 
 
+def _translate_source(source: str) -> str:
+    if source in TEXT_EN:
+        return TEXT_EN[source]
+    for es, en in SOURCE_WORDS_EN.items():
+        source = source.replace(es, en)
+    return source
+
+
 def _translate(p: Assumption) -> Assumption:
     label, note = PARAMETERS_EN.get(p.id, (p.label, p.note))
     return p.model_copy(
@@ -151,7 +167,7 @@ def _translate(p: Assumption) -> Assumption:
             "note": note if note is not None else p.note,
             "value": _translate_value(p.value),
             "unit": TEXT_EN.get(p.unit, p.unit) if p.unit else p.unit,
-            "source": TEXT_EN.get(p.source, p.source),
+            "source": _translate_source(p.source),
         }
     )
 
