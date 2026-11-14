@@ -63,7 +63,7 @@ def parse_enlil(simulations: list[dict]) -> list[CmeArrival]:
     for sim in simulations or []:
         completion = parse_time(sim.get("modelCompletionTime"))
         inputs = (sim.get("cmeInputs") or [{}])[0] or {}
-        cme_id = inputs.get("cmeid") or inputs.get("cmeID") or inputs.get("associatedCMEID")
+        cme_id = inputs.get("CMEID") or inputs.get("cmeid") or inputs.get("associatedCMEID")
         for impact in sim.get("impactList") or []:
             arrival = parse_time(impact.get("arrivalTime"))
             if impact.get("location") != "Mars" or arrival is None or completion is None:

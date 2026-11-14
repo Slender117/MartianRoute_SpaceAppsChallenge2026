@@ -11,6 +11,7 @@
 import asyncio
 import json
 import math
+import ssl
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -109,6 +110,18 @@ FETCHERS: dict[str, Callable] = {
 }
 
 
+def _client(transport: httpx.AsyncBaseTransport | None) -> httpx.AsyncClient:
+    # Certificados del sistema operativo (en Windows, su almacén) en vez del paquete certifi de
+    # httpx: así funciona en equipos con antivirus o proxy que inspeccionan HTTPS. Respeta
+    # SSL_CERT_FILE si está definido.
+    return httpx.AsyncClient(
+        timeout=TIMEOUT_S,
+        transport=transport,
+        follow_redirects=True,
+        verify=ssl.create_default_context(),
+    )
+
+
 def read_snapshot(path: Path = SNAPSHOT_PATH) -> dict[str, Any]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -162,9 +175,7 @@ async def get_live(
     now = now or datetime.now(UTC)
     snapshot = read_snapshot()
     if get_settings().live_data:
-        async with httpx.AsyncClient(
-            timeout=TIMEOUT_S, transport=transport, follow_redirects=True
-        ) as client:
+        async with _client(transport) as client:
             results = await asyncio.gather(*(_one(k, client, now, snapshot) for k in FETCHERS))
     else:
         results = [await _one(k, None, now, snapshot) for k in FETCHERS]
@@ -206,9 +217,7 @@ async def build_snapshot(
     now = datetime.now(UTC)
     out: dict[str, Any] = {}
     errors: dict[str, str] = {}
-    async with httpx.AsyncClient(
-        timeout=TIMEOUT_S, transport=transport, follow_redirects=True
-    ) as client:
+    async with _client(transport) as client:
         for key, fetch in FETCHERS.items():
             try:
                 out[key] = {"fetched_at": now.isoformat(), "data": await fetch(client, now)}

@@ -18,7 +18,7 @@ ENLIL = [
     {  # simulación vieja de la misma eyección: debe quedar la nueva
         "simulationID": "WSA-ENLIL/49472/1",
         "modelCompletionTime": "2026-11-09T18:00Z",
-        "cmeInputs": [{"cmeid": "2026-11-09T10:00:00-CME-001", "speed": 610.0}],
+        "cmeInputs": [{"CMEID": "2026-11-09T10:00:00-CME-001", "speed": 610.0}],
         "impactList": [
             {"location": "Mars", "arrivalTime": "2026-11-13T10:00Z", "isGlancingBlow": True}
         ],
@@ -27,7 +27,7 @@ ENLIL = [
     {
         "simulationID": "WSA-ENLIL/49473/1",
         "modelCompletionTime": "2026-11-09T19:59Z",
-        "cmeInputs": [{"cmeid": "2026-11-09T10:00:00-CME-001", "speed": 640.0}],
+        "cmeInputs": [{"CMEID": "2026-11-09T10:00:00-CME-001", "speed": 640.0}],
         "impactList": [
             {"location": "STEREO A", "arrivalTime": "2026-11-12T01:00Z", "isGlancingBlow": False},
             {"location": "Mars", "arrivalTime": "2026-11-13T12:00Z", "isGlancingBlow": True},
@@ -37,7 +37,7 @@ ENLIL = [
     {
         "simulationID": "WSA-ENLIL/49326/1",
         "modelCompletionTime": "2026-11-01T08:00Z",
-        "cmeInputs": [{"cmeid": "2026-10-31T20:00:00-CME-001"}],
+        "cmeInputs": [{"CMEID": "2026-10-31T20:00:00-CME-001"}],
         "impactList": [
             {"location": "Mars", "arrivalTime": "2026-11-04T08:00Z", "isMinorImpact": True}
         ],
