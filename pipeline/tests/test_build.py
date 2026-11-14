@@ -285,11 +285,14 @@ def test_ortho_texture_covers_the_bbox_north_up_with_stretched_contrast(region, 
     shape, res = (300, 300), 30.0
     _, lat = _lon_lat(shape, res)
     gray = np.clip((lat - 18.28) / 0.14 * 200 + 20, 0, 255).astype(np.uint8)  # más claro al norte
+    gray[140:160, 140:160] = 0  # hueco del mosaico en el centro
     region.sources["ortho"] = "ortho.tif"
     tex = ortho_texture(_write(tmp_path / "t" / "ortho.tif", gray, res, nodata=0), region)
-    assert tex.shape == (SIZE * ORTHO_PX_PER_CELL, SIZE * ORTHO_PX_PER_CELL)
+    n = SIZE * ORTHO_PX_PER_CELL
+    assert tex.shape == (n, n)
     assert tex[0].mean() > tex[-1].mean()  # norte arriba
     assert tex.min() <= 5 and tex.max() >= 250  # contraste estirado
+    assert tex[n // 2, n // 2] > 60  # el hueco toma el gris vecino, no negro
 
 
 def test_build_and_export_write_the_3d_files(region, tmp_path):
@@ -329,6 +332,8 @@ def test_build_and_export_write_the_3d_files(region, tmp_path):
                      "Ondulaciones grandes"]  # fmt: skip
     labels = {item["name"]: item for item in manifest["labels"]}
     assert set(labels) == {"Base", "Perseverance · sol 3", "Perseverance · sol 9"}
+    assert labels["Perseverance · sol 9"]["kind"] == "traverse"
+    assert "kind" not in labels["Base"]
     # La elevación de cada nombre sale del DEM: +10 m por cada 0.01° hacia el este.
     assert labels["Base"]["elev"] == pytest.approx(-2500 + (77.35 - WEST) * 1000, abs=1.5)
     assert manifest["layer_meta"]["terrain_class"]["kind"] == "categorical"

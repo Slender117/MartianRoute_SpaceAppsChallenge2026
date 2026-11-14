@@ -24,6 +24,7 @@ export interface SceneLabel {
   lon: number;
   elev?: number;
   source?: string;
+  kind?: "traverse"; // inicio o final de un recorrido: solo con el recorrido visible
 }
 
 export interface RegionExtras {

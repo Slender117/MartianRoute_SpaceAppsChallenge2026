@@ -32,16 +32,19 @@ const LIFT = 0.25; // la etiqueta flota sobre el punto, unida por una línea
 
 export function usePlacedLabels(exaggeration: number): PlacedLabel[] {
   const manifest = useMapStore((s) => s.manifest);
+  const showTraverse = useMapStore((s) => s.showTraverse);
   const extras = useRegionExtras(manifest?.id);
   const heights = useRegionHeights(manifest, extras);
   return useMemo(() => {
     if (!manifest || !extras?.labels) return [];
     const frame = regionFrame(manifest, exaggeration);
-    return extras.labels.map((l) => {
-      const elev = heights ? heightAt(heights, manifest, l.lat, l.lon) : (l.elev ?? manifest.elevation_range[0]);
-      return { name: l.name, position: frame.toScene(l.lat, l.lon, elev) };
-    });
-  }, [manifest, extras, heights, exaggeration]);
+    return extras.labels
+      .filter((l) => l.kind !== "traverse" || showTraverse)
+      .map((l) => {
+        const elev = heights ? heightAt(heights, manifest, l.lat, l.lon) : (l.elev ?? manifest.elevation_range[0]);
+        return { name: l.name, position: frame.toScene(l.lat, l.lon, elev) };
+      });
+  }, [manifest, extras, heights, exaggeration, showTraverse]);
 }
 
 /** Dentro del Canvas: marca cada punto y calcula dónde cae en la pantalla. */
@@ -84,16 +87,31 @@ export function LabelOverlay({ labels }: { labels: PlacedLabel[] }) {
   useEffect(() => {
     let raf = 0;
     const tick = () => {
-      refs.current.forEach((el, i) => {
-        const p = screen[i];
-        if (!el) return;
+      // Primero se miden todas (lectura) y después se mueven (escritura), sin forzar el layout.
+      const items = refs.current.map((el, i) => ({ el, p: screen[i], w: el?.offsetWidth ?? 0, h: el?.offsetHeight ?? 0 }));
+      const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
+      for (const { el, p, w, h } of items) {
+        if (!el) continue;
         if (!p || !p.visible) {
           el.style.opacity = "0";
-          return;
+          continue;
         }
+        // Si choca con una etiqueta ya puesta, sube por encima de ella.
+        const x0 = p.x - w / 2;
+        let y0 = p.y - h;
+        for (let hit = true; hit; ) {
+          hit = false;
+          for (const r of placed) {
+            if (x0 < r.x1 && x0 + w > r.x0 && y0 < r.y1 && y0 + h > r.y0) {
+              y0 = r.y0 - h - 2;
+              hit = true;
+            }
+          }
+        }
+        placed.push({ x0, y0, x1: x0 + w, y1: y0 + h });
         el.style.opacity = "1";
-        el.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -100%)`;
-      });
+        el.style.transform = `translate(${x0}px, ${y0}px)`;
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);

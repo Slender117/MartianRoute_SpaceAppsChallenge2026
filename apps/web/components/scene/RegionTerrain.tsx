@@ -22,19 +22,22 @@ const SOIL_COLOR = "#c1643c";
  * velo semitransparente sobre la misma geometría. Las regiones viejas sin heightmap.bin usan el
  * heightmap.png como displacementMap.
  */
-export function RegionTerrain({ exaggeration }: { exaggeration: number }) {
+export function RegionTerrain({ exaggeration, layerOpacity = 0.75 }: { exaggeration: number; layerOpacity?: number }) {
   const manifest = useMapStore((s) => s.manifest)!;
   const extras = useRegionExtras(manifest.id);
   const heights = useRegionHeights(manifest, extras);
 
   if (!extras) return null;
-  if (!extras.assets?.heightmap) return <DisplacedTerrain manifest={manifest} exaggeration={exaggeration} />;
+  if (!extras.assets?.heightmap) {
+    return <DisplacedTerrain manifest={manifest} exaggeration={exaggeration} layerOpacity={layerOpacity} />;
+  }
   if (!heights) return null;
   return (
     <MeshTerrain
       manifest={manifest}
       heights={heights}
       exaggeration={exaggeration}
+      layerOpacity={layerOpacity}
       orthoPath={extras.assets.ortho?.path}
     />
   );
@@ -62,11 +65,13 @@ function MeshTerrain({
   manifest,
   heights,
   exaggeration,
+  layerOpacity,
   orthoPath,
 }: {
   manifest: RegionManifest;
   heights: Float32Array;
   exaggeration: number;
+  layerOpacity: number;
   orthoPath?: string;
 }) {
   const activeLayers = useMapStore((s) => s.activeLayers);
@@ -107,6 +112,7 @@ function MeshTerrain({
           <meshLambertMaterial
             map={textures[layer]}
             transparent
+            opacity={layerOpacity}
             depthWrite={false}
             polygonOffset
             polygonOffsetFactor={-1 - i}
@@ -120,7 +126,15 @@ function MeshTerrain({
 const LEGACY_SEGMENTS = 192;
 
 /** Regiones publicadas antes del heightmap.bin: el PNG de 16 bits desplaza un plano. */
-function DisplacedTerrain({ manifest, exaggeration }: { manifest: RegionManifest; exaggeration: number }) {
+function DisplacedTerrain({
+  manifest,
+  exaggeration,
+  layerOpacity,
+}: {
+  manifest: RegionManifest;
+  exaggeration: number;
+  layerOpacity: number;
+}) {
   const activeLayers = useMapStore((s) => s.activeLayers);
   const pickPoint = useMapStore((s) => s.pickPoint);
   const frame = useMemo(() => regionFrame(manifest, exaggeration), [manifest, exaggeration]);
@@ -152,6 +166,7 @@ function DisplacedTerrain({ manifest, exaggeration }: { manifest: RegionManifest
           <meshLambertMaterial
             map={textures[layer]}
             transparent
+            opacity={layerOpacity}
             depthWrite={false}
             polygonOffset
             polygonOffsetFactor={-1 - i}

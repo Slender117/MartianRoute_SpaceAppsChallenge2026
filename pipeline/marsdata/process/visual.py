@@ -10,7 +10,7 @@ import numpy as np
 from rasterio.warp import Resampling
 
 from marsdata.process.classes import ClassCounts, ClassInfo
-from marsdata.process.reproject import warp_to_region
+from marsdata.process.reproject import fill_nearest, warp_to_region
 from marsdata.region import Region
 
 # Píxeles de la ortofoto por celda de la grilla (600 celdas -> 2400 px).
@@ -34,15 +34,19 @@ def _rgb(hex_color: str) -> tuple[int, int, int]:
 
 
 def ortho_texture(path: Path, region: Region) -> np.ndarray:
-    """Ortofoto en escala de grises (uint8) sobre el bbox, con contraste estirado al 1-99 %."""
+    """Ortofoto en escala de grises (uint8) sobre el bbox, con contraste estirado al 1-99 %.
+
+    Los huecos del mosaico toman el píxel con dato más cercano: una franja negra en el suelo se
+    leería como una sombra o un barranco.
+    """
     n = region.size * ORTHO_PX_PER_CELL
     img = warp_to_region(path, region, Resampling.average, shape=(n, n), bounds=region.bbox)
     valid = np.isfinite(img)
     if not valid.any():
         raise ValueError(f"{path.name} no cubre la región")
     lo, hi = np.percentile(img[valid], [1, 99])
-    out = np.clip((img - lo) / max(hi - lo, 1e-6) * 255, 0, 255)
-    return np.where(valid, out, 0).astype(np.uint8)
+    out = np.clip((fill_nearest(img) - lo) / max(hi - lo, 1e-6) * 255, 0, 255)
+    return out.astype(np.uint8)
 
 
 def class_colors(info: list[ClassInfo]) -> dict[int, str]:

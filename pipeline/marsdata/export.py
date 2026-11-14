@@ -105,6 +105,7 @@ def _labels(
                     "lat": point[0],
                     "lon": point[1],
                     "source": props.get("source", rover),
+                    "kind": "traverse",
                 }
             )
     for label in labels:

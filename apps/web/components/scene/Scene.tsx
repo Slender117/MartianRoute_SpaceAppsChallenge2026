@@ -18,7 +18,7 @@ import { TraverseOverlay } from "./TraverseOverlay";
 /** Una sola escena para todo el recorrido: el zoom es una transición de cámara. */
 export default function Scene() {
   const view = useMapStore((s) => s.view);
-  const { sunIntensity, exaggeration, bloom } = useDebugControls();
+  const { sunIntensity, exaggeration, layerOpacity, bloom } = useDebugControls();
   const labels = usePlacedLabels(exaggeration);
   const showLabels = view === "region" && labels.length > 0;
 
@@ -36,7 +36,7 @@ export default function Scene() {
         {view !== "region" && <Globe />}
         {view === "region" && (
           <>
-            <RegionTerrain exaggeration={exaggeration} />
+            <RegionTerrain exaggeration={exaggeration} layerOpacity={layerOpacity} />
             <RoutePath exaggeration={exaggeration} />
             <TraverseOverlay exaggeration={exaggeration} />
             {showLabels && <LabelAnchors labels={labels} />}
