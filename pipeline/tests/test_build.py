@@ -217,6 +217,22 @@ def test_traverse_keeps_the_longest_continuous_run_with_dem_elevation(region, tm
     assert elev == pytest.approx(-2500 + (77.32 - 77.30) / 0.1 * (SIZE - 1), abs=0.01)
 
 
+def test_traverse_gap_can_be_set_per_region(region, tmp_path):
+    step = math.degrees(10.0 / (MARS_RADIUS_M * math.cos(math.radians(18.35))))  # 10 m al este
+    first = [[77.32 + i * step, 18.35, -1.0] for i in range(20)]
+    # 50 m después del último punto: un vértice ralo, como los del archivo de Curiosity.
+    second = [[77.32 + (24 + i) * step, 18.35, -1.0] for i in range(20)]
+    region.traverse_files = {"curiosity": str(_mmgis(tmp_path / "msl.json", [(1, first + second)]))}
+    dem = np.full((SIZE, SIZE), -4000.0, np.float32)
+
+    _, default = build_traverse(region, dem, "curiosity")
+    region.traverse_max_gap_m = 60.0
+    _, wider = build_traverse(region, dem, "curiosity")
+
+    assert default["max_gap_m"] == 30.0 and default["length_m"] == pytest.approx(190, rel=0.02)
+    assert wider["max_gap_m"] == 60.0 and wider["length_m"] == pytest.approx(430, rel=0.02)
+
+
 def test_export_writes_elevation_and_coverage(region, tmp_path):
     grids = {
         "dem": np.full((SIZE, SIZE), -2500.0, np.float32),
@@ -360,3 +376,14 @@ def test_synthetic_region_keeps_its_own_demo_and_labels(tmp_path):
     names = {item["name"] for item in manifest["labels"]}
     assert "Destino de la demo" in names
     assert "Ahorro de O₂ por pendiente" not in names
+
+
+def test_every_region_has_its_base_inside_and_its_traverse_files():
+    from marsdata.region import REPO_DIR, load_regions
+
+    for region in load_regions().values():
+        lon_min, lat_min, lon_max, lat_max = region.bbox
+        assert lon_min <= region.base["lon"] <= lon_max, region.id
+        assert lat_min <= region.base["lat"] <= lat_max, region.id
+        for name in region.traverse_files.values():
+            assert (REPO_DIR / name).exists(), f"{region.id}: falta {name}"

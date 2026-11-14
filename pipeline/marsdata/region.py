@@ -31,6 +31,8 @@ class Region:
     hazard_table: str | None = None
     # Recorrido real de cada rover: archivo de MMGIS con una LineString por sol (desde la raíz).
     traverse_files: dict[str, str] = field(default_factory=dict)
+    # Salto máximo entre puntos seguidos del recorrido; si falta, el de process/traverse.py (30 m).
+    traverse_max_gap_m: float | None = None
     # Nombres para la vista 3D: [{name, lat, lon, source, only?}]; only = "synthetic" o "real".
     labels: list[dict] = field(default_factory=list)
 
