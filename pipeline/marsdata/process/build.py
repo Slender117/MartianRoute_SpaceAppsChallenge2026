@@ -19,6 +19,7 @@ from marsdata.fetch.sources import raw_path
 from marsdata.process.classes import ClassCounts, ClassInfo, count_classes, load_risk_table
 from marsdata.process.reproject import coverage, fill_nearest, warp_to_region
 from marsdata.process.terrain import normalize, slope_degrees, validate_elevation
+from marsdata.process.visual import class_colors, class_texture, legend, ortho_texture
 from marsdata.region import REPO_DIR, Region
 
 # Capas continuas opcionales; cada una se normaliza a 0–1 (alto = más firme / más valor).
@@ -35,6 +36,10 @@ class BuildResult:
     classes: ClassCounts | None = None
     class_info: list[ClassInfo] = field(default_factory=list)
     missing: list[str] = field(default_factory=list)  # fuentes sin archivo en data/raw
+    # Solo visual: capas RGBA ya coloreadas, su leyenda y la ortofoto (uint8, escala de grises).
+    textures: dict[str, np.ndarray] = field(default_factory=dict)
+    legends: dict[str, list[dict]] = field(default_factory=dict)
+    ortho: np.ndarray | None = None
 
 
 def _stats(raw: np.ndarray) -> dict[str, float]:
@@ -83,6 +88,13 @@ def build_region(region: Region) -> BuildResult:
         }
         result.grids[key] = normalize(fill_nearest(raw))
 
+    if "ortho" in region.sources:
+        path = raw_path(region, "ortho")
+        if path.exists():
+            result.ortho = ortho_texture(path, region)
+        else:
+            result.missing.append("ortho")
+
     return result
 
 
@@ -116,3 +128,11 @@ def _categorical_hazard(region: Region, path, result: BuildResult) -> None:
     }
     result.classes = counts["texture"]
     result.class_info = info
+    colors = class_colors(info)
+    result.textures["terrain_class"] = class_texture(counts["texture"], colors)
+    result.legends["terrain_class"] = legend(info, colors, counts["texture"])
+    result.layer_meta["terrain_class"] = {
+        "coverage": cov,
+        "kind": "categorical",
+        "classes": [c.name for c in info],
+    }

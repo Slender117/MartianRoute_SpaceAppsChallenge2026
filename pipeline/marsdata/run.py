@@ -34,6 +34,9 @@ def _build(region, out_dir: Path) -> Path:
         out_dir=out_dir,
         layer_meta=result.layer_meta,
         traverse_properties=props,
+        textures=result.textures,
+        legends=result.legends,
+        ortho=result.ortho,
     )
     for name, meta in result.layer_meta.items():
         print(f"{name:<20} cobertura {100 * meta['coverage']:5.1f} %")

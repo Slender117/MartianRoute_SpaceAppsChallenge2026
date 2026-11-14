@@ -6,15 +6,23 @@ import math
 import numpy as np
 import pytest
 import rasterio
+from PIL import Image
 from rasterio.transform import from_origin
 
 from marsdata.export import write_region
 from marsdata.fetch import sources
 from marsdata.process.build import build_region
-from marsdata.process.classes import count_classes, load_risk_table
+from marsdata.process.classes import ClassCounts, ClassInfo, count_classes, load_risk_table
 from marsdata.process.reproject import fill_nearest, warp_to_region
 from marsdata.process.terrain import ElevationError, slope_degrees, validate_elevation
 from marsdata.process.traverse import build_traverse, continuous_runs, load_points
+from marsdata.process.visual import (
+    CLASS_ALPHA,
+    ORTHO_PX_PER_CELL,
+    class_texture,
+    legend,
+    ortho_texture,
+)
 from marsdata.region import MARS_RADIUS_M, Region
 
 R = 3_396_190.0  # esfera de los mosaicos de USGS y NOAH-H
@@ -231,3 +239,96 @@ def test_export_writes_elevation_and_coverage(region, tmp_path):
     geojson = json.loads((out / "traverses" / "perseverance.geojson").read_text(encoding="utf-8"))
     assert geojson["geometry"]["coordinates"][0] == [77.32, 18.35, -2498.0]
     assert geojson["properties"] == {"rover": "perseverance", "sol_min": 1}
+
+
+# --- Archivos para la vista 3D ---
+
+
+def test_heightmap_bin_is_float32_little_endian_with_row_0_north(region, tmp_path):
+    dem = (-2600 + np.arange(SIZE, dtype=np.float32)[:, None] * np.ones(SIZE)).astype(np.float32)
+    grids = {"dem": dem, "slope": np.zeros_like(dem)}
+    out = write_region(region, grids, out_dir=tmp_path / "out")
+
+    raw = np.fromfile(out / "heightmap.bin", dtype="<f4")
+    assert raw.size == SIZE * SIZE
+    assert np.array_equal(raw.reshape(SIZE, SIZE), dem)  # la primera fila es la del norte
+    manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["assets"]["heightmap"] == {
+        "path": "heightmap.bin",
+        "dtype": "float32",
+        "byte_order": "little",
+        "shape": [SIZE, SIZE],
+        "row0": "north",
+    }
+    assert "heightmap.bin" in manifest["checksums"]
+    assert manifest["cell_size_m"][0] > manifest["cell_size_m"][1]  # el lado este-oeste es menor
+
+
+def test_class_texture_blends_colors_and_hides_cells_without_class():
+    counts = ClassCounts(
+        codes=(1, 2),
+        counts=np.array([[[0, 2, 0]], [[4, 2, 0]]], dtype=np.float32),  # (K=2, H=1, W=3)
+        total=np.array([[4, 4, 4]], dtype=np.float32),
+    )
+    colors = {1: "#FF0000", 2: "#0000FF"}
+    rgba = class_texture(counts, colors)
+    assert rgba.shape == (1, 3, 4)
+    assert rgba[0, 0].tolist() == [0, 0, 255, round(CLASS_ALPHA * 255)]  # todo clase 2
+    assert rgba[0, 1].tolist() == [128, 0, 128, round(CLASS_ALPHA * 255)]  # mitad y mitad
+    assert rgba[0, 2, 3] == 0  # sin clase: transparente
+    info = [ClassInfo(1, "Uno", 0.0), ClassInfo(2, "Dos", 1.0)]
+    shares = {item["code"]: item["share"] for item in legend(info, colors, counts)}
+    assert shares == {1: pytest.approx(0.25), 2: pytest.approx(0.75)}
+
+
+def test_ortho_texture_covers_the_bbox_north_up_with_stretched_contrast(region, tmp_path):
+    shape, res = (300, 300), 30.0
+    _, lat = _lon_lat(shape, res)
+    gray = np.clip((lat - 18.28) / 0.14 * 200 + 20, 0, 255).astype(np.uint8)  # más claro al norte
+    region.sources["ortho"] = "ortho.tif"
+    tex = ortho_texture(_write(tmp_path / "t" / "ortho.tif", gray, res, nodata=0), region)
+    assert tex.shape == (SIZE * ORTHO_PX_PER_CELL, SIZE * ORTHO_PX_PER_CELL)
+    assert tex[0].mean() > tex[-1].mean()  # norte arriba
+    assert tex.min() <= 5 and tex.max() >= 250  # contraste estirado
+
+
+def test_build_and_export_write_the_3d_files(region, tmp_path):
+    shape, res = (90, 90), 100.0
+    lon, lat = _lon_lat(shape, res)
+    _write(tmp_path / "t" / "dem.tif", (-2500 + (lon - WEST) * 1000).astype(np.float32), res)
+    _noahh(tmp_path / "t" / "noahh.tif")
+    _write(tmp_path / "t" / "ti.tif", np.full((30, 30), 300, np.float32), 300.0)
+    gray = np.clip((lat - 18.28) / 0.14 * 255, 0, 255).astype(np.uint8)
+    _write(tmp_path / "t" / "ortho.tif", gray, res)
+    region.sources["ortho"] = "ortho.tif"
+    region.labels = [{"name": "Base", "lat": 18.35, "lon": 77.35, "source": "base"}]
+
+    result = build_region(region)
+    out = write_region(
+        region,
+        result.grids,
+        {"perseverance": [(18.35, 77.32, -2480.0), (18.36, 77.33, -2470.0)]},
+        out_dir=tmp_path / "out",
+        layer_meta=result.layer_meta,
+        traverse_properties={"perseverance": {"sol_min": 3, "sol_max": 9, "source": "m20.json"}},
+        textures=result.textures,
+        legends=result.legends,
+        ortho=result.ortho,
+    )
+
+    manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
+    assert "terrain_class" in manifest["layers"]
+    assert not (out / "layers" / "terrain_class.npy").exists()  # solo visual
+    with Image.open(out / "textures" / "terrain_class.png") as img:
+        assert img.mode == "RGBA" and img.size == (2 * SIZE, 2 * SIZE)
+    with Image.open(out / "textures" / "ortho.jpg") as img:
+        assert img.mode == "L" and img.size == (4 * SIZE, 4 * SIZE)
+    assert manifest["assets"]["ortho"]["path"] == "textures/ortho.jpg"
+    names = [item["name"] for item in manifest["legends"]["terrain_class"]]
+    assert names == ["No roca madre", "Roca madre", "Campos de rocas", "Ondulaciones pequeñas",
+                     "Ondulaciones grandes"]  # fmt: skip
+    labels = {item["name"]: item for item in manifest["labels"]}
+    assert set(labels) == {"Base", "Perseverance · sol 3", "Perseverance · sol 9"}
+    # La elevación de cada nombre sale del DEM: +10 m por cada 0.01° hacia el este.
+    assert labels["Base"]["elev"] == pytest.approx(-2500 + (77.35 - WEST) * 1000, abs=1.5)
+    assert manifest["layer_meta"]["terrain_class"]["kind"] == "categorical"
