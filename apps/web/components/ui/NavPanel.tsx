@@ -1,11 +1,14 @@
 "use client";
 
 import { signed } from "@/lib/format";
+import { alertText, useLang, useT } from "@/lib/i18n";
 import { useMapStore } from "@/lib/store";
 
 /** Detalle de la ruta activa: dosis, diferencia contra la Segura, punto de no retorno, paradas y alertas. */
 export function NavPanel() {
   const route = useMapStore((s) => s.routes[s.mode]);
+  const lang = useLang((s) => s.lang);
+  const t = useT();
   if (!route) return null;
 
   const pnr = route.point_of_no_return;
@@ -13,34 +16,40 @@ export function NavPanel() {
 
   return (
     <section className="panel" style={{ bottom: 16, left: 16 }}>
-      <h2>Navegación</h2>
+      <h2>{t.navTitle}</h2>
       <p style={{ margin: "0 0 6px" }}>
-        {route.distance_km.toFixed(2)} km · {route.duration_h.toFixed(1)} h ({route.duration_sols.toFixed(2)} soles)
+        {route.distance_km.toFixed(2)} km · {route.duration_h.toFixed(1)} h ({route.duration_sols.toFixed(2)} {t.sols})
       </p>
       <p className="muted" style={{ margin: "0 0 6px" }}>
-        Dosis de fondo: {route.radiation_msv.toFixed(2)} mSv
+        {t.dose(route.radiation_msv.toFixed(2))}
         {vsSafe && (
           <>
             <br />
-            vs. Segura: {signed(vsSafe.distance_km, 1, "km")}, {signed(vsSafe.duration_h, 1, "h")},{" "}
-            {signed(vsSafe.radiation_msv, 2, "mSv")}; comparte {Math.round(vsSafe.shared_path * 100)} % del camino
+            {t.vsSafe(
+              signed(vsSafe.distance_km, 1, "km"),
+              signed(vsSafe.duration_h, 1, "h"),
+              signed(vsSafe.radiation_msv, 2, "mSv"),
+              Math.round(vsSafe.shared_path * 100),
+            )}
           </>
         )}
       </p>
       {pnr !== null && (
         <p className="muted" style={{ margin: "0 0 6px" }}>
-          Punto de no retorno a las {route.path[pnr].t_h.toFixed(1)} h
-          {route.point_of_no_return_km !== null && ` (km ${route.point_of_no_return_km.toFixed(2)})`}: desde ahí,
-          volver ya no cabe en las {route.usable_autonomy_h.toFixed(1)} h planeables y gastaría la reserva
+          {t.pnr(
+            route.path[pnr].t_h.toFixed(1),
+            route.point_of_no_return_km !== null ? route.point_of_no_return_km.toFixed(2) : null,
+            route.usable_autonomy_h.toFixed(1),
+          )}
         </p>
       )}
 
       {route.stops.length > 0 && (
         <>
-          <strong>Paradas</strong>
+          <strong>{t.stops}</strong>
           <ul>
             {route.stops.map((s, i) => (
-              <li key={i}>{s.reason}</li>
+              <li key={i}>{t.stop(s)}</li>
             ))}
           </ul>
         </>
@@ -48,11 +57,11 @@ export function NavPanel() {
 
       {route.alerts.length > 0 && (
         <>
-          <strong>Alertas</strong>
+          <strong>{t.alerts}</strong>
           <ul className="error">
             {route.alerts.map((a, i) => (
               <li key={i}>
-                {a.message} (h {route.path[a.at].t_h.toFixed(1)})
+                {alertText(a, lang)} (h {route.path[a.at].t_h.toFixed(1)})
               </li>
             ))}
           </ul>

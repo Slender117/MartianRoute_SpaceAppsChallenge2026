@@ -1,5 +1,6 @@
 // Decodifica el mapa de regreso seguro de la API y lo clasifica en zonas para pintarlo.
-// La capa 3D (components/scene) solo necesita `zoneGrid` y `ZONE_COLORS`.
+// La capa 3D (components/scene) solo necesita `zoneGrid` y `ZONE_COLORS`. Los nombres de las zonas,
+// en cada idioma, están en lib/i18n.ts (`zones`).
 
 import type { SafeReturnResponse } from "./types";
 
@@ -11,13 +12,6 @@ export const ZONE_COLORS: Record<Zone, string> = {
   1: "#4fd1a5",
   2: "#ffc94d",
   3: "#ff5a4f",
-};
-
-export const ZONE_LABELS: Record<Zone, string> = {
-  0: "Sin camino de regreso",
-  1: "Ida y vuelta dentro de la autonomía planeable",
-  2: "Regreso solo consumiendo la reserva",
-  3: "Sin regreso ni con la autonomía total",
 };
 
 /** Minutos de regreso por celda, fila norte primero (como las grillas de la región). */

@@ -62,13 +62,18 @@ export interface PathPoint extends LatLon {
 export interface Stop extends LatLon {
   type: "science" | "ice";
   reason: string;
+  /** Índice de minerales o de hielo en la parada (0-1). */
+  value: number;
 }
 
 export interface Alert {
   at: number;
   type: "slope" | "autonomy" | "distance" | "radiation" | "climate";
   severity: "warning" | "critical";
+  /** Texto en español; para otros idiomas la web lo arma con `code` y `values` (lib/i18n.ts). */
   message: string;
+  code: string;
+  values: Record<string, number>;
 }
 
 /** O₂ por astronauta entre las dos cotas de gravedad del modelo de Minetti (no hay valor central). */

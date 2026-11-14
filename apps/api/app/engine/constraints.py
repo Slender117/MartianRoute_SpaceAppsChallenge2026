@@ -31,7 +31,15 @@ def check_limits(
     steep = np.nonzero(slope_along >= SLOPE_WARNING_RATIO * suit.max_slope_deg)[0]
     if steep.size:
         i = int(steep[0])
-        alerts.append(Alert(at=i, type="slope", message=f"Tramo empinado: {slope_along[i]:.0f}°"))
+        alerts.append(
+            Alert(
+                at=i,
+                type="slope",
+                code="steep_segment",
+                values={"slope_deg": round(float(slope_along[i]))},
+                message=f"Tramo empinado: {slope_along[i]:.0f}°",
+            )
+        )
 
     # El trabajo fijo se hace en el destino: cuenta para la EVA completa.
     round_trip = elapsed_h + back_h + suit.task_h
@@ -52,6 +60,13 @@ def check_limits(
                 at=int(np.nonzero(round_trip > limit)[0][0]),
                 type="autonomy",
                 severity=AlertSeverity.critical,
+                code="autonomy_over_suit" if over_suit else "autonomy_reserve",
+                values={
+                    "total_h": total,
+                    "autonomy_h": suit.autonomy_h,
+                    "reserve_h": suit.autonomy_h - usable,
+                    "usable_h": usable,
+                },
                 message=message,
             )
         )
@@ -63,6 +78,8 @@ def check_limits(
                 at=int(too_far[0]),
                 type="distance",
                 severity=AlertSeverity.critical,
+                code="too_far",
+                values={"max_dist_km": suit.max_dist_km},
                 message=f"Más de {suit.max_dist_km:g} km de la base",
             )
         )
@@ -73,6 +90,8 @@ def check_limits(
                 at=len(elapsed_h) - 1,
                 type="radiation",
                 severity=AlertSeverity.critical,
+                code="dose_over_limit",
+                values={"dose_msv": dose_msv, "limit_msv": suit.max_dose_msv},
                 message=f"Dosis estimada de {dose_msv:.2f} mSv, sobre el límite de"
                 f" {suit.max_dose_msv:g} mSv",
             )
@@ -83,6 +102,8 @@ def check_limits(
             Alert(
                 at=len(elapsed_h) - 1,
                 type="radiation",
+                code="solar_event",
+                values={"dose_mgy": SOLAR_EVENT_MGY, "return_h": float(back_h[-1])},
                 message=f"Escenario de evento solar: hasta {SOLAR_EVENT_MGY:g} mGy de dosis"
                 " absorbida (mayo de 2024, el mayor medido por RAD hasta esa fecha). Desde el"
                 f" destino, el regreso a la base toma {_hours(float(back_h[-1]))}",
