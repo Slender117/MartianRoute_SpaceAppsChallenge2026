@@ -14,7 +14,12 @@ from marsdata.fetch import sources
 from marsdata.process.build import build_region
 from marsdata.process.classes import ClassCounts, ClassInfo, count_classes, load_risk_table
 from marsdata.process.reproject import fill_nearest, warp_to_region
-from marsdata.process.terrain import ElevationError, slope_degrees, validate_elevation
+from marsdata.process.terrain import (
+    ElevationError,
+    local_relief,
+    slope_degrees,
+    validate_elevation,
+)
 from marsdata.process.traverse import build_traverse, continuous_runs, load_points
 from marsdata.process.visual import (
     CLASS_ALPHA,
@@ -376,6 +381,42 @@ def test_synthetic_region_keeps_its_own_demo_and_labels(tmp_path):
     names = {item["name"] for item in manifest["labels"]}
     assert "Destino de la demo" in names
     assert "Ahorro de O₂ por pendiente" not in names
+
+
+def test_local_relief_ignores_even_slopes_and_measures_bumps():
+    rows, cols = np.mgrid[0:80, 0:80]
+    plane = (0.3 * cols + 0.1 * rows).astype(np.float32)  # pendiente pareja: sin relieve local
+    assert np.abs(local_relief(plane, pixel_m=5.0)[10:-10, 10:-10]).max() < 1e-3
+
+    bumps = plane.copy()
+    checker = np.where((rows + cols) % 2 == 0, 1.0, -1.0)  # ±1 m cada 5 m
+    bumps[40:60, 40:60] += checker[40:60, 40:60]
+    relief = local_relief(bumps, pixel_m=5.0)
+    assert np.sqrt(np.mean(relief[45:55, 45:55] ** 2)) > 0.5
+    # Lejos de los bordes y de los bultos (la gaussiana llega a 4 σ = 8 píxeles), sigue en cero.
+    assert np.abs(relief[10:30, 10:30]).max() < 1e-3
+
+
+def test_build_region_derives_hazard_from_roughness_without_terrain_classes(region, tmp_path):
+    region.sources = {"dem": "dem.tif"}
+    region.hazard_table = None
+    region.hazard_proxy = "roughness"
+    shape, res = (900, 900), 10.0
+    lon, _ = _lon_lat(shape, res)
+    rows, cols = np.mgrid[0 : shape[0], 0 : shape[1]]
+    dem = (-2500 + (lon - WEST) * 1000).astype(np.float32)
+    rough = lon > 77.35  # mitad este con relieve de ±2 m entre píxeles vecinos
+    dem[rough] += np.where((rows + cols) % 2 == 0, 2.0, -2.0)[rough]
+    _write(tmp_path / "t" / "dem.tif", dem, res)
+
+    result = build_region(region)
+
+    meta = result.layer_meta["hazard"]
+    assert meta["provenance"] == "derived" and meta["coverage"] == 1.0
+    lon_grid = np.linspace(BBOX[0], BBOX[2], SIZE)
+    hazard = result.grids["hazard"]
+    assert hazard[:, lon_grid > 77.36].mean() > 0.9
+    assert hazard[:, lon_grid < 77.34].mean() < 0.1
 
 
 def test_every_region_has_its_base_inside_and_its_traverse_files():

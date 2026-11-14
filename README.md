@@ -71,8 +71,8 @@ en `data/raw/jezero/` y en `data/raw/jezero_walk/`. Minerales e hielo todavía n
 Sin `--out`, `build` reemplaza la región sintética de `data/regions/`, que es la que esperan las pruebas de la API.
 
 **Gale.** La región `gale`, centrada en Curiosity, se arma igual con `--region gale` y no necesita descargas a mano:
-`fetch` lee el DEM y la ortofoto de HiRISE a 5 m y THEMIS por ventana (unos 3 minutos). Todavía no tiene capa de
-riesgo, porque no hay NOAH-H de Gale.
+`fetch` lee el DEM y la ortofoto de HiRISE a 5 m y THEMIS por ventana (unos 3 minutos). Como no hay NOAH-H de
+Gale, su capa de riesgo sale de la rugosidad del DEM (ver `docs/supuestos.md`).
 
 **2. API.** En `apps/api/.env`, pon `ASSETS_DIR=../../data/regions-real` y reinicia la API; la web no cambia. Para
 volver a la sintética, regresa a `ASSETS_DIR=../../data/regions`.

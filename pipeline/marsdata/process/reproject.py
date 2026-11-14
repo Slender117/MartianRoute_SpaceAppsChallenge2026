@@ -50,6 +50,26 @@ def warp_to_region(
     return dst
 
 
+def warp_array_to_region(
+    data: np.ndarray, transform, crs, region: Region, resampling: Resampling = Resampling.average
+) -> np.ndarray:
+    """Como `warp_to_region`, para una banda en memoria con su transform y CRS (NaN = sin dato)."""
+    h, w = region.shape
+    dst = np.full((h, w), np.nan, dtype=np.float32)
+    reproject(
+        source=data.astype(np.float32),
+        destination=dst,
+        src_transform=transform,
+        src_crs=crs,
+        src_nodata=np.nan,
+        dst_transform=from_bounds(*region.grid_bounds, w, h),
+        dst_crs=MARS_GEOGRAPHIC,
+        dst_nodata=np.nan,
+        resampling=resampling,
+    )
+    return dst
+
+
 def coverage(grid: np.ndarray) -> float:
     """Fracción de celdas con dato (HE1). Se mide antes de rellenar."""
     return float(np.isfinite(grid).mean())

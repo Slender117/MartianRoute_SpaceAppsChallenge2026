@@ -29,6 +29,8 @@ class Region:
     demo_real: dict | None = None
     # Tabla CSV de clase a riesgo de la capa `hazard` categórica (ruta desde la raíz del repo).
     hazard_table: str | None = None
+    # Sin fuente `hazard`, el riesgo se deriva del DEM: "roughness" (rugosidad, process/terrain.py).
+    hazard_proxy: str | None = None
     # Recorrido real de cada rover: archivo de MMGIS con una LineString por sol (desde la raíz).
     traverse_files: dict[str, str] = field(default_factory=dict)
     # Salto máximo entre puntos seguidos del recorrido; si falta, el de process/traverse.py (30 m).
@@ -40,6 +42,8 @@ class Region:
         lon_min, lat_min, lon_max, lat_max = self.bbox
         if not (-180 <= lon_min < lon_max <= 180 and -90 <= lat_min < lat_max <= 90):
             raise ValueError(f"{self.id}: bbox fuera de la convención de -180 a 180: {self.bbox}")
+        if self.hazard_proxy not in (None, "roughness"):
+            raise ValueError(f"{self.id}: hazard_proxy desconocido: {self.hazard_proxy}")
 
     @property
     def shape(self) -> tuple[int, int]:

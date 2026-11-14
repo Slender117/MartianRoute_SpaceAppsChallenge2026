@@ -5,6 +5,8 @@
 - Pendiente: con el tamaño real de la celda en cada dirección (el lado este-oeste es más corto).
 - Riesgo categórico (NOAH-H): se cuentan las clases por celda; de ahí salen el riesgo medio con la
   tabla de Edgar, la fracción intransitable (clases con riesgo 1) y la clase dominante.
+- Riesgo sin clasificación (`hazard_proxy: roughness`, Gale): rugosidad del DEM sin reducir,
+  normalizada a 0–1 dentro de la región.
 - Capas continuas (THEMIS...): bilineal y normalizadas a 0–1.
 
 La cobertura de cada capa (fracción con dato, HE1) se mide antes de rellenar y va al manifest.
@@ -18,7 +20,13 @@ from rasterio.warp import Resampling
 from marsdata.fetch.sources import raw_path
 from marsdata.process.classes import ClassCounts, ClassInfo, count_classes, load_risk_table
 from marsdata.process.reproject import coverage, fill_nearest, warp_to_region
-from marsdata.process.terrain import normalize, slope_degrees, validate_elevation
+from marsdata.process.terrain import (
+    ROUGHNESS_SIGMA_M,
+    normalize,
+    roughness_to_region,
+    slope_degrees,
+    validate_elevation,
+)
 from marsdata.process.visual import class_colors, class_texture, legend, ortho_texture
 from marsdata.region import REPO_DIR, Region
 
@@ -71,6 +79,8 @@ def build_region(region: Region) -> BuildResult:
             raw = warp_to_region(path, region, Resampling.average)
             result.layer_meta["hazard"] = {"coverage": coverage(raw), "fill": "nearest"}
             result.grids["hazard"] = normalize(fill_nearest(raw))
+    elif region.hazard_proxy == "roughness":
+        _roughness_hazard(region, dem_path, result)
 
     for key in CONTINUOUS_KEYS:
         if key not in region.sources:
@@ -96,6 +106,24 @@ def build_region(region: Region) -> BuildResult:
             result.missing.append("ortho")
 
     return result
+
+
+def _roughness_hazard(region: Region, dem_path, result: BuildResult) -> None:
+    """Riesgo donde no hay clasificación de terreno: rugosidad del DEM, relativa a la región."""
+    rms = roughness_to_region(dem_path, region)
+    result.layer_meta["hazard"] = {
+        "provenance": "derived",
+        "coverage": coverage(rms),
+        "fill": "nearest",
+        "method": (
+            "rugosidad: RMS por celda del DEM menos su versión suavizada "
+            f"(gaussiana de {ROUGHNESS_SIGMA_M:g} m)"
+        ),
+        "units": "m",
+        "normalization": "percentiles 2 a 98 de la región",
+        **_stats(rms),
+    }
+    result.grids["hazard"] = normalize(fill_nearest(rms))
 
 
 def _categorical_hazard(region: Region, path, result: BuildResult) -> None:

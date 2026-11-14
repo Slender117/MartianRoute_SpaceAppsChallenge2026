@@ -99,8 +99,8 @@ University. https://doi.org/10.21954/ou.rd.17121482.v2
 
 Recortes por ventana (bbox de la región más 0.02° por lado) de los mosaicos remotos, sin bajarlos
 completos. El DEM y la ortofoto se guardan a 5 m: cada píxel promedia un bloque del original, leído de
-las vistas reducidas del mosaico. No hay clasificación NOAH-H de Gale, así que la región no tiene capa de
-riesgo todavía.
+las vistas reducidas del mosaico. No hay clasificación NOAH-H de Gale: su capa de riesgo se deriva de
+la rugosidad del DEM, sin otra fuente (método en `docs/supuestos.md`).
 
 ### Elevación: DEM de HiRISE a 1 m, guardado a 5 m
 

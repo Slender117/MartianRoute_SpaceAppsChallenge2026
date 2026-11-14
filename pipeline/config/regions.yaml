@@ -89,9 +89,11 @@ regions:
     traverse_max_gap_m: 60
     labels:
       - { name: "Base · Curiosity (sol 5073)", lat: -4.8260, lon: 137.3889, source: base }
+    # No hay NOAH-H de Gale: el riesgo sale de la rugosidad del DEM (process/terrain.py), relativa a
+    # la región.
+    hazard_proxy: roughness
     sources:
-      # Recortes por ventana a 5 m de los mosaicos de Calef y Parker (2016). No hay NOAH-H de Gale:
-      # sin capa de riesgo, la API la toma como 0.
+      # Recortes por ventana a 5 m de los mosaicos de Calef y Parker (2016).
       dem: MSL_Gale_DEM_Mosaic_5m_gale.tif
       ortho: MSL_Gale_Orthophoto_Mosaic_5m_gale.tif
       thermal_inertia: THEMIS_TI_Mosaic_Quant_30S120E_100mpp_gale.tif
