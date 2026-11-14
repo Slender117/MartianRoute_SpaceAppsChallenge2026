@@ -76,6 +76,7 @@ apps/web/lib/            api, geo, store (Zustand), types, theatre
 pipeline/config/regions.yaml
 pipeline/marsdata/       fetch, process, export, synthetic, publish, run (CLI)
 packages/contracts/      tipos TS generados desde el OpenAPI
+data/raw/                crudos de cada región (sí se versionan: se construye sin descargar)
 data/regions/            salida del pipeline (no se versiona)
 docs/                    arquitectura, reportes, capturas
 ```

@@ -13,10 +13,11 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 
-# Datos generados por el pipeline (se publican en R2, no en git)
-data/raw/
+# Datos generados por el pipeline (se publican en R2, no en git). Los crudos de data/raw/ sí se
+# versionan, para construir las regiones sin descargar nada.
 data/regions/
 data/regions-real/
+data/raw/**/*.part
 
 # Entorno
 .env
