@@ -1,0 +1,119 @@
+{
+  "largos": {
+    "n_calibracion": 9,
+    "n_medicion": 9,
+    "A": {
+      "w_pendiente": 4.0,
+      "w_capa": 0.46415888336127786,
+      "w_inestabilidad": 1.0,
+      "perdida_m": 46.6940106505144
+    },
+    "B": {
+      "w_pendiente": 4.0,
+      "w_capa": 0.0,
+      "w_inestabilidad": 2.1544346900318834,
+      "perdida_m": 50.74399103231133
+    },
+    "separacion_mediana_m": {
+      "A": 41.72632255743104,
+      "B": 37.60416125450785,
+      "C": 46.221335873556555
+    },
+    "pruebas": {
+      "A<B": {
+        "p": 0.2877015114563768,
+        "r": 0.19802950859533483,
+        "n_sin_empate": 8,
+        "gana": 5,
+        "pierde": 3,
+        "mediana_pareada_m": -0.35727880214514585
+      },
+      "B<C": {
+        "p": 0.16349467479900753,
+        "r": 0.346551640041836,
+        "n_sin_empate": 8,
+        "gana": 5,
+        "pierde": 3,
+        "mediana_pareada_m": -3.0690906103371347
+      }
+    }
+  },
+  "intransitable": {
+    "n_calibracion": 18,
+    "n_medicion": 18,
+    "A": {
+      "w_pendiente": 4.0,
+      "w_capa": 10.0,
+      "w_inestabilidad": 1.0,
+      "perdida_m": 22.53311543574772
+    },
+    "B": {
+      "w_pendiente": 4.0,
+      "w_capa": 0.0,
+      "w_inestabilidad": 2.1544346900318834,
+      "perdida_m": 24.038412412998138
+    },
+    "separacion_mediana_m": {
+      "A": 30.262920702068005,
+      "B": 17.557142023662344,
+      "C": 25.271936539423322
+    },
+    "pruebas": {
+      "A<B": {
+        "p": 0.9695536690495238,
+        "r": 0.48393547957046584,
+        "n_sin_empate": 15,
+        "gana": 6,
+        "pierde": 9,
+        "mediana_pareada_m": 2.7915007545330877
+      },
+      "B<C": {
+        "p": 0.24622964874263475,
+        "r": 0.16647707126769093,
+        "n_sin_empate": 17,
+        "gana": 9,
+        "pierde": 8,
+        "mediana_pareada_m": -2.9219155166027377
+      }
+    }
+  },
+  "pendiente": {
+    "n_calibracion": 18,
+    "n_medicion": 18,
+    "A": {
+      "w_pendiente": 0.1,
+      "w_capa": 0.0,
+      "w_inestabilidad": 0.1,
+      "perdida_m": 23.322608369022497
+    },
+    "B": {
+      "w_pendiente": 0.1,
+      "w_capa": 0.0,
+      "w_inestabilidad": 0.1,
+      "perdida_m": 23.322608369022497
+    },
+    "separacion_mediana_m": {
+      "A": 18.739683572293092,
+      "B": 18.739683572293092,
+      "C": 25.271936539423322
+    },
+    "pruebas": {
+      "A<B": {
+        "p": 1.0,
+        "r": 0.0,
+        "n_sin_empate": 0,
+        "gana": 0,
+        "pierde": 0,
+        "mediana_pareada_m": 0.0
+      },
+      "B<C": {
+        "p": 0.2507237357435369,
+        "r": 0.16805349924838123,
+        "n_sin_empate": 16,
+        "gana": 9,
+        "pierde": 7,
+        "mediana_pareada_m": -0.35622248168579773
+      }
+    }
+  }
+}

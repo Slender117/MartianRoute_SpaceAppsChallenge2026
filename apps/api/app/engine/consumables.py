@@ -9,7 +9,8 @@ SOL_HOURS = 24.6598
 # Velocidad base de un astronauta con traje sobre terreno plano (km/h): ritmo lunar sobre regolito
 # casi plano de Coan (2020), aplicado a Marte.
 BASE_SPEED_KMH = 2.0
-# Consumo metabólico de O₂ durante una EVA activa (kg/h por persona), valor de referencia.
+# Consumo metabólico de O₂ durante una EVA activa (kg/h por persona): la media de las EVA lunares
+# de Apollo (234 kcal/h, Waligora y Horrigan, 1975) da 0.066 a 0.071 kg/h con Weir (1949).
 O2_KG_PER_HOUR = 0.07
 # La EVA se hace en pareja.
 CREW_SIZE = 2
