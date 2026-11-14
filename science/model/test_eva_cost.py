@@ -56,10 +56,10 @@ def test_interval_is_ordered_and_flat_is_exact():
     slope_path = np.array([[0, i] for i in range(40)])
     flat_path = np.array([[0, i] for i in range(40)])
     flat_dem = np.zeros_like(dem)
-    a, b = m.o2_interval_kg(slope_path, dem, CELL, 2.8e-5, 0.38 * m.G_EARTH)
+    a, b = m.o2_interval_kg(slope_path, dem, CELL, 3.5e-5, 0.38 * m.G_EARTH)
     assert a < b
-    a, b = m.o2_interval_kg(flat_path, flat_dem, CELL, 2.8e-5, 0.38 * m.G_EARTH)
-    assert np.isclose(a, b) and np.isclose(a, 2 * 2.8e-5 * 390)
+    a, b = m.o2_interval_kg(flat_path, flat_dem, CELL, 3.5e-5, 0.38 * m.G_EARTH)
+    assert np.isclose(a, b) and np.isclose(a, 2 * 3.5e-5 * 390)
 
 
 def test_fit_recovers_the_route_on_held_out_pairs():

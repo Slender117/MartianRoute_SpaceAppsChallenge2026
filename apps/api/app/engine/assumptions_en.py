@@ -74,7 +74,7 @@ PARAMETERS_EN: dict[str, tuple[str, str | None]] = {
         "Below 600 mSv for any age and sex; it covers all missions.",
     ),
     "radiation_rate": (
-        "Surface dose equivalent",
+        "Surface dose equivalent at Gale",
         "Curiosity RAD, Gale crater, with an uncertainty of ±0.12 mSv/day.",
     ),
     "solar_event_dose": (

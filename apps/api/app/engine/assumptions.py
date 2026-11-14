@@ -213,7 +213,7 @@ def build_assumptions() -> AssumptionsResponse:
         ),
         Assumption(
             id="radiation_rate",
-            label="Dosis equivalente en la superficie",
+            label="Dosis equivalente en la superficie de Gale",
             value=RAD_MSV_PER_DAY,
             unit="mSv/día",
             provenance=observed,

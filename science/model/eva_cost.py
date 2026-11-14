@@ -2,7 +2,7 @@
 
 La forma de la curva sale de Minetti et al. (2002), medida en 1 g y sin traje. Aquí solo se usa
 para saber cuánto más (o menos) cuesta cada metro respecto al terreno plano. El nivel absoluto de
-O₂ en plano lo pone el proyecto (`o2_flat_kg_per_m`; hoy `[__]` en docs/supuestos.md), así que el
+O₂ en plano lo pone el proyecto (`o2_flat_per_m` de docs/supuestos.md), así que el
 modelo no necesita el factor de conversión energía a O₂ ni la masa del astronauta, y absorbe el
 efecto del traje en ese nivel.
 
