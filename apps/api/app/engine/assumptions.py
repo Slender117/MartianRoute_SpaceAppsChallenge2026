@@ -196,7 +196,7 @@ def build_assumptions() -> AssumptionsResponse:
             value=None,
             unit="mSv",
             provenance=modeled,
-            source="NASA-STD-3001 Vol. 1 Rev. B, §4.8",
+            source="NASA-STD-3001 Vol. 1 Rev. C, §4.8",
             note=(
                 "NASA no define un límite por EVA, solo de carrera [V1 4030] y de diseño para un"
                 " evento solar [V1 4031]. La dosis solo genera alerta si se pide un límite."
@@ -208,7 +208,7 @@ def build_assumptions() -> AssumptionsResponse:
             value=CAREER_DOSE_LIMIT_MSV,
             unit="mSv",
             provenance=observed,
-            source="NASA-STD-3001 Vol. 1 Rev. B, [V1 4030]",
+            source="NASA-STD-3001 Vol. 1 Rev. C, [V1 4030]",
             note="Menor a 600 mSv para cualquier edad y sexo; incluye todas las misiones.",
         ),
         Assumption(
