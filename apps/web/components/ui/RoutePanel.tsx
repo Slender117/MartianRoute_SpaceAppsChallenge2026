@@ -1,6 +1,7 @@
 "use client";
 
 import { MODE_COLORS } from "@/components/scene/RoutePath";
+import { CompareTable } from "@/components/ui/CompareTable";
 import { useMapStore } from "@/lib/store";
 import type { WalkMode } from "@/lib/types";
 
@@ -62,23 +63,7 @@ export function RoutePanel() {
       </button>
       {error && <p className="error">{error}</p>}
 
-      {Object.keys(routes).length > 0 && (
-        <table style={{ width: "100%", marginTop: 10, fontSize: 13 }}>
-          <tbody>
-            {MODES.map(({ id, label }) => {
-              const r = routes[id];
-              return r ? (
-                <tr key={id} style={{ color: MODE_COLORS[id] }}>
-                  <td>{label}</td>
-                  <td>{r.distance_km.toFixed(1)} km</td>
-                  <td>{r.duration_h.toFixed(1)} h</td>
-                  <td>{r.o2_estimate_kg.toFixed(2)} kg O₂</td>
-                </tr>
-              ) : null;
-            })}
-          </tbody>
-        </table>
-      )}
+      <CompareTable routes={routes} />
     </section>
   );
 }

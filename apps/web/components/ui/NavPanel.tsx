@@ -18,6 +18,8 @@ export function NavPanel() {
       {pnr !== null && (
         <p className="muted" style={{ margin: "0 0 6px" }}>
           Punto de no retorno a las {route.path[pnr].t_h.toFixed(1)} h
+          {route.point_of_no_return_km !== null && ` (km ${route.point_of_no_return_km.toFixed(2)})`}: desde ahí,
+          volver deja menos de 30 min de reserva
         </p>
       )}
 

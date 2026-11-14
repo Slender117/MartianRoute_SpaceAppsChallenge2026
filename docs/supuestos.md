@@ -14,9 +14,14 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
 | `base_speed` | Velocidad con traje en terreno plano | 2 km/h | modeled | Coan (2020), §4.2.1.3.1.1: ritmo lunar sobre regolito casi plano |
 | `tobler_coefficient` | Coeficiente de la función de Tobler | 3.5 | modeled | Tobler (1993), escalada a la velocidad con traje |
 | `o2_rate` | Consumo de O₂ por persona | 0.07 kg/h | modeled | `[__]` |
+| `o2_flat_per_m` | O₂ por metro en terreno plano | 3.5 × 10⁻⁵ kg/m | modeled | `[__]` (consumo de O₂ ÷ velocidad en plano) |
+| `slope_cost_curve` | Costo de caminar según la pendiente | 1.64 J/kg/m en plano; 17.33 a +45 % | observed | Minetti et al. (2002); solo la forma |
+| `mars_gravity` | Gravedad en la superficie de Marte | 3.728 m/s² | derived | GM / R² con GM = 42,828.37 km³/s² de Konopliv et al. (2020) y el radio medio de 3,389.5 km |
 | `crew_size` | Integrantes de la EVA | 2 | modeled | Decisión del proyecto |
 | `autonomy` | Autonomía del traje | 8 h | modeled | Coan (2020), §4.1.4: EVA de hasta 8 h (6 ± 2 h), más 1 h de O₂ secundario; Drake y Watts (2014), §9.2 |
 | `autonomy_reserve` | Reserva de autonomía | 20 % | modeled | Decisión del proyecto |
+| `task_time` | Trabajo fijo de la EVA (sin caminar) | 0 h | modeled | `[__]`: se ajusta por petición con `suit.task_h` |
+| `walkback_reserve` | Reserva mínima al volver a la base | 30 min | modeled | Decisión del proyecto (plan del equipo); falta fuente con DOI. Se aplica la más estricta entre esta y el 20 % |
 | `max_slope` | Pendiente máxima caminable | 20° | modeled | Coan (2020), §4.2.1.3: subir, bajar o cruzar pendientes de hasta 20° |
 | `max_distance` | Distancia máxima a la base | 10 km | modeled | Regreso a pie de emergencia: Coan (2020), §4.2.1.3.1.1; NASA (2025), [V2 11030]; Drake y Watts (2014), §9.2 |
 | `max_dose` | Límite de dosis por EVA | sin valor | modeled | NASA (2022), §4.8: no hay límite por EVA |
@@ -33,6 +38,7 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
 | `weights_safe` | Pesos del modo Segura | pendiente 4, riesgo 4, inestabilidad 2, ciencia 0 | modeled | Decisión del proyecto |
 | `weights_fast` | Pesos del modo Rápida | pendiente 0.5, riesgo 1, inestabilidad 0.3, ciencia 0 | modeled | Decisión del proyecto |
 | `weights_science` | Pesos del modo Científica | pendiente 1.5, riesgo 2, inestabilidad 1, ciencia 0.8 | modeled | Decisión del proyecto |
+| `weights_baseline` | Pesos de la línea base (mínima distancia) | todos en 0 | modeled | Decisión del proyecto |
 
 ## Notas sobre la radiación
 
@@ -74,8 +80,8 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
 ## Costo de O₂ por pendiente (`science/model/eva_cost.py`)
 
 Forma de la curva de costo de caminar según la pendiente, de Minetti et al. (2002), medida en 1 g y
-sin traje (valores del resumen). Solo se usa como multiplicador respecto al terreno plano. Todavía no
-entra al motor de la API.
+sin traje (valores del resumen). Solo se usa como multiplicador respecto al terreno plano. Entra
+al motor de la API en `apps/api/app/engine/o2_model.py`.
 
 | Pendiente (subida / avance) | Costo de caminar | Etiqueta | Fuente |
 | --- | --- | --- | --- |
@@ -112,10 +118,33 @@ al motor de la API: lo usa la validación de HE3.
 - Barrett (§6.3) considera de impacto alto la roca madre rugosa y la fracturada: el 0 del grupo las
   subestima.
 
+## Punto de no retorno
+
+Hay una sola regla de reserva: la **autonomía planeable** es la autonomía menos la reserva más
+estricta entre el 20 % (`autonomy_reserve`) y 30 min (`walkback_reserve`). Con el traje de 8 h manda el
+20 % (1.6 h, límite planeable de 6.4 h); los 30 min solo mandan con trajes de menos de 2.5 h. La misma
+regla alimenta la factibilidad de la ruta, el punto de no retorno y el mapa de regreso seguro.
+
+El punto de no retorno es el primer punto de la ida donde
+`tiempo gastado + tiempo de regreso ≥ autonomía planeable − trabajo fijo (task_h)`. Los 30 min son una
+decisión del plan del equipo y no tienen todavía una fuente con DOI.
+
+El mapa de regreso seguro tiene tres zonas: (1) se vuelve dentro de la autonomía planeable; (2) solo
+se vuelve consumiendo la reserva; (3) ni con la autonomía total alcanza para volver.
+
+## Cifra oficial de O₂
+
+La cifra oficial es `o2_interval_kg`: la caminata con la curva de Minetti entre las dos cotas de
+gravedad, más el trabajo fijo a la tasa por hora. `o2_estimate_kg` (duración × 0.07 kg/h) queda como
+referencia en la API y no se muestra en la interfaz.
+
 ## Límites conocidos
 
 - Mientras una región tenga `synthetic: true`, sus cifras no describen el terreno real de Marte.
-- La duración de la EVA solo cuenta la caminata: no incluye el trabajo en las paradas.
+- La duración de la EVA cuenta la caminata más el trabajo fijo (`task_h`), que vale 0 hasta que el
+  equipo fije un valor con fuente. No modela paradas de descanso.
+- El regreso usa la misma velocidad que la ida (Tobler a 2 km/h en plano): no hay una velocidad de
+  contingencia con fuente con DOI.
 - Velocidad, autonomía, pendiente máxima y distancia a la base salen de documentos lunares de Artemis
   y se aplican a Marte sin prueba en 0.38 g.
 - El regreso se calcula por el mismo camino de la ida.
@@ -124,6 +153,9 @@ al motor de la API: lo usa la validación de HE3.
   contra el rover mide los dos caminos igual, para que la proporción no herede ese sesgo.
 - La pendiente del pipeline asume celdas cuadradas: lejos del ecuador pierde precisión.
 - No hay alertas de clima todavía: la API no recibe la hora de salida.
+- La curva de O₂ por pendiente (Minetti et al., 2002) se midió en la Tierra, a 1 g y sin traje: solo
+  aporta la forma. Como no hay fuente de cómo cambia el costo en plano con la gravedad, el O₂ por
+  pendiente se reporta como intervalo (`o2_interval_kg`) entre dos cotas.
 
 ## Referencias
 
@@ -138,6 +170,9 @@ al motor de la API: lo usa la validación de HE3.
   https://ntrs.nasa.gov/citations/20160003093
 - Hassler, D. M., et al. (2014). Mars' surface radiation environment measured with the Mars Science
   Laboratory's Curiosity rover. *Science, 343*(6169), 1244797. https://doi.org/10.1126/science.1244797
+- Konopliv, A. S., Park, R. S., Rivoldini, A., Baland, R.-M., Le Maistre, S., Van Hoolst, T., Yseboodt, M.,
+  & Dehant, V. (2020). Detection of the Chandler wobble of Mars from orbiting spacecraft. *Geophysical
+  Research Letters, 47*, e2020GL090568. https://doi.org/10.1029/2020GL090568
 - Minetti, A. E., Moia, C., Roi, G. S., Susta, D., & Ferretti, G. (2002). Energy cost of walking and
   running at extreme uphill and downhill slopes. *Journal of Applied Physiology, 93*(3), 1039–1046.
   https://doi.org/10.1152/japplphysiol.01177.2001

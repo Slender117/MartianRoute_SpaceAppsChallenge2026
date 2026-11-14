@@ -6,6 +6,7 @@ import type {
   RegionManifest,
   RegionSummary,
   RouteResponse,
+  SafeReturnResponse,
   SuitLimits,
   TraverseGeoJSON,
   WalkMode,
@@ -27,6 +28,8 @@ interface MapState {
   routes: Partial<Record<WalkMode, RouteResponse>>;
   traverse: TraverseGeoJSON | null;
   showTraverse: boolean;
+  safeReturn: SafeReturnResponse | null;
+  showSafeReturn: boolean;
   loading: boolean;
   error: string | null;
 
@@ -41,6 +44,8 @@ interface MapState {
   pickPoint: (p: LatLon) => void;
   computeRoutes: () => Promise<void>;
   toggleTraverse: () => Promise<void>;
+  toggleSafeReturn: () => Promise<void>;
+  loadSafeReturn: () => Promise<void>;
 }
 
 export const useMapStore = create<MapState>((set, get) => ({
@@ -56,6 +61,8 @@ export const useMapStore = create<MapState>((set, get) => ({
   routes: {},
   traverse: null,
   showTraverse: false,
+  safeReturn: null,
+  showSafeReturn: false,
   loading: false,
   error: null,
 
@@ -68,7 +75,7 @@ export const useMapStore = create<MapState>((set, get) => ({
   },
 
   selectRegion: async (id) => {
-    set({ regionId: id, view: "zooming", start: null, end: null, routes: {}, traverse: null });
+    set({ regionId: id, view: "zooming", start: null, end: null, routes: {}, traverse: null, safeReturn: null });
     try {
       set({ manifest: await api.region(id) });
     } catch (e) {
@@ -78,7 +85,7 @@ export const useMapStore = create<MapState>((set, get) => ({
 
   // Entra directo a la vista de ruta, sin la animación desde el globo.
   openRegion: async (id) => {
-    set({ regionId: id, start: null, end: null, routes: {}, traverse: null });
+    set({ regionId: id, start: null, end: null, routes: {}, traverse: null, safeReturn: null });
     try {
       set({ manifest: await api.region(id), view: "region" });
     } catch (e) {
@@ -97,7 +104,11 @@ export const useMapStore = create<MapState>((set, get) => ({
     })),
 
   setMode: (mode) => set({ mode }),
-  setSuit: (suit) => set(({ suit: prev }) => ({ suit: { ...prev, ...suit } })),
+  // Otro traje cambia los límites del mapa de regreso: se pide de nuevo si está visible.
+  setSuit: (suit) => {
+    set(({ suit: prev }) => ({ suit: { ...prev, ...suit }, safeReturn: null }));
+    if (get().showSafeReturn) void get().loadSafeReturn();
+  },
 
   // Primer clic = inicio, segundo = destino, tercero reinicia.
   pickPoint: (p) =>
@@ -129,5 +140,24 @@ export const useMapStore = create<MapState>((set, get) => ({
       }
     }
     set({ showTraverse: !showTraverse });
+  },
+
+  // Pide el mapa la primera vez que se enciende; después solo lo muestra u oculta.
+  toggleSafeReturn: async () => {
+    const { showSafeReturn, safeReturn } = get();
+    if (!showSafeReturn && !safeReturn) await get().loadSafeReturn();
+    set({ showSafeReturn: !showSafeReturn });
+  },
+
+  loadSafeReturn: async () => {
+    const { regionId, suit } = get();
+    if (!regionId) return;
+    try {
+      const res = await api.safeReturn({ region: regionId, suit });
+      // Al mover el deslizador llegan varias respuestas: solo vale la del traje actual.
+      if (get().suit === suit && get().regionId === regionId) set({ safeReturn: res });
+    } catch (e) {
+      set({ error: (e as Error).message });
+    }
   },
 }));

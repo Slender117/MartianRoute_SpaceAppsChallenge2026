@@ -14,6 +14,7 @@ from app.engine.consumables import (
     usable_autonomy_h,
 )
 from app.engine.cost import build_cost, cost_breakdown
+from app.engine.o2_model import o2_interval_kg
 from app.engine.pathfind import find_path
 from app.engine.science import SCIENCE_THRESHOLD, find_stops
 from app.geo import cell_size_m, cell_to_latlon, haversine_km, latlon_to_cell
@@ -21,6 +22,7 @@ from app.schemas.route import (
     AlertSeverity,
     CostBreakdown,
     LatLon,
+    O2Interval,
     PathPoint,
     Provenance,
     RouteDelta,
@@ -43,8 +45,10 @@ ROUTE_PROVENANCE: dict[str, Provenance] = {
     "usable_autonomy_h": Provenance.modeled,
     "margin_h": Provenance.modeled,
     "point_of_no_return": Provenance.modeled,
+    "point_of_no_return_km": Provenance.modeled,
     "o2_estimate_kg": Provenance.modeled,
     "o2_crew_kg": Provenance.modeled,
+    "o2_interval_kg": Provenance.modeled,
     # La tasa se midió en Gale; aplicarla a otra EVA ya es un modelo.
     "radiation_msv": Provenance.modeled,
     "solar_event_mgy": Provenance.observed,
@@ -90,7 +94,7 @@ def plan_route(
 
     outbound_h, return_h = float(elapsed[-1]), float(back[-1])
     outbound_km = float(dist_m.sum() / 1000)
-    duration_h = outbound_h + return_h
+    duration_h = outbound_h + return_h + suit.task_h
     usable_h = usable_autonomy_h(suit.autonomy_h)
     dose_msv = radiation_dose_msv(duration_h)
     from_base = haversine_km(node, coords[:, 0], coords[:, 1])
@@ -99,6 +103,10 @@ def plan_route(
     )
     interesting = grids.minerals[path[1:, 0], path[1:, 1]] >= SCIENCE_THRESHOLD
     o2_kg = duration_h * O2_KG_PER_HOUR
+    # Caminata según la pendiente (Minetti) más el trabajo fijo a la tasa por hora.
+    o2_task = suit.task_h * O2_KG_PER_HOUR
+    o2_low, o2_high = (o2 + o2_task for o2 in o2_interval_kg(path, grids.dem, cell_m))
+    pnr = point_of_no_return(elapsed, back, usable_h - suit.task_h)
 
     dem_meta = m.layer_meta.get("dem")
     return RouteResponse(
@@ -114,10 +122,12 @@ def plan_route(
         margin_h=usable_h - duration_h,
         o2_estimate_kg=o2_kg,
         o2_crew_kg=o2_kg * CREW_SIZE,
+        o2_interval_kg=O2Interval(low_kg=o2_low, high_kg=o2_high),
         radiation_msv=dose_msv,
         solar_event_mgy=SOLAR_EVENT_MGY if solar_event else None,
         science_km=float(dist_m[interesting].sum() / 1000),
-        point_of_no_return=point_of_no_return(elapsed, back, usable_h),
+        point_of_no_return=pnr,
+        point_of_no_return_km=None if pnr is None else float(dist_m[:pnr].sum() / 1000),
         stops=stops,
         alerts=alerts,
         feasible=all(a.severity != AlertSeverity.critical for a in alerts),
@@ -130,6 +140,25 @@ def plan_route(
     )
 
 
+def route_delta(route: RouteResponse, ref: RouteResponse) -> RouteDelta:
+    """Diferencia de `route` menos `ref`, con la fracción de camino que comparten."""
+    ref_points = {(p.lat, p.lon) for p in ref.path}
+    shared = sum((p.lat, p.lon) in ref_points for p in route.path)
+    return RouteDelta(
+        distance_km=route.distance_km - ref.distance_km,
+        duration_h=route.duration_h - ref.duration_h,
+        duration_sols=route.duration_sols - ref.duration_sols,
+        o2_estimate_kg=route.o2_estimate_kg - ref.o2_estimate_kg,
+        o2_interval_kg=O2Interval(
+            low_kg=route.o2_interval_kg.low_kg - ref.o2_interval_kg.low_kg,
+            high_kg=route.o2_interval_kg.high_kg - ref.o2_interval_kg.high_kg,
+        ),
+        radiation_msv=route.radiation_msv - ref.radiation_msv,
+        science_km=route.science_km - ref.science_km,
+        shared_path=shared / len(route.path),
+    )
+
+
 def compare_routes(
     grids: RegionGrids,
     start: LatLon | None,
@@ -137,22 +166,13 @@ def compare_routes(
     suit: SuitLimits,
     solar_event: bool = False,
 ) -> dict[WalkMode, RouteResponse]:
-    """Las tres rutas, cada una con su diferencia contra la ruta segura."""
+    """Los tres modos y la línea base, cada uno con su diferencia contra la Segura y la base."""
     routes = {mode: plan_route(grids, start, end, mode, suit, solar_event) for mode in WalkMode}
 
-    safe = routes[WalkMode.safe]
-    safe_points = {(p.lat, p.lon) for p in safe.path}
+    safe, baseline = routes[WalkMode.safe], routes[WalkMode.baseline]
     for mode, route in routes.items():
-        if mode == WalkMode.safe:
-            continue
-        shared = sum((p.lat, p.lon) in safe_points for p in route.path)
-        route.vs_safe = RouteDelta(
-            distance_km=route.distance_km - safe.distance_km,
-            duration_h=route.duration_h - safe.duration_h,
-            duration_sols=route.duration_sols - safe.duration_sols,
-            o2_estimate_kg=route.o2_estimate_kg - safe.o2_estimate_kg,
-            radiation_msv=route.radiation_msv - safe.radiation_msv,
-            science_km=route.science_km - safe.science_km,
-            shared_path=shared / len(route.path),
-        )
+        if mode != WalkMode.safe:
+            route.vs_safe = route_delta(route, safe)
+        if mode != WalkMode.baseline:
+            route.vs_baseline = route_delta(route, baseline)
     return routes

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRegionExtras } from "@/components/scene/regionAssets";
+import { SafeReturnToggle } from "@/components/ui/SafeReturnLegend";
 import { useMapStore } from "@/lib/store";
 
 const LAYER_LABELS: Record<string, string> = {
@@ -52,6 +53,7 @@ export function LayerPanel() {
           {manifest.traverses[0]})
         </label>
       )}
+      <SafeReturnToggle />
       <button className="ghost" onClick={backToGlobe} style={{ marginTop: 8 }}>
         ← Volver al globo
       </button>

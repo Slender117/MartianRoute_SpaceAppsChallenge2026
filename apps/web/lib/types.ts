@@ -1,7 +1,9 @@
 // Espejo a mano de los esquemas Pydantic de la API.
 // Reemplazar por los tipos generados en @wazemars/contracts (`npm run contracts`).
 
-export type WalkMode = "safe" | "fast" | "science";
+// "baseline" es la línea base de mínima distancia: no es un modo que elija el astronauta,
+// solo la referencia contra la que se comparan los otros tres.
+export type WalkMode = "safe" | "fast" | "science" | "baseline";
 
 export type Provenance = "observed" | "derived" | "modeled";
 
@@ -15,6 +17,8 @@ export interface SuitLimits {
   max_slope_deg: number;
   max_dist_km: number;
   max_dose_msv?: number | null;
+  /** Horas de trabajo fijo sin caminar (paradas, muestreo); 0 por defecto. */
+  task_h?: number;
 }
 
 export interface RegionSummary {
@@ -67,11 +71,18 @@ export interface Alert {
   message: string;
 }
 
+/** O₂ por astronauta entre las dos cotas de gravedad del modelo de Minetti (no hay valor central). */
+export interface O2Interval {
+  low_kg: number;
+  high_kg: number;
+}
+
 export interface RouteDelta {
   distance_km: number;
   duration_h: number;
   duration_sols: number;
   o2_estimate_kg: number;
+  o2_interval_kg: O2Interval;
   radiation_msv: number;
   science_km: number;
   shared_path: number;
@@ -90,15 +101,18 @@ export interface RouteResponse {
   margin_h: number;
   o2_estimate_kg: number;
   o2_crew_kg: number;
+  o2_interval_kg: O2Interval;
   radiation_msv: number;
   solar_event_mgy: number | null;
   science_km: number;
   point_of_no_return: number | null;
+  point_of_no_return_km: number | null;
   stops: Stop[];
   alerts: Alert[];
   feasible: boolean;
   cost_breakdown: { slope: number; hazard: number; instability: number; science_bonus: number };
   vs_safe: RouteDelta | null;
+  vs_baseline: RouteDelta | null;
   synthetic_data: boolean;
   provenance: Record<string, Provenance>;
 }
@@ -143,4 +157,23 @@ export interface TraverseGeoJSON {
   type: "Feature";
   properties: { rover: string };
   geometry: { type: "LineString"; coordinates: [number, number][] };
+}
+
+/** Respuesta de POST /routes/safe-return. */
+export interface SafeReturnResponse {
+  region: string;
+  base: LatLon;
+  shape: [number, number];
+  bbox: [number, number, number, number];
+  /** uint16 little-endian en base64, fila norte primero; `no_return_value` = sin regreso. */
+  return_minutes: string;
+  no_return_value: number;
+  planned_limit_min: number;
+  total_limit_min: number;
+  planned_area_fraction: number;
+  total_area_fraction: number;
+  unreachable_fraction: number;
+  max_eva_dose_msv: number;
+  synthetic_data: boolean;
+  provenance: Record<string, Provenance>;
 }

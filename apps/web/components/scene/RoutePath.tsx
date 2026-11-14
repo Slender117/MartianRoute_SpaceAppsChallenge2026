@@ -13,6 +13,7 @@ export const MODE_COLORS: Record<WalkMode, string> = {
   safe: "#4fd1a5",
   fast: "#ffc94d",
   science: "#6aa8ff",
+  baseline: "#9aa0a6", // gris: referencia, no un modo
 };
 
 const LIFT = 0.04; // separa la línea del terreno para que no parpadee
