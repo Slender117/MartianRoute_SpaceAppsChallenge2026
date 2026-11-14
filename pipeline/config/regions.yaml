@@ -19,6 +19,10 @@ regions:
       start: { lat: 18.4447, lon: 77.4508 }
       end: { lat: 18.4685, lon: 77.3932 }
     traverses: [perseverance]
+    # Recorrido real (MMGIS de JPL, una LineString por sol) y tabla clase a riesgo de NOAH-H
+    # (Edgar), con rutas desde la raíz del repositorio.
+    traverse_files: { perseverance: M20_traverse_2026-11-12.json }
+    hazard_table: science/validation/noahh_ig_risk.csv
     sources:
       # Rutas locales a los archivos descargados en data/raw/<region>/. Citas en docs/creditos.md.
       # DEM y ortofoto son del mismo conjunto de navegación de Mars 2020 (USGS, 2020): la ortofoto
@@ -44,6 +48,8 @@ regions:
     base: { lat: 18.4447, lon: 77.4508 } # sitio de amartizaje de Perseverance
     dataset_version: 0.1.0
     traverses: [perseverance]
+    traverse_files: { perseverance: M20_traverse_2026-11-12.json }
+    hazard_table: science/validation/noahh_ig_risk.csv
     sources:
       dem: JEZ_hirise_soc_006_DTM_1m_jezero_walk.tif # doi:10.5066/P9REJ9JN
       ortho: JEZ_hirise_soc_006_orthoMosaic_25cm_jezero_walk.tif # doi:10.5066/P9QJDP48

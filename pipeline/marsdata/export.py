@@ -33,6 +33,7 @@ LAYER_COLORS = {
     "thermal_inertia": (90, 160, 255),
     "ice": (180, 240, 255),
     "minerals": (60, 220, 120),
+    "impassable_fraction": (200, 60, 255),
 }
 
 
@@ -59,12 +60,25 @@ def _pipeline_commit() -> str | None:
     return out.stdout.strip()
 
 
-def _layer_meta(region: Region, names: list[str], synthetic: bool) -> dict[str, dict[str, str]]:
-    """Procedencia de cada capa. Los productos reales pasan por estéreo o por un modelo: derived."""
+def _layer_meta(
+    region: Region, names: list[str], synthetic: bool, extra: dict[str, dict] | None = None
+) -> dict[str, dict]:
+    """Procedencia de cada capa. Los productos reales pasan por estéreo o por un modelo: derived.
+
+    `extra` (del build) agrega la cobertura de cada capa y puede corregir la procedencia.
+    """
     if synthetic:
         return {name: {"provenance": "modeled", "source": "marsdata.synthetic"} for name in names}
-    sources = {**region.sources, "slope": region.sources.get("dem", "")}
-    return {name: {"provenance": "derived", "source": sources.get(name, "")} for name in names}
+    sources = {
+        **region.sources,
+        "slope": region.sources.get("dem", ""),
+        "impassable_fraction": region.sources.get("hazard", ""),
+    }
+    extra = extra or {}
+    return {
+        name: {"provenance": "derived", "source": sources.get(name, ""), **extra.get(name, {})}
+        for name in names
+    }
 
 
 def _checksums(rdir: Path) -> dict[str, str]:
@@ -78,10 +92,13 @@ def _checksums(rdir: Path) -> dict[str, str]:
 def write_region(
     region: Region,
     grids: dict[str, np.ndarray],
-    traverses: dict[str, list[tuple[float, float]]] | None = None,
+    traverses: dict[str, list[tuple[float, ...]]] | None = None,
     out_dir: Path = OUT_DIR,
     synthetic: bool = False,
+    layer_meta: dict[str, dict] | None = None,
+    traverse_properties: dict[str, dict] | None = None,
 ) -> Path:
+    """Escribe la región. Cada punto de un recorrido es (lat, lon) o (lat, lon, elevación)."""
     rdir = out_dir / region.id
     (rdir / "layers").mkdir(parents=True, exist_ok=True)
     (rdir / "textures").mkdir(exist_ok=True)
@@ -106,8 +123,11 @@ def write_region(
     for rover, coords in traverses.items():
         geojson = {
             "type": "Feature",
-            "properties": {"rover": rover},
-            "geometry": {"type": "LineString", "coordinates": [[lon, lat] for lat, lon in coords]},
+            "properties": {"rover": rover, **(traverse_properties or {}).get(rover, {})},
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [[lon, lat, *rest] for lat, lon, *rest in coords],
+            },
         }
         (rdir / "traverses" / f"{rover}.geojson").write_text(json.dumps(geojson), encoding="utf-8")
 
@@ -125,7 +145,7 @@ def write_region(
         "pipeline_commit": _pipeline_commit(),
         "crs": CRS,
         "synthetic": synthetic,
-        "layer_meta": _layer_meta(region, ["dem", "slope", *layers], synthetic),
+        "layer_meta": _layer_meta(region, ["dem", "slope", *layers], synthetic, layer_meta),
         "checksums": _checksums(rdir),
         "demo": region.demo,
     }

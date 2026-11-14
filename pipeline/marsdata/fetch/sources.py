@@ -93,14 +93,6 @@ def download(url: str, dest: Path) -> Path:
     return dest
 
 
-def _geographic(crs) -> str:
-    """Coordenadas geográficas sobre el mismo cuerpo que `crs` (esfera o elipsoide)."""
-    params = crs.to_dict()
-    if "R" in params:
-        return f"+proj=longlat +R={params['R']} +no_defs"
-    return f"+proj=longlat +a={params['a']} +b={params.get('b', params['a'])} +no_defs"
-
-
 def crop_window(src_path: str, region: Region, dest: Path, margin_deg: float = 0.05) -> Path:
     """Guarda como GeoTIFF la ventana del bbox de la región (más el margen) de `src_path`.
 
@@ -110,10 +102,12 @@ def crop_window(src_path: str, region: Region, dest: Path, margin_deg: float = 0
     from rasterio.warp import transform_bounds
     from rasterio.windows import Window, from_bounds
 
+    from marsdata.process.reproject import geographic_crs
+
     lon_min, lat_min, lon_max, lat_max = region.bbox
     with rasterio.Env(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR"), rasterio.open(src_path) as src:
         bounds = transform_bounds(
-            _geographic(src.crs),
+            geographic_crs(src.crs),
             src.crs,
             lon_min - margin_deg,
             lat_min - margin_deg,
