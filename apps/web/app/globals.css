@@ -80,3 +80,48 @@ main {
 .error {
   color: #ff8a80;
 }
+
+/* Leyenda de una capa por clases (LayerPanel) */
+.panel ul.legend {
+  list-style: none;
+  padding: 0 0 6px 22px;
+  font-size: 12px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0;
+}
+
+.legend .swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex: none;
+  opacity: 0.85;
+}
+
+/* Nombres sobre el terreno 3D (SceneLabels): HTML fuera del canvas */
+.scene-labels {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scene-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(11, 6, 5, 0.6);
+  color: #fff;
+  font-size: 12px;
+  font-style: italic;
+  white-space: nowrap;
+  opacity: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}

@@ -7,6 +7,8 @@ import { regionFrame } from "@/lib/geo";
 import { useMapStore } from "@/lib/store";
 import type { WalkMode } from "@/lib/types";
 
+import { heightAt, useRegionExtras, useRegionHeights } from "./regionAssets";
+
 export const MODE_COLORS: Record<WalkMode, string> = {
   safe: "#4fd1a5",
   fast: "#ffc94d",
@@ -23,11 +25,15 @@ export function RoutePath({ exaggeration }: { exaggeration: number }) {
   const manifest = useMapStore((s) => s.manifest)!;
   const { routes, mode, start, end } = useMapStore();
   const frame = useMemo(() => regionFrame(manifest, exaggeration), [manifest, exaggeration]);
+  const heights = useRegionHeights(manifest, useRegionExtras(manifest.id));
   const [zMin] = manifest.elevation_range;
 
-  // Los extremos se dibujan a la altura base hasta que la API devuelve elevaciones.
+  // Los extremos se apoyan en el terreno; sin heightmap.bin, a la altura base.
   const marker = (p: { lat: number; lon: number }, color: string, key: string) => (
-    <mesh key={key} position={frame.toScene(p.lat, p.lon, zMin, LIFT)}>
+    <mesh
+      key={key}
+      position={frame.toScene(p.lat, p.lon, heights ? heightAt(heights, manifest, p.lat, p.lon) : zMin, LIFT)}
+    >
       <sphereGeometry args={[0.06, 16, 16]} />
       <meshBasicMaterial color={color} toneMapped={false} />
     </mesh>
