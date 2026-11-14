@@ -81,21 +81,22 @@ main {
   color: #ff8a80;
 }
 
-/* Leyenda de una capa por clases (LayerPanel) */
-.panel ul.legend {
+/* Leyenda de una capa por clases (LayerPanel). Nombres propios para no chocar con la leyenda del mapa
+   de regreso seguro (.legend, .swatch). */
+.panel ul.class-legend {
   list-style: none;
   padding: 0 0 6px 22px;
   font-size: 12px;
 }
 
-.legend li {
+.class-legend li {
   display: flex;
   align-items: center;
   gap: 6px;
   margin: 2px 0;
 }
 
-.legend .swatch {
+.class-legend .class-swatch {
   width: 10px;
   height: 10px;
   border-radius: 2px;

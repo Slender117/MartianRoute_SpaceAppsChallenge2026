@@ -34,10 +34,10 @@ export function LayerPanel() {
             {LAYER_LABELS[layer] ?? layer}
           </label>
           {activeLayers.includes(layer) && legends?.[layer] && (
-            <ul className="legend">
+            <ul className="class-legend">
               {legends[layer].map((item) => (
                 <li key={item.code}>
-                  <span className="swatch" style={{ background: item.color }} />
+                  <span className="class-swatch" style={{ background: item.color }} />
                   {item.name}
                   <span className="muted"> · {Math.round(item.share * 100)} %</span>
                 </li>
