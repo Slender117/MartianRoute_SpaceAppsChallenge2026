@@ -148,6 +148,14 @@ main {
   vertical-align: top;
 }
 
+/* Ruta que rompe un límite del traje: se lee aunque el color del modo sea parecido al rojo */
+.compare .infeasible {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ff8a80; /* el mismo rojo que .error */
+}
+
 .compare caption {
   caption-side: bottom;
   text-align: left;
