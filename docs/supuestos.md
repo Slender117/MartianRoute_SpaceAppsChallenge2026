@@ -28,6 +28,8 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
 | `career_dose_limit` | Límite de dosis efectiva de carrera | 600 mSv | observed | NASA (2022), [V1 4030] |
 | `radiation_rate` | Dosis equivalente en la superficie de Gale | 0.64 ± 0.12 mSv/día | observed | Hassler et al. (2014): Curiosity RAD en el cráter Gale; se aplica a Jezero como supuesto |
 | `solar_event_dose` | Dosis absorbida del escenario de evento solar | 8.1 mGy | observed | NASA JPL (2024) |
+| `solar_alert_before` | Inicio de la alerta antes de que una eyección solar llegue a Marte | 72 h | modeled | Decisión del proyecto; la llegada la pronostica WSA-ENLIL en DONKI (CCMC de NASA) |
+| `solar_alert_after` | Fin de la alerta después de la llegada | 48 h | modeled | Decisión del proyecto |
 | `sol_length` | Duración de un sol | 24.6598 h | observed | NASA GISS Mars24 |
 | `mars_radius` | Radio de Marte | 3,389.5 km | observed | Convención del proyecto (radio medio) |
 | `slope_warning` | Aviso de tramo empinado | 80 % de la pendiente máxima | modeled | Decisión del proyecto |
@@ -138,6 +140,14 @@ decisión del plan del equipo y no tienen todavía una fuente con DOI.
 El mapa de regreso seguro tiene tres zonas: (1) se vuelve dentro de la autonomía planeable; (2) solo
 se vuelve consumiendo la reserva; (3) ni con la autonomía total alcanza para volver.
 
+## Alerta solar en vivo
+
+La API consulta DONKI (CCMC de NASA) y toma las llegadas a Marte que pronostica el modelo WSA-ENLIL
+para las eyecciones de masa coronal de los últimos 30 días. Si una llegada cae entre 72 h antes y 48 h
+después de la hora actual (`solar_alert_before`, `solar_alert_after`, decisión del proyecto), la interfaz
+avisa y propone activar el escenario de evento solar. Es un pronóstico de modelo (`modeled`), no una
+medición en Marte, y no cambia la dosis de fondo.
+
 ## Cifra oficial de O₂
 
 La cifra oficial es `o2_interval_kg`: la caminata con la curva de Minetti entre las dos cotas de
@@ -162,6 +172,8 @@ referencia en la API y no se muestra en la interfaz.
 - La curva de O₂ por pendiente (Minetti et al., 2002) se midió en la Tierra, a 1 g y sin traje: solo
   aporta la forma. Como no hay fuente de cómo cambia el costo en plano con la gravedad, el O₂ por
   pendiente se reporta como intervalo (`o2_interval_kg`) entre dos cotas.
+- Las llegadas de eyecciones solares a Marte son pronósticos del modelo WSA-ENLIL (DONKI), no
+  mediciones. La alerta solo propone activar el escenario de evento solar.
 
 ## Referencias
 

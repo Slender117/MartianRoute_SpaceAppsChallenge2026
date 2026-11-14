@@ -81,6 +81,11 @@ PARAMETERS_EN: dict[str, tuple[str, str | None]] = {
         "Absorbed dose of the solar event scenario",
         "Curiosity RAD, May 20, 2024. Applied in full as the worst case.",
     ),
+    "solar_alert_before": (
+        "Alert start before a solar eruption reaches Mars",
+        "The arrival is forecast live by the WSA-ENLIL model in DONKI (NASA CCMC).",
+    ),
+    "solar_alert_after": ("Alert end after the arrival", None),
     "sol_length": ("Length of a sol", None),
     "mars_radius": ("Radius of Mars", None),
     "slope_warning": ("Steep segment warning", None),
@@ -140,6 +145,8 @@ LIMITS_EN = [
     "The official O₂ figure is `o2_interval_kg` (walking with the Minetti curve plus fixed work"
     " at the hourly rate). `o2_estimate_kg` is only duration × hourly rate: it is a reference"
     " and is not shown in the interface.",
+    "Arrivals of solar eruptions at Mars are forecasts of the WSA-ENLIL model (DONKI), not"
+    " measurements. The alert only suggests turning on the solar event scenario.",
 ]
 
 

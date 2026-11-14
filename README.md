@@ -35,6 +35,10 @@ cp .env.example .env
 .venv/Scripts/uvicorn app.main:app --reload
 ```
 
+El panel "Marte hoy" consulta a NASA en vivo (`GET /live`). Saca una llave gratuita en https://api.nasa.gov y
+ponla en `apps/api/.env` como `NASA_API_KEY`; sin internet, la API usa la copia de `app/live/snapshot.json`.
+Para actualizar esa copia antes de una demo: `.venv/Scripts/python -m app.live` desde `apps/api`.
+
 **3. Web** en http://localhost:3000 (repite `npm install` cuando un pull cambie `package-lock.json`):
 
 ```bash

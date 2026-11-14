@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import get_settings
 from app.engine.pathfind import NoPathError
 from app.geo import OutOfRegionError
-from app.routers import assumptions, health, regions, routes
+from app.routers import assumptions, health, live, regions, routes
 from app.storage import NotFoundError, RegionDataError
 
 # Código HTTP de cada error del dominio. El mensaje llega a la UI en `detail`.
@@ -44,6 +44,7 @@ def create_app() -> FastAPI:
     app.include_router(regions.router)
     app.include_router(routes.router)
     app.include_router(assumptions.router)
+    app.include_router(live.router)
 
     # En desarrollo servimos los assets locales para no depender de R2.
     if settings.assets_dir and Path(settings.assets_dir).is_dir():

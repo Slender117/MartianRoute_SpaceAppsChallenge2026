@@ -182,3 +182,62 @@ export interface SafeReturnResponse {
   synthetic_data: boolean;
   provenance: Record<string, Provenance>;
 }
+
+// Datos en vivo de NASA (GET /live). `status` dice si vienen de NASA ahora o de la copia guardada.
+export interface LiveSource {
+  name: string;
+  url: string;
+  status: "live" | "snapshot";
+  fetched_at: string;
+  provenance: Provenance;
+  error: string | null;
+}
+
+export interface CmeArrival {
+  simulation_id: string;
+  cme_id: string | null;
+  cme_start: string | null;
+  speed_km_s: number | null;
+  arrival_time: string;
+  glancing_blow: boolean;
+  minor_impact: boolean;
+  model_completion: string;
+  link: string;
+}
+
+export interface RoverPosition {
+  source: LiveSource;
+  rover: string;
+  sol: number;
+  site: number;
+  drive: number;
+  lat: number;
+  lon: number;
+  elevation_m: number | null;
+  odometry_km: number | null;
+  distance_to_base_km: number | null;
+  in_region: boolean | null;
+}
+
+export interface RoverImage {
+  image_id: string;
+  sol: number;
+  taken_utc: string;
+  camera: string;
+  thumbnail_url: string;
+  full_url: string | null;
+  page_url: string | null;
+}
+
+export interface LiveResponse {
+  generated_at: string;
+  space_weather: {
+    source: LiveSource;
+    arrivals: CmeArrival[];
+    alert: CmeArrival | null;
+    alert_before_h: number;
+    alert_after_h: number;
+  };
+  rover: RoverPosition | null;
+  images: { source: LiveSource; latest_sol: number | null; images: RoverImage[] };
+}

@@ -160,6 +160,7 @@ en `marsdata build`.
 | POST | `/routes/validate` | métricas de los tres modos y la línea base contra el recorrido de un rover |
 | POST | `/routes/safe-return` | mapa de regreso seguro: minutos de regreso a la base desde cada celda |
 | GET | `/assumptions` | parámetros del modelo con su fuente, y límites conocidos |
+| GET | `/live?region=` | Marte hoy: llegadas de eyecciones solares a Marte (DONKI), posición de Perseverance (MMGIS) y sus últimas imágenes |
 | GET | `/assets/...` | solo en desarrollo: sirve `data/regions` |
 
 Errores, siempre con el motivo en `detail`:
@@ -171,6 +172,27 @@ Errores, siempre con el motivo en `detail`:
 | 503 | datos ausentes o inconsistentes: falta un archivo, no coincide el checksum o el tamaño de la grilla, manifest inválido |
 
 Esquemas: `apps/api/app/schemas/`. Con la API corriendo, `npm run contracts` genera los tipos TS.
+
+## Datos en vivo de NASA (`/live`)
+
+`apps/api/app/live/` consulta tres fuentes públicas de NASA mientras corre la API:
+
+| Fuente | Qué da | Etiqueta |
+|---|---|---|
+| DONKI del CCMC (`api.nasa.gov/DONKI/WSAEnlilSimulations`, últimos 30 días) | Llegadas previstas a Marte de eyecciones de masa coronal; de cada eyección queda la simulación más nueva | modeled |
+| MMGIS de JPL (`M20_waypoints.json`) | Último punto localizado de Perseverance: sol, site/drive, lat/lon, odometría | observed |
+| Imágenes crudas de Perseverance (`mars.nasa.gov/rss/api/?feed=raw_images`) | Últimas imágenes, una por cámara | observed |
+
+- Cada fuente se pide como mucho una vez cada 30 min. Si NASA no responde, se usa la última respuesta buena de
+  esa ejecución y, si no hay, la copia de `apps/api/app/live/snapshot.json`. Cada bloque trae `status` (`live` o
+  `snapshot`), `fetched_at` y `error`, para que la interfaz diga de cuándo es el dato.
+- `python -m app.live` (desde `apps/api`, con internet) actualiza la copia antes de una demo sin red.
+- `NASA_API_KEY` en `apps/api/.env`: llave gratuita de api.nasa.gov. `DEMO_KEY` sirve para probar, pero
+  se agota con pocas consultas por hora. `LIVE_DATA=false` usa solo la copia.
+- La alerta solar se enciende desde 72 h antes hasta 48 h después de una llegada prevista a Marte, y solo
+  propone activar el escenario de evento solar (`solar_event`). Las pruebas simulan a NASA y no salen a internet.
+- Se descartaron: el clima de Perseverance (`feed=weather&category=mars2020`) dejó de actualizarse en abril de
+  2024, el de Curiosity es de Gale y va meses atrasado, y la API Mars Rover Photos está retirada.
 
 ## La EVA en la respuesta
 

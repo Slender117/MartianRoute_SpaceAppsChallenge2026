@@ -30,6 +30,8 @@ interface MapState {
   showTraverse: boolean;
   safeReturn: SafeReturnResponse | null;
   showSafeReturn: boolean;
+  /** Escenario de evento solar durante la EVA (dosis del evento de mayo de 2024). */
+  solarEvent: boolean;
   loading: boolean;
   error: string | null;
 
@@ -41,6 +43,7 @@ interface MapState {
   toggleLayer: (layer: string) => void;
   setMode: (mode: WalkMode) => void;
   setSuit: (suit: Partial<SuitLimits>) => void;
+  setSolarEvent: (on: boolean) => void;
   pickPoint: (p: LatLon) => void;
   computeRoutes: () => Promise<void>;
   toggleTraverse: () => Promise<void>;
@@ -63,6 +66,7 @@ export const useMapStore = create<MapState>((set, get) => ({
   showTraverse: false,
   safeReturn: null,
   showSafeReturn: false,
+  solarEvent: false,
   loading: false,
   error: null,
 
@@ -110,6 +114,12 @@ export const useMapStore = create<MapState>((set, get) => ({
     if (get().showSafeReturn) void get().loadSafeReturn();
   },
 
+  // Con rutas ya calculadas, se recalculan para que las alertas reflejen el escenario.
+  setSolarEvent: (on) => {
+    set({ solarEvent: on });
+    if (Object.keys(get().routes).length) void get().computeRoutes();
+  },
+
   // Primer clic = inicio, segundo = destino, tercero reinicia.
   pickPoint: (p) =>
     set(({ start, end }) =>
@@ -117,11 +127,11 @@ export const useMapStore = create<MapState>((set, get) => ({
     ),
 
   computeRoutes: async () => {
-    const { regionId, start, end, suit } = get();
+    const { regionId, start, end, suit, solarEvent } = get();
     if (!regionId || !start || !end) return;
     set({ loading: true, error: null });
     try {
-      set({ routes: await api.compare({ region: regionId, start, end, suit }) });
+      set({ routes: await api.compare({ region: regionId, start, end, suit, solar_event: solarEvent }) });
     } catch (e) {
       set({ error: (e as Error).message, routes: {} });
     } finally {

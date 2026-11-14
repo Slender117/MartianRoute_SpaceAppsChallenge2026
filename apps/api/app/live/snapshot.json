@@ -1,0 +1,35 @@
+{
+ "space_weather": {
+  "fetched_at": "2026-11-14T19:32:00+00:00",
+  "data": [
+   {
+    "simulation_id": "WSA-ENLIL/49473/1",
+    "cme_id": null,
+    "cme_start": null,
+    "speed_km_s": null,
+    "arrival_time": "2026-11-13T12:00:00Z",
+    "glancing_blow": true,
+    "minor_impact": false,
+    "model_completion": "2026-11-09T19:59:00Z",
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49473/1"
+   }
+  ]
+ },
+ "rover": {
+  "fetched_at": "2026-11-14T19:32:00+00:00",
+  "data": {
+   "rover": "Perseverance",
+   "sol": 2022,
+   "site": 93,
+   "drive": 0,
+   "lat": 18.43559434,
+   "lon": 77.23322287,
+   "elevation_m": -1936.37,
+   "odometry_km": 45.25
+  }
+ },
+ "images": {
+  "fetched_at": "2026-11-14T19:32:00+00:00",
+  "data": {"latest_sol": 2031, "images": []}
+ }
+}
