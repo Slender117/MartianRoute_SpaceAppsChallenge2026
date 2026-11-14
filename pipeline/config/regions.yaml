@@ -13,20 +13,32 @@ regions:
     size: 600 # ~24.8 m por celda de norte a sur y ~23.4 m de este a oeste
     base: { lat: 18.4447, lon: 77.4508 } # sitio de amartizaje de Perseverance
     dataset_version: 0.4.0
-    # Puntos del escenario de demo para la región sintética. Revisarlos al pasar a datos reales.
+    # Escenario de demo de la región sintética: synthetic.py arma el terreno para estos puntos.
     demo:
       label: Base al frente del delta (escenario sintético)
       start: { lat: 18.4447, lon: 77.4508 }
       end: { lat: 18.4685, lon: 77.3932 }
+    # Escenario de demo con datos reales (marsdata build). Edgar probó ~1,500 destinos: en este, al
+    # sureste, los tres modos toman caminos distintos (HE2) y Segura evita casi todo el riesgo a
+    # cambio de un poco más de O₂.
+    demo_real:
+      label: Base al sureste del delta (Jezero real)
+      start: { lat: 18.4447, lon: 77.4508 }
+      end: { lat: 18.4088, lon: 77.4886 }
     traverses: [perseverance]
     # Recorrido real (MMGIS de JPL, una LineString por sol) y tabla clase a riesgo de NOAH-H
     # (Edgar), con rutas desde la raíz del repositorio.
     traverse_files: { perseverance: M20_traverse_2026-11-12.json }
     hazard_table: science/validation/noahh_ig_risk.csv
     # Nombres en la vista 3D (además del inicio y el final del recorrido, que se agregan solos).
+    # `only: synthetic` o `only: real` limita una etiqueta a una de las dos versiones de la región.
     labels:
       - { name: "Base · amartizaje de Perseverance", lat: 18.4447, lon: 77.4508, source: base }
-      - { name: "Destino de la demo", lat: 18.4685, lon: 77.3932, source: demo }
+      - { name: "Destino de la demo", lat: 18.4685, lon: 77.3932, source: demo, only: synthetic }
+      - { name: "Destino de la demo: modos distintos", lat: 18.4088, lon: 77.4886, source: demo, only: real }
+      # Destino para marcar a mano en la presentación: la ruta corta sube pendientes y Segura las
+      # rodea con 13-29 % menos O₂ y la mitad de riesgo (análisis de Edgar sobre Jezero real).
+      - { name: "Ahorro de O₂ por pendiente", lat: 18.5223, lon: 77.4289, source: demo, only: real }
     sources:
       # Rutas locales a los archivos descargados en data/raw/<region>/. Citas en docs/creditos.md.
       # DEM y ortofoto son del mismo conjunto de navegación de Mars 2020 (USGS, 2020): la ortofoto

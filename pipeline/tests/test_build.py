@@ -304,7 +304,13 @@ def test_build_and_export_write_the_3d_files(region, tmp_path):
     gray = np.clip((lat - 18.28) / 0.14 * 255, 0, 255).astype(np.uint8)
     _write(tmp_path / "t" / "ortho.tif", gray, res)
     region.sources["ortho"] = "ortho.tif"
-    region.labels = [{"name": "Base", "lat": 18.35, "lon": 77.35, "source": "base"}]
+    region.labels = [
+        {"name": "Base", "lat": 18.35, "lon": 77.35, "source": "base"},
+        {"name": "Solo sintética", "lat": 18.36, "lon": 77.36, "only": "synthetic"},
+        {"name": "Solo real", "lat": 18.37, "lon": 77.37, "only": "real"},
+    ]
+    region.demo = {"start": {"lat": 18.35, "lon": 77.35}, "end": {"lat": 18.36, "lon": 77.36}}
+    region.demo_real = {"start": {"lat": 18.35, "lon": 77.35}, "end": {"lat": 18.37, "lon": 77.37}}
 
     result = build_region(region)
     out = write_region(
@@ -331,9 +337,26 @@ def test_build_and_export_write_the_3d_files(region, tmp_path):
     assert names == ["No roca madre", "Roca madre", "Campos de rocas", "Ondulaciones pequeñas",
                      "Ondulaciones grandes"]  # fmt: skip
     labels = {item["name"]: item for item in manifest["labels"]}
-    assert set(labels) == {"Base", "Perseverance · sol 3", "Perseverance · sol 9"}
+    # La región real lleva sus etiquetas y su escenario de demo, no los de la sintética.
+    assert set(labels) == {"Base", "Solo real", "Perseverance · sol 3", "Perseverance · sol 9"}
+    assert "only" not in labels["Solo real"]
+    assert manifest["demo"]["end"] == {"lat": 18.37, "lon": 77.37}
     assert labels["Perseverance · sol 9"]["kind"] == "traverse"
     assert "kind" not in labels["Base"]
     # La elevación de cada nombre sale del DEM: +10 m por cada 0.01° hacia el este.
     assert labels["Base"]["elev"] == pytest.approx(-2500 + (77.35 - WEST) * 1000, abs=1.5)
     assert manifest["layer_meta"]["terrain_class"]["kind"] == "categorical"
+
+
+def test_synthetic_region_keeps_its_own_demo_and_labels(tmp_path):
+    from marsdata.region import load_regions
+    from marsdata.synthetic import make_grids
+
+    jezero = load_regions()["jezero"]
+    out = write_region(jezero, make_grids(jezero), out_dir=tmp_path, synthetic=True)
+    manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
+
+    assert manifest["demo"] == jezero.demo
+    names = {item["name"] for item in manifest["labels"]}
+    assert "Destino de la demo" in names
+    assert "Ahorro de O₂ por pendiente" not in names

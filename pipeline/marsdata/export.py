@@ -90,10 +90,18 @@ def _layer_meta(
 
 
 def _labels(
-    region: Region, dem: np.ndarray, traverses: dict, traverse_properties: dict
+    region: Region, dem: np.ndarray, traverses: dict, traverse_properties: dict, synthetic: bool
 ) -> list[dict]:
-    """Nombres de regions.yaml más el inicio y el final de cada recorrido, con su elevación."""
-    labels = [dict(label) for label in region.labels]
+    """Nombres de regions.yaml más el inicio y el final de cada recorrido, con su elevación.
+
+    Una etiqueta con `only` entra solo en la versión que nombra (sintética o real).
+    """
+    version = "synthetic" if synthetic else "real"
+    labels = [
+        {k: v for k, v in label.items() if k != "only"}
+        for label in region.labels
+        if label.get("only", version) == version
+    ]
     for rover, coords in traverses.items():
         props = traverse_properties.get(rover, {})
         for point, sol in ((coords[0], props.get("sol_min")), (coords[-1], props.get("sol_max"))):
@@ -211,9 +219,9 @@ def write_region(
         "layer_meta": _layer_meta(region, ["dem", "slope", *layers], synthetic, layer_meta),
         "assets": assets,
         "legends": legends or {},
-        "labels": _labels(region, dem, traverses, traverse_properties),
+        "labels": _labels(region, dem, traverses, traverse_properties, synthetic),
         "checksums": _checksums(rdir),
-        "demo": region.demo,
+        "demo": region.demo if synthetic else (region.demo_real or region.demo),
     }
     (rdir / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
