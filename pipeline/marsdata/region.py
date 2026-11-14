@@ -23,12 +23,15 @@ class Region:
     traverses: list[str] = field(default_factory=list)
     sources: dict[str, str] = field(default_factory=dict)
     dataset_version: str = "0.1.0"
+    # Escenario de demo: `demo` para la región sintética y `demo_real` para la construida con datos
+    # reales. Si falta `demo_real`, la real usa `demo`.
     demo: dict | None = None
+    demo_real: dict | None = None
     # Tabla CSV de clase a riesgo de la capa `hazard` categórica (ruta desde la raíz del repo).
     hazard_table: str | None = None
     # Recorrido real de cada rover: archivo de MMGIS con una LineString por sol (desde la raíz).
     traverse_files: dict[str, str] = field(default_factory=dict)
-    # Nombres para la vista 3D: [{name, lat, lon, source}].
+    # Nombres para la vista 3D: [{name, lat, lon, source, only?}]; only = "synthetic" o "real".
     labels: list[dict] = field(default_factory=list)
 
     def __post_init__(self) -> None:

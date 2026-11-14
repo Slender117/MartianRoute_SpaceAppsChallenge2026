@@ -1,7 +1,11 @@
 """El escenario de demo tiene que separar los tres modos.
 
-Corre sobre la salida real de `marsdata synthetic`, no sobre una grilla armada para la prueba: si un
-cambio en los pesos o en synthetic.py vuelve iguales las rutas, esta prueba falla.
+Corre sobre la salida de `marsdata synthetic` en data/regions, no sobre una grilla armada para la
+prueba: si un cambio en los pesos o en synthetic.py vuelve iguales las rutas, esta prueba falla.
+
+Para correrla sobre Jezero real, apunta DEMO_ASSETS_DIR a la carpeta de `marsdata build` (por
+ejemplo `DEMO_ASSETS_DIR=../../data/regions-real pytest tests/test_demo_scenario.py`). Las pruebas
+que solo tienen sentido con el terreno armado de la sintética se saltan con datos reales.
 """
 
 import os
@@ -15,11 +19,16 @@ from app.config import get_settings
 from app.engine.planner import compare_routes
 from app.engine.validation import validate_traverse
 from app.geo import latlon_to_cell
-from app.schemas.route import PLANNING_MODES, RouteResponse, SuitLimits, WalkMode
+from app.schemas.route import PLANNING_MODES, LatLon, RouteResponse, SuitLimits, WalkMode
 from app.storage import RegionGrids, load_manifest, load_region, load_traverse
 
-DATA_DIR = Path(__file__).resolve().parents[3] / "data" / "regions"
+# Ruta relativa a apps/api, como ASSETS_DIR en .env.
+API_DIR = Path(__file__).resolve().parents[1]
+DATA_DIR = (API_DIR / os.getenv("DEMO_ASSETS_DIR", "../../data/regions")).resolve()
 ROCK_FIELD = 0.5
+# Destino de la etiqueta "Ahorro de O₂ por pendiente" de regions.yaml (análisis de Edgar sobre
+# Jezero real): la ruta corta sube pendientes y Segura las rodea gastando menos O₂.
+O2_SAVINGS_END = LatLon(lat=18.5223, lon=77.4289)
 
 
 @pytest.fixture
@@ -58,7 +67,11 @@ def test_modes_take_different_paths(grids, routes):
         assert shared < 0.7, f"{a} y {b} comparten {shared:.0%} de la ruta"
 
 
-def test_modes_have_different_distances(routes):
+def test_modes_have_different_distances(grids, routes):
+    # Con datos reales los modos pueden rodear por caminos distintos de largo parecido: ahí manda
+    # HE2 (caminos distintos), no la distancia.
+    if not grids.manifest.synthetic:
+        pytest.skip("Solo la región sintética está armada para separar distancias")
     for a, b in combinations(PLANNING_MODES, 2):
         gap = abs(routes[a].distance_km - routes[b].distance_km) / routes[a].distance_km
         assert gap >= 0.05, f"{a} y {b} difieren solo {gap:.1%} en distancia"
@@ -73,8 +86,10 @@ def test_each_mode_does_what_its_name_says(grids, routes):
     assert fast.distance_km < safe.distance_km
     assert hazard_along(WalkMode.fast).max() > ROCK_FIELD
     assert hazard_along(WalkMode.safe).max() < ROCK_FIELD
-    assert science.science_km > safe.science_km
-    assert science.stops
+    # Jezero real no tiene capa de minerales todavía: sin ella no hay ciencia que buscar.
+    if "minerals" in grids.manifest.layers:
+        assert science.science_km > safe.science_km
+        assert science.stops
 
 
 def test_all_modes_fit_the_suit_limits(routes):
@@ -118,7 +133,7 @@ def test_rover_traverse_can_be_validated(grids):
     result = validate_traverse(
         grids, "perseverance", load_traverse("jezero", "perseverance"), SuitLimits()
     )
-    assert result.synthetic_data
+    assert result.synthetic_data == grids.manifest.synthetic
     assert result.points_outside == 0
     assert result.traverse.distance_km > 0
 
@@ -128,3 +143,16 @@ def test_baseline_is_the_shortest_route(routes):
     for mode in PLANNING_MODES:
         assert baseline.outbound_km <= routes[mode].outbound_km + 1e-9, mode
         assert routes[mode].vs_baseline.distance_km >= -1e-9
+
+
+def test_safe_saves_o2_on_slopes_on_real_jezero(grids):
+    """En el destino de "Ahorro de O₂ por pendiente", Segura gasta menos O₂ y corre menos riesgo
+    que la ruta más corta, en las dos cotas del intervalo."""
+    if grids.manifest.synthetic:
+        pytest.skip("El destino de ahorro de O₂ se eligió sobre Jezero real")
+
+    routes = compare_routes(grids, grids.manifest.base, O2_SAVINGS_END, SuitLimits())
+    safe, short = routes[WalkMode.safe], routes[WalkMode.baseline]
+    assert safe.o2_interval_kg.low_kg < short.o2_interval_kg.low_kg
+    assert safe.o2_interval_kg.high_kg < short.o2_interval_kg.high_kg
+    assert safe.cost_breakdown.hazard < short.cost_breakdown.hazard
