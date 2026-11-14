@@ -13,8 +13,8 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
 | --- | --- | --- | --- | --- |
 | `base_speed` | Velocidad con traje en terreno plano | 2 km/h | modeled | Coan (2020), §4.2.1.3.1.1: ritmo lunar sobre regolito casi plano |
 | `tobler_coefficient` | Coeficiente de la función de Tobler | 3.5 | modeled | Tobler (1993), escalada a la velocidad con traje |
-| `o2_rate` | Consumo de O₂ por persona | 0.07 kg/h | modeled | `[__]` |
-| `o2_flat_per_m` | O₂ por metro en terreno plano | 3.5 × 10⁻⁵ kg/m | modeled | `[__]` (consumo de O₂ ÷ velocidad en plano) |
+| `o2_rate` | Consumo de O₂ por persona | 0.07 kg/h | modeled | Waligora y Horrigan (1975), tabla 2: media de las EVA lunares de Apollo; convertido con Weir (1949) |
+| `o2_flat_per_m` | O₂ por metro en terreno plano | 3.5 × 10⁻⁵ kg/m | modeled | Derivado: `o2_rate` ÷ `base_speed` |
 | `slope_cost_curve` | Costo de caminar según la pendiente | 1.64 J/kg/m en plano; 17.33 a +45 % | observed | Minetti et al. (2002); solo la forma |
 | `mars_gravity` | Gravedad en la superficie de Marte | 3.728 m/s² | derived | GM / R² con GM = 42,828.37 km³/s² de Konopliv et al. (2020) y el radio medio de 3,389.5 km |
 | `crew_size` | Integrantes de la EVA | 2 | modeled | Decisión del proyecto |
@@ -73,6 +73,12 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
   función de Tobler del motor la reduce con la pendiente.
 - **Pendiente: 20°.** Coan (2020, §4.2.1.3) pide caminar subiendo, bajando o de través en pendientes de
   hasta 20°; Apolo 15 anduvo en pendientes de unos 17°.
+- **Consumo de O₂: 0.07 kg/h por persona.** La tasa metabólica media de todas las EVA lunares de
+  Apollo 11 a 17 fue de 980 × 10³ J/h (234 kcal/h), medida en 158.7 h de EVA (Waligora y Horrigan,
+  1975, tabla 2); por EVA y astronauta fue de 197 a 302 kcal/h. Con la ecuación de Weir (1949), en
+  todo el rango del cociente respiratorio (0.7 a 1.0), 234 kcal/h equivalen a 0.066 a 0.071 kg/h de
+  O₂ (1.429 g/L). Se midió en la Luna (1/6 g) con el traje A7L; en Marte, a 0.38 g, caminar podría
+  costar más.
 - **Autonomía: 8 h.** Coan (2020, §4.1.4) fija EVA de hasta 8 h (6 ± 2 h) con 1 h extra de O₂
   secundario para contingencias; la DRA 5.0 (§9.2) pide un traje para EVA de 8 h. La reserva del 20 %
   (`autonomy_reserve`) sigue siendo decisión del proyecto.
@@ -188,6 +194,12 @@ referencia en la API y no se muestra en la interfaz.
   583. https://doi.org/10.3389/fphys.2017.00583
 - Tobler, W. (1993). *Three presentations on geographical analysis and modeling* (Technical Report
   93-1). National Center for Geographic Information and Analysis.
+- Waligora, J. M., & Horrigan, D. J. (1975). Metabolism and heat dissipation during Apollo EVA
+  periods. En R. S. Johnston, L. F. Dietlein, & C. A. Berry (Eds.), *Biomedical results of Apollo*
+  (NASA SP-368, pp. 115–128). NASA. https://ntrs.nasa.gov/citations/19760005584
+- Weir, J. B. de V. (1949). New methods for calculating metabolic rate with special reference to
+  protein metabolism. *The Journal of Physiology, 109*(1–2), 1–9.
+  https://doi.org/10.1113/jphysiol.1949.sp004363
 - Wright, J., Barrett, A. M., Fawdon, P., Favaro, E. A., Balme, M. R., Woods, M. J., &
   Karachalios, S. (2022a). Jezero crater, Mars: Application of the deep learning NOAH-H terrain
   classification system. *Journal of Maps, 18*(2), 484–496.

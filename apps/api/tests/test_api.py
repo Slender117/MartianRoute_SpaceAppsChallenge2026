@@ -150,7 +150,7 @@ def test_assumptions_have_a_source_or_the_pending_marker(client):
     by_id = {p["id"]: p for p in body["parameters"]}
     assert all(p["source"] for p in body["parameters"])
     assert by_id["radiation_rate"]["source"] == "Hassler et al. (2014)"
-    assert by_id["o2_rate"]["source"] == PENDING_SOURCE
+    assert by_id["task_time"]["source"] == PENDING_SOURCE
     assert by_id["max_dose"]["value"] is None
 
 
