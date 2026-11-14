@@ -29,8 +29,8 @@ GM_MARS_M3_S2 = 42_828.3748574e9
 # No descuenta la rotación de Marte, que la baja menos de 0.5 %.
 G_MARS_MS2 = GM_MARS_M3_S2 / MARS_RADIUS_M**2
 
-# O₂ por metro en plano, por astronauta: tasa por hora ÷ velocidad en plano. Hereda el `[__]` de
-# esas dos cifras (docs/supuestos.md) y absorbe el efecto del traje.
+# O₂ por metro en plano, por astronauta: tasa por hora ÷ velocidad en plano (fuentes de las dos
+# cifras en docs/supuestos.md). Absorbe el efecto del traje.
 O2_FLAT_KG_PER_M = O2_KG_PER_HOUR / (BASE_SPEED_KMH * 1000)
 
 # Costo de caminar (J/kg/m) según la pendiente (subida ÷ avance), de Minetti et al. (2002):

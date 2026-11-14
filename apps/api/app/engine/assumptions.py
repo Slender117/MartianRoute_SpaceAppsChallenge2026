@@ -90,7 +90,9 @@ def build_assumptions() -> AssumptionsResponse:
             value=O2_KG_PER_HOUR,
             unit="kg/h",
             provenance=modeled,
-            source=PENDING_SOURCE,
+            source="Waligora y Horrigan (1975), tabla 2; Weir (1949)",
+            note="Media de las EVA lunares de Apollo 11 a 17 (234 kcal/h): 0.066 a 0.071 kg/h de"
+            " O₂ según el cociente respiratorio (0.7 a 1.0). Medida en la Luna con el traje A7L.",
         ),
         Assumption(
             id="o2_flat_per_m",
@@ -98,8 +100,8 @@ def build_assumptions() -> AssumptionsResponse:
             value=O2_FLAT_KG_PER_M,
             unit="kg/m",
             provenance=modeled,
-            source=PENDING_SOURCE,
-            note="Consumo de O₂ ÷ velocidad en plano: hereda el [__] de esas dos cifras.",
+            source="Derivado: o2_rate ÷ base_speed",
+            note="Consumo de O₂ por hora entre la velocidad en plano; absorbe el efecto del traje.",
         ),
         Assumption(
             id="slope_cost_curve",
