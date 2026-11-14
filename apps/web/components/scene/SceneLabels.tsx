@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Vector3 } from "three";
 
 import { regionFrame } from "@/lib/geo";
+import { dataName, useLang } from "@/lib/i18n";
 import { useMapStore } from "@/lib/store";
 
 import { heightAt, useRegionExtras, useRegionHeights } from "./regionAssets";
@@ -35,6 +36,7 @@ export function usePlacedLabels(exaggeration: number): PlacedLabel[] {
   const showTraverse = useMapStore((s) => s.showTraverse);
   const extras = useRegionExtras(manifest?.id);
   const heights = useRegionHeights(manifest, extras);
+  const lang = useLang((s) => s.lang);
   return useMemo(() => {
     if (!manifest || !extras?.labels) return [];
     const frame = regionFrame(manifest, exaggeration);
@@ -42,9 +44,9 @@ export function usePlacedLabels(exaggeration: number): PlacedLabel[] {
       .filter((l) => l.kind !== "traverse" || showTraverse)
       .map((l) => {
         const elev = heights ? heightAt(heights, manifest, l.lat, l.lon) : (l.elev ?? manifest.elevation_range[0]);
-        return { name: l.name, position: frame.toScene(l.lat, l.lon, elev) };
+        return { name: dataName(l.name, lang), position: frame.toScene(l.lat, l.lon, elev) };
       });
-  }, [manifest, extras, heights, exaggeration, showTraverse]);
+  }, [manifest, extras, heights, exaggeration, showTraverse, lang]);
 }
 
 /** Dentro del Canvas: marca cada punto y calcula dónde cae en la pantalla. */

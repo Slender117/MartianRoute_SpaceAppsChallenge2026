@@ -68,6 +68,7 @@ class PathPoint(LatLon):
 class Stop(LatLon):
     type: str  # "science" | "ice"
     reason: str
+    value: float = Field(description="Índice de minerales o de hielo en la parada (0-1)")
 
 
 class AlertSeverity(StrEnum):
@@ -79,7 +80,14 @@ class Alert(BaseModel):
     at: int = Field(description="Índice del punto de la ruta de ida donde aplica")
     type: str  # "slope" | "autonomy" | "distance" | "radiation" | "climate"
     severity: AlertSeverity = AlertSeverity.warning
-    message: str
+    message: str = Field(description="Texto en español; la web arma el de otros idiomas con code")
+    code: str = Field(
+        description="Variante de la alerta: steep_segment, autonomy_over_suit, autonomy_reserve,"
+        " too_far, dose_over_limit o solar_event"
+    )
+    values: dict[str, float] = Field(
+        default_factory=dict, description="Cifras del mensaje, para traducirlo sin la API"
+    )
 
 
 class CostBreakdown(BaseModel):

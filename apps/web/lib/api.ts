@@ -9,6 +9,7 @@ import type {
   TraverseGeoJSON,
   WalkMode,
 } from "./types";
+import type { Lang } from "./i18n";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 export const ASSETS_URL = process.env.NEXT_PUBLIC_ASSETS_URL ?? `${API_URL}/assets`;
@@ -40,7 +41,7 @@ export const api = {
     }),
   safeReturn: (body: { region: string; base?: LatLon; suit?: SuitLimits }) =>
     request<SafeReturnResponse>("/routes/safe-return", { method: "POST", body: JSON.stringify(body) }),
-  assumptions: () => request<AssumptionsResponse>("/assumptions"),
+  assumptions: (lang: Lang) => request<AssumptionsResponse>(`/assumptions?lang=${lang}`),
 };
 
 export const assetUrl = (regionId: string, path: string) => `${ASSETS_URL}/${regionId}/${path}`;

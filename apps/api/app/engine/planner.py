@@ -87,8 +87,15 @@ def plan_route(
         for (lat, lon), z, t in zip(coords, elev, elapsed, strict=True)
     ]
 
+    layer = {"science": grids.minerals, "ice": grids.ice}
     stops = [
-        Stop(lat=points[i].lat, lon=points[i].lon, type=kind, reason=reason)
+        Stop(
+            lat=points[i].lat,
+            lon=points[i].lon,
+            type=kind,
+            reason=reason,
+            value=round(float(layer[kind][path[i, 0], path[i, 1]]), 2),
+        )
         for i, kind, reason in find_stops(grids, path)
     ]
 
