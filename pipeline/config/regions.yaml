@@ -76,9 +76,24 @@ regions:
 
   gale:
     name: Cráter Gale
-    bbox: [137.20, -4.85, 137.55, -4.50]
-    size: 512
-    base: { lat: -4.5895, lon: 137.4417 } # sitio de amartizaje de Curiosity
+    # Recuadro de 0.25° centrado en Curiosity en el sol 5073 (MMGIS, 14 nov 2026), dentro de la
+    # cobertura del DEM de HiRISE de Gale. Bradbury Landing (el amartizaje) queda 14 km al norte.
+    bbox: [137.264, -4.951, 137.514, -4.701]
+    size: 600 # ~24.7 m por celda de norte a sur y ~24.6 m de este a oeste
+    base: { lat: -4.8260, lon: 137.3889 } # Curiosity en el sol 5073
+    dataset_version: 0.2.0
     traverses: [curiosity]
+    # Recorrido de MMGIS con el sol de cada tramo: python -m marsdata.fetch.mmgis MSL <archivo>.
+    traverse_files: { curiosity: MSL_traverse_2026-11-14.json }
+    # Dentro de una misma conducción, el archivo de Curiosity tiene vértices hasta 59.5 m separados.
+    traverse_max_gap_m: 60
+    labels:
+      - { name: "Base · Curiosity (sol 5073)", lat: -4.8260, lon: 137.3889, source: base }
+    # No hay NOAH-H de Gale: el riesgo sale de la rugosidad del DEM (process/terrain.py), relativa a
+    # la región.
+    hazard_proxy: roughness
     sources:
-      dem: dem_ctx.tif
+      # Recortes por ventana a 5 m de los mosaicos de Calef y Parker (2016).
+      dem: MSL_Gale_DEM_Mosaic_5m_gale.tif
+      ortho: MSL_Gale_Orthophoto_Mosaic_5m_gale.tif
+      thermal_inertia: THEMIS_TI_Mosaic_Quant_30S120E_100mpp_gale.tif

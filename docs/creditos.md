@@ -95,7 +95,61 @@ Wright, J., Barrett, A., Fawdon, P., Favaro, E., Balme, M., Woods, M., Karachali
 (2022). *NOAH-H terrain classifications of Jezero Crater, Mars* (Version 2) [Data set]. The Open
 University. https://doi.org/10.21954/ou.rd.17121482.v2
 
-### Pendientes de registrar
+## Gale (`gale`, alrededor de Curiosity)
+
+Recortes por ventana (bbox de la región más 0.02° por lado) de los mosaicos remotos, sin bajarlos
+completos. El DEM y la ortofoto se guardan a 5 m: cada píxel promedia un bloque del original, leído de
+las vistas reducidas del mosaico. No hay clasificación NOAH-H de Gale: su capa de riesgo se deriva de
+la rugosidad del DEM, sin otra fuente (método en `docs/supuestos.md`).
+
+### Elevación: DEM de HiRISE a 1 m, guardado a 5 m
+
+- Archivo: `MSL_Gale_DEM_Mosaic_5m_gale.tif`
+- Ficha: https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m
+- Origen: https://asc-pds-services.s3.us-west-2.amazonaws.com/mosaic/Mars/MSL/MSL_Gale_DEM_Mosaic_1m_v3.tif
+  (3.9 GB completo)
+- Float32 en metros. En la posición de Curiosity del sol 5073 vale −3472.16 m, y MMGIS reporta
+  −3472.09 m para el mismo punto.
+- La cita recomendada de la ficha repite el título del ortomosaico; abajo va el título de la ficha del DEM.
+
+Calef, F. J., III, & Parker, T. (2016). *MSL Gale merged DEM 1m* [Data set]. PDS Annex, U.S.
+Geological Survey. https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m
+
+### Imagen: ortomosaico de HiRISE a 25 cm, guardado a 5 m
+
+- Archivo: `MSL_Gale_Orthophoto_Mosaic_5m_gale.tif`
+- Ficha: https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_orthophoto_mosaic_25cm
+- Origen: https://asc-pds-services.s3.us-west-2.amazonaws.com/mosaic/Mars/MSL/MSL_Gale_Orthophoto_Mosaic_25cm_v3.tif
+  (24 GB completo)
+
+Calef, F. J., III, & Parker, T. (2016). *MSL Gale merged orthophoto mosaic* [Data set]. PDS Annex,
+U.S. Geological Survey. https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_orthophoto_mosaic_25cm
+
+### Inercia térmica: THEMIS cuantitativo a 100 m
+
+- Archivo: `THEMIS_TI_Mosaic_Quant_30S120E_100mpp_gale.tif`, del tile que cubre de 30° S a 0° y de
+  120° E a 180° E.
+- Ficha: https://astrogeology.usgs.gov/search/map/themis_thermal_inertia_mosaic_quantitative_30s120e_100mpp
+- Origen: https://asc-astropedia.s3.us-west-2.amazonaws.com/Mars/Odyssey/THEMIS-Global-Thermal-Inertia-Mosaic/Quantitative-32-Bit/THEMIS_TI_Mosaic_Quant_30S120E_100mpp.cub
+
+USGS Astrogeology Science Center, Arizona State University Mars Space Flight Facility, & NASA Mars Data
+Analysis Program. (2014). *THEMIS thermal inertia mosaic quantitative 30S120E 100mpp* [Data set]. U.S.
+Geological Survey. https://astrogeology.usgs.gov/search/map/themis_thermal_inertia_mosaic_quantitative_30s120e_100mpp
+
+### Recorrido de Curiosity
+
+- Archivo: `MSL_traverse_2026-11-14.json` (raíz del repo). El recorrido de MMGIS no trae el sol de cada
+  tramo; se toma del waypoint donde termina cada uno (1316 de 1317 tramos terminan a menos de 1 m de su
+  waypoint). Se regenera con `python -m marsdata.fetch.mmgis MSL ../MSL_traverse_<fecha>.json` desde
+  `pipeline/`.
+- Origen: https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_traverse.json y
+  https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints.json, consultados el 14 de noviembre de
+  2026 (último sol: 5073).
+
+NASA/JPL-Caltech. (2026). *MSL traverse and waypoints* [Data set]. Multi-Mission Geographic Information
+System (MMGIS). Recuperado el 14 de noviembre de 2026 de https://mars.nasa.gov/mmgis-maps/MSL/
+
+## Pendientes de registrar
 
 - Método de la inercia térmica: Fergason, Christensen y Kieffer (2006), *Journal of Geophysical
   Research*. La ficha pide citar a los autores; falta verificar la referencia completa y su DOI.

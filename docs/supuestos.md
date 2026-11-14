@@ -126,6 +126,19 @@ al motor de la API: lo usa la validación de HE3.
 - Barrett (§6.3) considera de impacto alto la roca madre rugosa y la fracturada: el 0 del grupo las
   subestima.
 
+## Riesgo de terreno en Gale: rugosidad del DEM (`pipeline/marsdata/process/terrain.py`)
+
+No hay clasificación NOAH-H de Gale. Su capa `hazard` sale del DEM de HiRISE leído a 5 m (Calef y
+Parker, 2016): en cada celda de ~25 m, la raíz cuadrática media del DEM menos su versión suavizada con
+una gaussiana de σ = 10 m. Etiqueta `derived`.
+
+- **σ = 10 m es una decisión del proyecto**, no una cifra publicada. Deja el relieve de unos 10 a
+  50 m (escarpes, crestas, ondulaciones), que la pendiente por celda no ve.
+- **El riesgo es relativo a la región**: la rugosidad se normaliza con sus percentiles 2 y 98. En
+  Gale, el percentil 5 es 0.11 m, la mediana 0.48 m y el percentil 95 1.73 m.
+- **No ve obstáculos menores de ~5 m**, como rocas sueltas: el DEM se lee a 5 m.
+- No está validado contra el recorrido de Curiosity ni contra NOAH-H.
+
 ## Punto de no retorno
 
 Hay una sola regla de reserva: la **autonomía planeable** es la autonomía menos la reserva más

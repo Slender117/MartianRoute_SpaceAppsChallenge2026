@@ -75,9 +75,13 @@ def sample_grid(grid: np.ndarray, region: Region, lats, lons) -> np.ndarray:
 
 
 def build_traverse(
-    region: Region, dem: np.ndarray, rover: str, max_gap_m: float = MAX_GAP_M
+    region: Region, dem: np.ndarray, rover: str, max_gap_m: float | None = None
 ) -> tuple[list[tuple[float, float, float]], dict] | None:
-    """[(lat, lon, elevación)] del trecho más largo y sus propiedades; None si no entra ninguno."""
+    """[(lat, lon, elevación)] del trecho más largo y sus propiedades; None si no entra ninguno.
+
+    El salto máximo sale de `max_gap_m`, de la región (`traverse_max_gap_m`) o de MAX_GAP_M.
+    """
+    max_gap_m = max_gap_m or region.traverse_max_gap_m or MAX_GAP_M
     path = REPO_DIR / region.traverse_files[rover]
     runs = continuous_runs(load_points(path), region.bbox, max_gap_m)
     if not runs:

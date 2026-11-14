@@ -8,7 +8,9 @@ import rasterio
 from rasterio.transform import from_origin
 
 from marsdata.fetch import sources
+from marsdata.fetch.mmgis import traverse_with_sols, write_feature_collection
 from marsdata.fetch.sources import FetchStatus, Product, crop_window, fetch_region
+from marsdata.process.traverse import load_points
 from marsdata.region import Region
 
 R = 3_396_190.0
@@ -72,12 +74,27 @@ def test_crop_window_clips_to_the_mosaic(region, mosaic, tmp_path):
         assert crop.bounds.top <= _m(19) + 1e-6
 
 
+def test_crop_window_decimates_by_averaging_blocks(region, mosaic, tmp_path):
+    full = crop_window(str(mosaic), region, tmp_path / "full.tif", margin_deg=0.05)
+    small = crop_window(str(mosaic), region, tmp_path / "small.tif", margin_deg=0.05, decimate=4)
+    with rasterio.open(full) as a, rasterio.open(small) as b:
+        assert b.width == math.ceil(a.width / 4) and b.height == math.ceil(a.height / 4)
+        # Cubre lo mismo que el recorte completo: si el ancho no es múltiplo de 4, el píxel
+        # reducido queda un poco menor que 4 píxeles originales.
+        assert tuple(b.bounds) == pytest.approx(tuple(a.bounds))
+        assert 3.9 < b.res[0] / a.res[0] <= 4
+        # Cada píxel promedia un bloque de ~4 × 4: la primera fila reducida es la media de 4 filas.
+        assert b.read(1)[0, 0] == pytest.approx(a.read(1)[:4, 0].mean(), abs=0.1)
+
+
 def test_fetch_region_skips_existing_and_reports_manual(region, tmp_path, monkeypatch):
     monkeypatch.setattr(sources, "RAW_DIR", tmp_path)
     calls = []
     monkeypatch.setattr(sources, "download", lambda url, dest: calls.append(("download", url)))
     monkeypatch.setattr(
-        sources, "crop_window", lambda src, reg, dest, margin: calls.append(("crop", src))
+        sources,
+        "crop_window",
+        lambda src, reg, dest, margin, decimate: calls.append(("crop", src)),
     )
     monkeypatch.setattr(
         sources,
@@ -95,3 +112,55 @@ def test_fetch_region_skips_existing_and_reports_manual(region, tmp_path, monkey
         "hazard": FetchStatus.manual,
     }
     assert calls == [("crop", "/vsicurl/https://x/o.cub")]
+
+
+def _wp(lon: float, lat: float, sol: int) -> dict:
+    return {"properties": {"lon": lon, "lat": lat, "sol": sol}}
+
+
+def _line(*points) -> dict:
+    return {"type": "LineString", "coordinates": [[lon, lat, -4000.0] for lon, lat in points]}
+
+
+# Puntos separados 0.001° (~59 m) sobre la misma latitud.
+A, B, C, D, E, G = ((137.400 + 0.001 * i, -4.80) for i in range(6))
+
+
+@pytest.fixture
+def legs() -> tuple[dict, dict]:
+    """Recorrido estilo MMGIS de Curiosity (sin sol) y sus waypoints."""
+    multi = {
+        "type": "MultiLineString",
+        "coordinates": [_line(A, B)["coordinates"], _line(B, C)["coordinates"]],
+    }
+    traverse = {
+        "features": [
+            {"properties": {"Length": 118.0}, "geometry": multi},
+            {"properties": {"Length": 59.0}, "geometry": _line(C, D)},
+            {"properties": {"Length": 59.0}, "geometry": _line(D, E)},  # waypoint de sol menor
+            {"properties": {"Length": 59.0}, "geometry": _line(E, G)},  # sin waypoint
+        ]
+    }
+    return traverse, {"features": [_wp(*C, 10), _wp(*D, 12), _wp(*E, 11)]}
+
+
+def test_traverse_with_sols_takes_the_sol_of_the_waypoint_where_each_leg_ends(legs):
+    fc = traverse_with_sols(*legs)
+
+    # El sol nunca baja, y un tramo sin waypoint hereda el del anterior.
+    assert [f["properties"]["sol"] for f in fc["features"]] == [10, 12, 12, 12]
+    assert {f["geometry"]["type"] for f in fc["features"]} == {"LineString"}
+    first = fc["features"][0]
+    assert [c[:2] for c in first["geometry"]["coordinates"]] == [list(A), list(B), list(C)]
+    assert first["properties"]["length_m"] == 118.0
+
+
+def test_traverse_with_sols_is_read_by_the_build(legs, tmp_path):
+    path = tmp_path / "MSL_traverse.json"
+    write_feature_collection({**traverse_with_sols(*legs), "name": "prueba"}, path)
+
+    points = load_points(path)
+
+    assert points[0] == (*A, 10)
+    assert [p[:2] for p in points] == [A, B, C, D, E, G]
+    assert points[-1][2] == 12
