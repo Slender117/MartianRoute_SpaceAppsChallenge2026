@@ -21,6 +21,7 @@ from app.engine.cost import MIN_CELL_COST, MODE_WEIGHTS
 from app.engine.o2_model import G_MARS_MS2, O2_FLAT_KG_PER_M
 from app.engine.science import ICE_THRESHOLD, MIN_GAP, SCIENCE_THRESHOLD
 from app.geo import MARS_RADIUS_M
+from app.live.sources import SOLAR_ALERT_AFTER_H, SOLAR_ALERT_BEFORE_H
 from app.schemas.assumptions import Assumption, AssumptionsResponse
 from app.schemas.route import Provenance, SuitLimits, WalkMode
 
@@ -49,6 +50,8 @@ LIMITS = [
     "La cifra oficial de O₂ es `o2_interval_kg` (caminata con la curva de Minetti más el trabajo"
     " fijo a la tasa por hora). `o2_estimate_kg` es solo duración × tasa por hora: sirve de"
     " referencia y no se muestra en la interfaz.",
+    "Las llegadas de eyecciones solares a Marte son pronósticos del modelo WSA-ENLIL (DONKI), no"
+    " mediciones. La alerta solo propone activar el escenario de evento solar.",
 ]
 
 
@@ -228,6 +231,23 @@ def build_assumptions() -> AssumptionsResponse:
             provenance=observed,
             source="NASA JPL (2024)",
             note="Curiosity RAD, 20 de mayo de 2024. Se aplica completa como peor caso.",
+        ),
+        Assumption(
+            id="solar_alert_before",
+            label="Inicio de la alerta antes de que una eyección solar llegue a Marte",
+            value=SOLAR_ALERT_BEFORE_H,
+            unit="h",
+            provenance=modeled,
+            source=PROJECT_DECISION,
+            note="La llegada la pronostica el modelo WSA-ENLIL de DONKI (CCMC de NASA), en vivo.",
+        ),
+        Assumption(
+            id="solar_alert_after",
+            label="Fin de la alerta después de la llegada",
+            value=SOLAR_ALERT_AFTER_H,
+            unit="h",
+            provenance=modeled,
+            source=PROJECT_DECISION,
         ),
         Assumption(
             id="sol_length",

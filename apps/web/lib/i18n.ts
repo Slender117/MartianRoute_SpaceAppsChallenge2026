@@ -83,6 +83,28 @@ const es = {
   noValue: "sin valor",
   unsourced: "Supuesto sin fuente confirmada",
   provenance: { observed: "observado", derived: "derivado", modeled: "modelado" } as Record<Provenance, string>,
+
+  solarScenario: "Escenario de evento solar",
+  liveTitle: "Marte hoy",
+  liveLive: "en vivo",
+  liveSnapshot: (date: string) => `copia del ${date}`,
+  liveSpaceWeather: "Clima espacial",
+  liveAlert: (when: string, kind: string) => `⚠ Eyección solar: llegada prevista a Marte ${when} (${kind})`,
+  liveNoAlert: "Ninguna eyección solar llega a Marte cerca de hoy",
+  liveHoursAgo: (h: number) => `hace ${h} h`,
+  liveHoursAhead: (h: number) => `en ${h} h`,
+  cmeKind: (glancing: boolean, minor: boolean): string => (glancing ? "de refilón" : minor ? "impacto menor" : "impacto directo"),
+  liveUseScenario: "Activar el escenario de evento solar",
+  liveScenarioOn: "Escenario de evento solar activado",
+  liveArrivals: (n: number, days: number) =>
+    `${n} ${n === 1 ? "llegada prevista" : "llegadas previstas"} a Marte en ${days} días (modelo WSA-ENLIL)`,
+  liveRover: (sol: number) => `Perseverance, sol ${sol}`,
+  liveRoverDistance: (km: string) => `a ${km} km de la base`,
+  liveRoverOutside: "fuera del área del mapa",
+  liveOdometry: (km: string) => `${km} km recorridos`,
+  liveImages: (sol: number | null) => `Últimas imágenes${sol ? ` (sol ${sol})` : ""}`,
+  liveNoImages: "Sin imágenes en la copia guardada",
+  liveSourceTitle: (name: string, error: string | null) => (error ? `${name}. Sin consulta en vivo: ${error}` : name),
 };
 
 type Strings = typeof es;
@@ -151,6 +173,28 @@ const en: Strings = {
   noValue: "no value",
   unsourced: "Assumption without a confirmed source",
   provenance: { observed: "observed", derived: "derived", modeled: "modeled" },
+
+  solarScenario: "Solar event scenario",
+  liveTitle: "Mars today",
+  liveLive: "live",
+  liveSnapshot: (date) => `copy from ${date}`,
+  liveSpaceWeather: "Space weather",
+  liveAlert: (when, kind) => `⚠ Solar eruption: forecast to reach Mars ${when} (${kind})`,
+  liveNoAlert: "No solar eruption reaches Mars around today",
+  liveHoursAgo: (h) => `${h} h ago`,
+  liveHoursAhead: (h) => `in ${h} h`,
+  cmeKind: (glancing, minor) => (glancing ? "glancing blow" : minor ? "minor impact" : "direct hit"),
+  liveUseScenario: "Turn on the solar event scenario",
+  liveScenarioOn: "Solar event scenario on",
+  liveArrivals: (n, days) =>
+    `${n} forecast ${n === 1 ? "arrival" : "arrivals"} at Mars in ${days} days (WSA-ENLIL model)`,
+  liveRover: (sol) => `Perseverance, sol ${sol}`,
+  liveRoverDistance: (km) => `${km} km from base`,
+  liveRoverOutside: "outside the map area",
+  liveOdometry: (km) => `${km} km driven`,
+  liveImages: (sol) => `Latest images${sol ? ` (sol ${sol})` : ""}`,
+  liveNoImages: "No images in the saved copy",
+  liveSourceTitle: (name, error) => (error ? `${name}. No live query: ${error}` : name),
 };
 
 export const STRINGS: Record<Lang, Strings> = { es, en };

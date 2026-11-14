@@ -1,6 +1,7 @@
 import type {
   AssumptionsResponse,
   LatLon,
+  LiveResponse,
   RegionManifest,
   RegionSummary,
   RouteResponse,
@@ -34,7 +35,13 @@ export const api = {
   route: (body: { region: string; start: LatLon; end: LatLon; mode: WalkMode; suit?: SuitLimits }) =>
     request<RouteResponse>("/routes", { method: "POST", body: JSON.stringify(body) }),
   // Devuelve los tres modos y la línea base ("baseline").
-  compare: (body: { region: string; start: LatLon; end: LatLon; suit?: SuitLimits }) =>
+  compare: (body: {
+    region: string;
+    start: LatLon;
+    end: LatLon;
+    suit?: SuitLimits;
+    solar_event?: boolean;
+  }) =>
     request<Record<WalkMode, RouteResponse>>("/routes/compare", {
       method: "POST",
       body: JSON.stringify(body),
@@ -42,6 +49,9 @@ export const api = {
   safeReturn: (body: { region: string; base?: LatLon; suit?: SuitLimits }) =>
     request<SafeReturnResponse>("/routes/safe-return", { method: "POST", body: JSON.stringify(body) }),
   assumptions: (lang: Lang) => request<AssumptionsResponse>(`/assumptions?lang=${lang}`),
+  // Marte hoy: eyecciones solares (DONKI), posición de Perseverance y sus últimas imágenes.
+  live: (region?: string) =>
+    request<LiveResponse>(region ? `/live?region=${encodeURIComponent(region)}` : "/live"),
 };
 
 export const assetUrl = (regionId: string, path: string) => `${ASSETS_URL}/${regionId}/${path}`;

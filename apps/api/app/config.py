@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     assets_dir: str | None = None
     assets_url: str | None = None
     cors_origins: str = "http://localhost:3000"
+    # Llave de https://api.nasa.gov para DONKI. DEMO_KEY sirve para probar, pero se agota pronto.
+    nasa_api_key: str = "DEMO_KEY"
+    # false: /live usa solo la copia guardada (sin internet, o en las pruebas).
+    live_data: bool = True
 
     @property
     def cors_origin_list(self) -> list[str]:

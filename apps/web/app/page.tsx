@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { AssumptionsPanel } from "@/components/ui/AssumptionsPanel";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { LayerPanel } from "@/components/ui/LayerPanel";
+import { LivePanel } from "@/components/ui/LivePanel";
 import { NavPanel } from "@/components/ui/NavPanel";
 import { RoutePanel } from "@/components/ui/RoutePanel";
 import { SitePanel } from "@/components/ui/SitePanel";
@@ -31,6 +32,7 @@ export default function Home() {
     <main>
       <Scene />
       <LanguageToggle />
+      <LivePanel />
       {view === "globe" && <SitePanel />}
       {view === "region" && (
         <>

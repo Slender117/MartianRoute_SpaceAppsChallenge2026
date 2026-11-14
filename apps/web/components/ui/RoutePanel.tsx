@@ -9,7 +9,8 @@ import type { WalkMode } from "@/lib/types";
 const MODES: WalkMode[] = ["safe", "fast", "science"];
 
 export function RoutePanel() {
-  const { start, end, mode, suit, routes, loading, error, setMode, setSuit, computeRoutes } = useMapStore();
+  const { start, end, mode, suit, routes, loading, error, solarEvent, setMode, setSuit, setSolarEvent, computeRoutes } =
+    useMapStore();
 
   const t = useT();
   const hint = !start ? t.hintStart : !end ? t.hintEnd : null;
@@ -54,6 +55,11 @@ export function RoutePanel() {
           onChange={(e) => setSuit({ max_slope_deg: Number(e.target.value) })}
           style={{ width: "100%" }}
         />
+      </label>
+
+      <label style={{ display: "block", marginTop: 6 }}>
+        <input type="checkbox" checked={solarEvent} onChange={(e) => setSolarEvent(e.target.checked)} />{" "}
+        {t.solarScenario}
       </label>
 
       <button disabled={!start || !end || loading} onClick={computeRoutes} style={{ marginTop: 8 }}>

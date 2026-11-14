@@ -1,0 +1,154 @@
+{
+ "space_weather": {
+  "fetched_at": "2026-11-14T19:52:41.760239+00:00",
+  "data": [
+   {
+    "simulation_id": "WSA-ENLIL/49473/1",
+    "cme_id": null,
+    "cme_start": "2026-11-09T18:15:00Z",
+    "speed_km_s": 726.0,
+    "arrival_time": "2026-11-13T12:00:00Z",
+    "glancing_blow": true,
+    "minor_impact": false,
+    "model_completion": "2026-11-09T19:59:00Z",
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49473/-1"
+   },
+   {
+    "simulation_id": "WSA-ENLIL/49360/1",
+    "cme_id": null,
+    "cme_start": "2026-11-01T19:00:00Z",
+    "speed_km_s": 357.0,
+    "arrival_time": "2026-11-07T06:00:00Z",
+    "glancing_blow": true,
+    "minor_impact": false,
+    "model_completion": "2026-11-01T21:43:00Z",
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49360/-1"
+   },
+   {
+    "simulation_id": "WSA-ENLIL/49326/1",
+    "cme_id": null,
+    "cme_start": "2026-10-29T10:36:00Z",
+    "speed_km_s": 287.0,
+    "arrival_time": "2026-11-04T08:00:00Z",
+    "glancing_blow": false,
+    "minor_impact": true,
+    "model_completion": "2026-10-30T13:36:00Z",
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49326/-1"
+   },
+   {
+    "simulation_id": "WSA-ENLIL/49274/1",
+    "cme_id": null,
+    "cme_start": "2026-10-26T01:26:00Z",
+    "speed_km_s": 285.0,
+    "arrival_time": "2026-11-01T02:00:00Z",
+    "glancing_blow": false,
+    "minor_impact": true,
+    "model_completion": "2026-10-26T20:04:00Z",
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49274/-1"
+   },
+   {
+    "simulation_id": "WSA-ENLIL/49248/1",
+    "cme_id": null,
+    "cme_start": "2026-10-25T19:24:00Z",
+    "speed_km_s": 275.0,
+    "arrival_time": "2026-11-01T01:00:00Z",
+    "glancing_blow": false,
+    "minor_impact": true,
+    "model_completion": "2026-10-25T21:45:00Z",
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49248/-1"
+   },
+   {
+    "simulation_id": "WSA-ENLIL/49280/1",
+    "cme_id": null,
+    "cme_start": "2026-10-26T18:48:00Z",
+    "speed_km_s": 616.0,
+    "arrival_time": "2026-10-31T11:00:00Z",
+    "glancing_blow": false,
+    "minor_impact": true,
+    "model_completion": "2026-10-26T23:09:00Z",
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49280/-1"
+   },
+   {
+    "simulation_id": "WSA-ENLIL/49257/1",
+    "cme_id": null,
+    "cme_start": "2026-10-26T09:00:00Z",
+    "speed_km_s": 873.0,
+    "arrival_time": "2026-10-31T00:00:00Z",
+    "glancing_blow": true,
+    "minor_impact": false,
+    "model_completion": "2026-10-26T15:40:00Z",
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49257/-1"
+   },
+   {
+    "simulation_id": "WSA-ENLIL/49259/1",
+    "cme_id": null,
+    "cme_start": "2026-10-26T09:00:00Z",
+    "speed_km_s": 873.0,
+    "arrival_time": "2026-10-30T18:00:00Z",
+    "glancing_blow": false,
+    "minor_impact": true,
+    "model_completion": "2026-10-26T15:56:00Z",
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49259/-1"
+   },
+   {
+    "simulation_id": "WSA-ENLIL/49216/1",
+    "cme_id": null,
+    "cme_start": "2026-10-23T04:18:00Z",
+    "speed_km_s": 597.0,
+    "arrival_time": "2026-10-27T12:00:00Z",
+    "glancing_blow": false,
+    "minor_impact": true,
+    "model_completion": "2026-10-23T12:09:00Z",
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49216/-1"
+   }
+  ]
+ },
+ "rover": {
+  "fetched_at": "2026-11-14T20:05:51.785394+00:00",
+  "data": {
+   "rover": "Perseverance",
+   "sol": 2022,
+   "site": 93,
+   "drive": 0,
+   "lat": 18.43559434,
+   "lon": 77.23322287,
+   "elevation_m": -1936.366943,
+   "odometry_km": 45.25
+  }
+ },
+ "images": {
+  "fetched_at": "2026-11-14T20:05:51.785394+00:00",
+  "data": {
+   "latest_sol": 2031,
+   "images": [
+    {
+     "image_id": "LRF_2031_0847237865_241EBY_N0930000SCAM01031_0100I4J",
+     "sol": 2031,
+     "taken_utc": "2026-11-06T12:16:25.848000Z",
+     "camera": "SUPERCAM_RMI",
+     "thumbnail_url": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/02031/ids/edr/browse/scam/LRF_2031_0847237865_241EBY_N0930000SCAM01031_0100I4J01_320.jpg",
+     "full_url": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/02031/ids/edr/browse/scam/LRF_2031_0847237865_241EBY_N0930000SCAM01031_0100I4J01.png",
+     "page_url": "https://mars.nasa.gov/mars2020/multimedia/raw-images/LRF_2031_0847237865_241EBY_N0930000SCAM01031_0100I4J"
+    },
+    {
+     "image_id": "ZL0_2024_0846622583_145EBY_N0930000ZCAM10058_1100LMJ",
+     "sol": 2024,
+     "taken_utc": "2026-10-30T09:21:53.576000Z",
+     "camera": "MCZ_LEFT",
+     "thumbnail_url": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/02024/ids/edr/browse/zcam/ZL0_2024_0846622583_145EBY_N0930000ZCAM10058_1100LMJ02_320.jpg",
+     "full_url": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/02024/ids/edr/browse/zcam/ZL0_2024_0846622583_145EBY_N0930000ZCAM10058_1100LMJ02.png",
+     "page_url": "https://mars.nasa.gov/mars2020/multimedia/raw-images/ZL0_2024_0846622583_145EBY_N0930000ZCAM10058_1100LMJ"
+    },
+    {
+     "image_id": "ZR0_2024_0846622583_145EBY_N0930000ZCAM10058_1100LMJ",
+     "sol": 2024,
+     "taken_utc": "2026-10-30T09:21:51.579000Z",
+     "camera": "MCZ_RIGHT",
+     "thumbnail_url": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/02024/ids/edr/browse/zcam/ZR0_2024_0846622583_145EBY_N0930000ZCAM10058_1100LMJ01_320.jpg",
+     "full_url": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/02024/ids/edr/browse/zcam/ZR0_2024_0846622583_145EBY_N0930000ZCAM10058_1100LMJ01.png",
+     "page_url": "https://mars.nasa.gov/mars2020/multimedia/raw-images/ZR0_2024_0846622583_145EBY_N0930000ZCAM10058_1100LMJ"
+    }
+   ]
+  }
+ }
+}

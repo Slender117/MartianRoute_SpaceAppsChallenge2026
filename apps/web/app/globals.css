@@ -225,3 +225,46 @@ main {
   border-radius: 2px;
   vertical-align: middle;
 }
+
+/* Panel "Marte hoy": arriba al centro, debajo del selector de idioma */
+.live-panel {
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(300px, calc(100vw - 32px));
+  z-index: 2;
+}
+
+.live-body {
+  margin-top: 8px;
+  font-size: 12px;
+  max-height: 45vh;
+  overflow-y: auto;
+}
+
+.live-body h2 {
+  margin: 10px 0 4px;
+}
+
+.live-body p {
+  margin: 0 0 6px;
+}
+
+.live-alert a {
+  color: #ff8a65;
+  font-weight: 600;
+}
+
+.live-images {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.live-images img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}

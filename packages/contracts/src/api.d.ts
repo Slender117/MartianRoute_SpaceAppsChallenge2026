@@ -158,9 +158,30 @@ export interface paths {
         };
         /**
          * Get Assumptions
-         * @description Parámetros del modelo con su fuente y límites conocidos.
+         * @description Parámetros del modelo con su fuente y límites conocidos, en español o en inglés.
          */
         get: operations["get_assumptions_assumptions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Live
+         * @description Marte hoy: llegadas de eyecciones solares (DONKI), posición de Perseverance y sus últimas
+         *     imágenes. Si NASA no responde, devuelve la copia guardada e indica de cuándo es.
+         */
+        get: operations["live_live_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -184,8 +205,23 @@ export interface components {
             type: string;
             /** @default warning */
             severity: components["schemas"]["AlertSeverity"];
-            /** Message */
+            /**
+             * Message
+             * @description Texto en español; la web arma el de otros idiomas con code
+             */
             message: string;
+            /**
+             * Code
+             * @description Variante de la alerta: steep_segment, autonomy_over_suit, autonomy_reserve, too_far, dose_over_limit o solar_event
+             */
+            code: string;
+            /**
+             * Values
+             * @description Cifras del mensaje, para traducirlo sin la API
+             */
+            values?: {
+                [key: string]: number;
+            };
         };
         /**
          * AlertSeverity
@@ -220,6 +256,34 @@ export interface components {
             parameters: components["schemas"]["Assumption"][];
             /** Limits */
             limits: string[];
+        };
+        /** CmeArrival */
+        CmeArrival: {
+            /** Simulation Id */
+            simulation_id: string;
+            /** Cme Id */
+            cme_id?: string | null;
+            /** Cme Start */
+            cme_start?: string | null;
+            /** Speed Km S */
+            speed_km_s?: number | null;
+            /**
+             * Arrival Time
+             * Format: date-time
+             * @description Llegada prevista a Marte (UTC), según WSA-ENLIL
+             */
+            arrival_time: string;
+            /** Glancing Blow */
+            glancing_blow: boolean;
+            /** Minor Impact */
+            minor_impact: boolean;
+            /**
+             * Model Completion
+             * Format: date-time
+             */
+            model_completion: string;
+            /** Link */
+            link: string;
         };
         /** CompareRequest */
         CompareRequest: {
@@ -285,6 +349,17 @@ export interface components {
              * @description ID del producto de origen
              */
             source: string;
+        };
+        /** LiveResponse */
+        LiveResponse: {
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            space_weather: components["schemas"]["SpaceWeather"];
+            rover: components["schemas"]["RoverPosition"] | null;
+            images: components["schemas"]["RoverImages"];
         };
         /**
          * O2Interval
@@ -575,6 +650,67 @@ export interface components {
             /** Max Separation M */
             max_separation_m: number;
         };
+        /** RoverImage */
+        RoverImage: {
+            /** Image Id */
+            image_id: string;
+            /** Sol */
+            sol: number;
+            /**
+             * Taken Utc
+             * Format: date-time
+             */
+            taken_utc: string;
+            /** Camera */
+            camera: string;
+            /** Thumbnail Url */
+            thumbnail_url: string;
+            /** Full Url */
+            full_url?: string | null;
+            /** Page Url */
+            page_url?: string | null;
+        };
+        /** RoverImages */
+        RoverImages: {
+            source: components["schemas"]["SourceInfo"];
+            /** Latest Sol */
+            latest_sol?: number | null;
+            /** Images */
+            images: components["schemas"]["RoverImage"][];
+        };
+        /** RoverPosition */
+        RoverPosition: {
+            source: components["schemas"]["SourceInfo"];
+            /** Rover */
+            rover: string;
+            /** Sol */
+            sol: number;
+            /** Site */
+            site: number;
+            /** Drive */
+            drive: number;
+            /** Lat */
+            lat: number;
+            /** Lon */
+            lon: number;
+            /** Elevation M */
+            elevation_m?: number | null;
+            /**
+             * Odometry Km
+             * @description Distancia total recorrida
+             */
+            odometry_km?: number | null;
+            /**
+             * Distance To Base Km
+             * @description Distancia en línea recta a la base de la región pedida
+             */
+            distance_to_base_km?: number | null;
+            /**
+             * In Region
+             * @description Si cae dentro del bbox de la región pedida
+             */
+            in_region?: boolean | null;
+        };
         /** SafeReturnRequest */
         SafeReturnRequest: {
             /** Region */
@@ -672,6 +808,55 @@ export interface components {
                 [key: string]: components["schemas"]["Provenance"];
             };
         };
+        /** SourceInfo */
+        SourceInfo: {
+            /** Name */
+            name: string;
+            /**
+             * Url
+             * @description Página pública de la fuente, para citarla
+             */
+            url: string;
+            /**
+             * Status
+             * @description live: consultada a NASA mientras corre la API; snapshot: copia guardada
+             * @enum {string}
+             */
+            status: "live" | "snapshot";
+            /**
+             * Fetched At
+             * Format: date-time
+             * @description Cuándo se obtuvo de NASA (UTC)
+             */
+            fetched_at: string;
+            provenance: components["schemas"]["Provenance"];
+            /**
+             * Error
+             * @description Por qué no se pudo consultar en vivo
+             */
+            error?: string | null;
+        };
+        /** SpaceWeather */
+        SpaceWeather: {
+            source: components["schemas"]["SourceInfo"];
+            /**
+             * Arrivals
+             * @description Llegadas previstas a Marte, la más reciente primero
+             */
+            arrivals: components["schemas"]["CmeArrival"][];
+            /** @description Llegada dentro de la ventana de alerta alrededor de la hora actual */
+            alert?: components["schemas"]["CmeArrival"] | null;
+            /**
+             * Alert Before H
+             * @description La alerta empieza estas horas antes de la llegada
+             */
+            alert_before_h: number;
+            /**
+             * Alert After H
+             * @description La alerta sigue estas horas después de la llegada
+             */
+            alert_after_h: number;
+        };
         /** Stop */
         Stop: {
             /** Lat */
@@ -682,6 +867,11 @@ export interface components {
             type: string;
             /** Reason */
             reason: string;
+            /**
+             * Value
+             * @description Índice de minerales o de hielo en la parada (0-1)
+             */
+            value: number;
         };
         /** SuitLimits */
         SuitLimits: {
@@ -1037,7 +1227,9 @@ export interface operations {
     };
     get_assumptions_assumptions_get: {
         parameters: {
-            query?: never;
+            query?: {
+                lang?: "es" | "en";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1051,6 +1243,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssumptionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    live_live_get: {
+        parameters: {
+            query?: {
+                region?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
