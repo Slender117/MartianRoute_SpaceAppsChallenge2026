@@ -34,7 +34,8 @@ def main() -> None:
     elif args.command == "fetch":
         from marsdata.fetch.sources import fetch_region
 
-        fetch_region(region)
+        for key, status in fetch_region(region).items():
+            print(f"{key:<16} {status}  ({region.sources[key]})")
         return
     else:
         from marsdata.process.build import build_region
