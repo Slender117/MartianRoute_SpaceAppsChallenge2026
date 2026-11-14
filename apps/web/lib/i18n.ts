@@ -50,12 +50,12 @@ const es = {
   infeasible: "⚠ no factible",
   infeasibleTitle: "Rompe un límite del traje: mira las alertas en Navegación",
   tableCaption:
-    "O₂ entre dos cotas de gravedad (modelado). Dosis de fondo durante la EVA. Riesgo: obstáculos promedio, 0 a 1. Pasa el cursor por un encabezado para ver su procedencia.",
+    "O₂ entre dos cotas de gravedad (modelado). Dosis de fondo durante la EVA, con la tasa que midió Curiosity en Gale. Riesgo: obstáculos promedio, 0 a 1. Pasa el cursor por un encabezado para ver su procedencia.",
   to: "a",
 
   navTitle: "Navegación",
   sols: "soles",
-  dose: (msv: string) => `Dosis de fondo: ${msv} mSv`,
+  dose: (msv: string) => `Dosis de fondo (tasa de Gale): ${msv} mSv`,
   vsSafe: (km: string, h: string, msv: string, shared: number) =>
     `vs. Segura: ${km}, ${h}, ${msv}; comparte ${shared} % del camino`,
   pnr: (h: string, km: string | null, usable: string) =>
@@ -75,7 +75,7 @@ const es = {
     "Sin regreso ni con la autonomía total",
   ],
   safeReturnSummary: (min: number, pct: number, msv: string) =>
-    `Planeable: hasta ${min} min de regreso (${pct} % de la zona). Dosis de una EVA completa: ${msv} mSv (modelado).`,
+    `Planeable: hasta ${min} min de regreso (${pct} % de la zona). Dosis de una EVA completa: ${msv} mSv (tasa de Gale, modelado).`,
 
   assumptions: "Supuestos y límites",
   hide: "Ocultar",
@@ -119,12 +119,12 @@ const en: Strings = {
   infeasible: "⚠ not feasible",
   infeasibleTitle: "Breaks a suit limit: see the alerts under Navigation",
   tableCaption:
-    "O₂ between two gravity bounds (modeled). Background dose during the EVA. Risk: average obstacles, 0 to 1. Hover a header to see where its figure comes from.",
+    "O₂ between two gravity bounds (modeled). Background dose during the EVA, using the rate Curiosity measured at Gale. Risk: average obstacles, 0 to 1. Hover a header to see where its figure comes from.",
   to: "to",
 
   navTitle: "Navigation",
   sols: "sols",
-  dose: (msv) => `Background dose: ${msv} mSv`,
+  dose: (msv) => `Background dose (Gale rate): ${msv} mSv`,
   vsSafe: (km, h, msv, shared) => `vs. Safe: ${km}, ${h}, ${msv}; shares ${shared} % of the path`,
   pnr: (h, km, usable) =>
     `Point of no return at ${h} h${km ? ` (km ${km})` : ""}: from there, the way back no longer fits in the ${usable} plannable hours and would use the reserve`,
@@ -143,7 +143,7 @@ const en: Strings = {
     "No return even with the full autonomy",
   ],
   safeReturnSummary: (min, pct, msv) =>
-    `Plannable: up to ${min} min to return (${pct} % of the area). Dose of a full EVA: ${msv} mSv (modeled).`,
+    `Plannable: up to ${min} min to return (${pct} % of the area). Dose of a full EVA: ${msv} mSv (Gale rate, modeled).`,
 
   assumptions: "Assumptions and limits",
   hide: "Hide",

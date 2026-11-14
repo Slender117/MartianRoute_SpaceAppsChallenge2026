@@ -26,7 +26,7 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
 | `max_distance` | Distancia máxima a la base | 10 km | modeled | Regreso a pie de emergencia: Coan (2020), §4.2.1.3.1.1; NASA (2025), [V2 11030]; Drake y Watts (2014), §9.2 |
 | `max_dose` | Límite de dosis por EVA | sin valor | modeled | NASA (2022), §4.8: no hay límite por EVA |
 | `career_dose_limit` | Límite de dosis efectiva de carrera | 600 mSv | observed | NASA (2022), [V1 4030] |
-| `radiation_rate` | Dosis equivalente en la superficie | 0.64 ± 0.12 mSv/día | observed | Hassler et al. (2014) |
+| `radiation_rate` | Dosis equivalente en la superficie de Gale | 0.64 ± 0.12 mSv/día | observed | Hassler et al. (2014): Curiosity RAD en el cráter Gale; se aplica a Jezero como supuesto |
 | `solar_event_dose` | Dosis absorbida del escenario de evento solar | 8.1 mGy | observed | NASA JPL (2024) |
 | `sol_length` | Duración de un sol | 24.6598 h | observed | NASA GISS Mars24 |
 | `mars_radius` | Radio de Marte | 3,389.5 km | observed | Convención del proyecto (radio medio) |
