@@ -13,7 +13,7 @@ export function SitePanel() {
 
   return (
     <section className="panel" style={{ top: 16, left: 16 }}>
-      <h2>WazeMars</h2>
+      <h2>Martian Route</h2>
       <p className="muted" style={{ margin: "0 0 8px" }}>
         {t.sitePickTitle}
       </p>

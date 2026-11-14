@@ -27,7 +27,7 @@ def _domain_error(_: Request, exc: Exception) -> JSONResponse:
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title="WazeMars API", version="0.2.0")
+    app = FastAPI(title="Martian Route API", version="0.2.0")
 
     app.add_middleware(
         CORSMiddleware,
