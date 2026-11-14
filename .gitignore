@@ -16,6 +16,7 @@ __pycache__/
 # Datos generados por el pipeline (se publican en R2, no en git)
 data/raw/
 data/regions/
+data/regions-real/
 
 # Entorno
 .env
