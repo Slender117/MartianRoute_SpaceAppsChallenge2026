@@ -1,4 +1,4 @@
-# WazeMars
+# Martian Route
 
 Mapa interactivo por capas y planificador de caminatas para los primeros exploradores humanos de Marte.
 NASA Space Apps Challenge 2026: *Interplanetary Survival Guide: Martian Map*.

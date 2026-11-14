@@ -1,8 +1,10 @@
-# WazeMars: contexto del proyecto
+# Martian Route: contexto del proyecto
 
 Mapa interactivo por capas y planificador de caminatas (EVA) para astronautas en Marte.
 Proyecto para NASA Space Apps Challenge 2026, reto "Interplanetary Survival Guide: Martian Map".
-Hackatón: 14 y 15 de noviembre de 2026. Nombre provisional (en el deck aparece como "Ruta Roja").
+Hackatón: 14 y 15 de noviembre de 2026. Nombre: Martian Route desde el 14 de noviembre (antes WazeMars,
+provisional, y "Ruta Roja" en el deck). Los nombres internos conservan el anterior: paquetes `@wazemars/*`,
+bucket `wazemars-assets`, proyecto de Theatre y la clave `wazemars.lang`.
 
 La interfaz y la documentación van en español. El código (identificadores, commits) puede ir en inglés.
 
@@ -250,4 +252,3 @@ Comandos del pipeline: `marsdata synthetic | fetch | build | publish`.
 - Cobertura de SWIM en Jezero.
 - Criterios de evaluación y requisitos de entrega (guías publicadas el 13 de noviembre), incluida la
   declaración de uso de IA.
-- Nombre final del proyecto (evitar "Waze", que es marca registrada).
