@@ -37,10 +37,10 @@ def inside(p):
     return b[0] <= x <= b[2] and b[1] <= y <= b[3]
 
 
-def trechos(features):
+def trechos(features, lo=500, hi=1000):
     """(id, conjunto, vértices, longitud_m, rectitud) en orden de sol."""
     rs = ct.runs(ct.points(features, (0, 10**6)), ct.BBOX, 30.0)
-    found = [c for c in ct.candidates(rs, 500, 1000, top=None) if inside(c[1]) and inside(c[2])]
+    found = [c for c in ct.candidates(rs, lo, hi, top=None) if inside(c[1]) and inside(c[2])]
     found.sort(key=lambda c: c[1][2])
     out = []
     for n, (ratio, a, b, dist) in enumerate(found, 1):
