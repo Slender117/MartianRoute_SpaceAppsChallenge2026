@@ -1,39 +1,56 @@
-# Williams · Comodín: pruebas, equipo y video
+# Williams: pruebas, equipo y video
 
-**Objetivo:** apoya OE4.
-**Hitos:** participa en H4. **Respaldo:** Tulio. **Presenta** el pitch.
+Williams es el del equipo. Su trabajo es que la demo salga bien el día de la presentación:
+encontrar los errores antes que los jueces, tener listos el equipo y la conexión, y grabar un video
+de respaldo por si la app falla en vivo. Además, es uno de los tres que presentan el pitch, junto con
+Tulio y Edgar.
 
-## Alcance
+Su frente apoya el objetivo de que la herramienta sea fácil de entender y de usar para quien la ve
+por primera vez.
 
-Encontrar los errores antes que los jueces, asegurar el equipo y la red de la demo y tener listo un
-video de respaldo por si la API falla en vivo.
+## Qué tiene que hacer
 
-## Carpetas
+Si un compañero requiere apoyo, ayudarlo en la manera que le sea posible.
 
-- `docs/img/` (capturas)
-- Material del deck y video de respaldo
+Primero, probar la app de principio a fin como la usaría alguien de fuera. Empieza con la región de
+prueba (datos sintéticos) y, cuando Tulio publique los datos reales del cráter Jezero, repite las
+pruebas con ellos. Cada error que encuentre se lo reporta a quien es dueño de esa parte, con los
+pasos exactos para que el error vuelva a aparecer. Esto debe estar listo cuando el motor de rutas
+ya funcione con datos reales, el 14 de noviembre.
 
-## Tareas
+Segundo, asegurar el equipo de la demo: laptop, pantalla, conexión a internet y una red de respaldo
+por si la principal falla.
 
-- [ ] Pruebas de uso de punta a punta, primero con la región sintética y luego con Jezero real;
-      reportar cada error con los pasos para reproducirlo (H3)
-- [ ] Equipo de la demo: laptop, pantalla, conexión y una red de respaldo (H4)
-- [ ] Grabar con Tulio el video de respaldo de la demo congelada (H4)
-- [ ] Capturas y material visual para el deck (H4)
-- [ ] Conseguir a las 5 personas de la prueba de HE4 y aplicarla con Milton (H4)
+Tercero, grabar con Tulio un video de la demo terminada. Ese video es el plan B si el servidor se
+cae o tarda en responder durante la presentación.
 
-## Por día
+Cuarto, preparar capturas y material visual para las diapositivas.
 
-| 13 nov | 14 nov | 15 nov |
-| --- | --- | --- |
-| Pruebas con la región sintética; revisar equipo y red | Pruebas sobre Jezero real, prueba de HE4 y video de respaldo | Presenta |
+Quinto, organizar la prueba de uso: conseguir a cinco personas que no conozcan la app y aplicarles
+la prueba junto con Milton, para medir si entienden lo que ven.
 
-## Recibe y entrega
+Las tareas tercera, cuarta y quinta deben estar listas antes de congelar la demo, al cierre del
+14 de noviembre. Desde ese momento ya no se agregan funciones nuevas, solo correcciones.
 
-- **Recibe** de Tulio: la URL desplegada y la demo congelada. De Jairo y Milton: pantallas para probar.
-- **Entrega** a cada dueño: reportes de error con pasos para reproducirlos. Al pitch: capturas,
-  video y resultados de la prueba de HE4.
+## Día por día
 
-## Fuera de alcance
+- **13 de noviembre:** pruebas con la región de prueba y revisión del equipo y la red.
+- **14 de noviembre:** pruebas con los datos reales de Jezero, la prueba de uso con las cinco
+  personas y la grabación del video de respaldo.
+- **15 de noviembre:** presenta el pitch.
 
-- Corregir código de otras carpetas sin avisar a su dueño: reportar y dejar que lo arregle quien lo mantiene.
+## Con quién trabaja
+
+Tulio le pasa la dirección de la app ya publicada y la versión congelada de la demo. Jairo y Milton
+le pasan sus pantallas para que las pruebe.
+
+A cambio, Williams le entrega a cada dueño los reportes de error de su parte. Para el pitch aporta
+las capturas, el video y los resultados de la prueba de uso.
+
+Sus archivos son las capturas en `docs/img/`, el material de las diapositivas y el video de
+respaldo.
+
+## Lo que no le toca
+
+No corrige código de partes que tienen otro dueño. Si encuentra un error, lo reporta y deja que lo
+arregle quien mantiene esa parte.
