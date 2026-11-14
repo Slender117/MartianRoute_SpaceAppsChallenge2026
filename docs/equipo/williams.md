@@ -1,39 +1,50 @@
-# Williams · Comodín: pruebas, equipo y video
+# Williams · Columna vertebral: pruebas, equipo y video
 
-**Objetivo:** apoya OE4.
-**Hitos:** participa en H4. **Respaldo:** Tulio. **Presenta** el pitch.
+**Objetivo:** apoya OE4: que la herramienta sea fácil de entender y de usar para quien la ve por
+primera vez.
+**Hitos:** participa en H3 y H4. **Respaldo:** Tulio. **Presenta** el pitch con Tulio y Edgar.
 
 ## Alcance
 
-Encontrar los errores antes que los jueces, asegurar el equipo y la red de la demo y tener listo un
-video de respaldo por si la API falla en vivo.
+Que la demo salga bien el día de la presentación: encontrar los errores antes que los jueces, tener
+listos el equipo y la conexión, y grabar un video de respaldo por si la app falla en vivo. Si un
+compañero requiere apoyo, ayudarlo en la manera que le sea posible.
 
 ## Carpetas
 
 - `docs/img/` (capturas)
-- Material del deck y video de respaldo
+- Material de las diapositivas y video de respaldo
 
 ## Tareas
 
-- [ ] Pruebas de uso de punta a punta, primero con la región sintética y luego con Jezero real;
-      reportar cada error con los pasos para reproducirlo (H3)
-- [ ] Equipo de la demo: laptop, pantalla, conexión y una red de respaldo (H4)
-- [ ] Grabar con Tulio el video de respaldo de la demo congelada (H4)
-- [ ] Capturas y material visual para el deck (H4)
-- [ ] Conseguir a las 5 personas de la prueba de HE4 y aplicarla con Milton (H4)
+- [ ] Probar la app de principio a fin como la usaría alguien de fuera, primero con la región
+      sintética y luego con Jezero real cuando Tulio lo publique; reportar cada error a su dueño con
+      los pasos exactos para reproducirlo. Listo el 14 nov, con el motor sobre datos reales (H3)
+- [ ] Equipo de la demo: laptop, pantalla, conexión a internet y una red de respaldo (H4)
+- [ ] Grabar con Tulio el video de la demo terminada, plan B si el servidor se cae o tarda en
+      responder (H4)
+- [ ] Capturas y material visual para las diapositivas (H4)
+- [ ] Prueba de uso (HE4): conseguir a cinco personas que no conozcan la app y aplicarla con Milton
+      para medir si entienden lo que ven (H4)
+- [ ] Apoyar a cualquier compañero que lo necesite
+
+El video, las capturas y la prueba de uso deben estar listos antes de congelar la demo, al cierre
+del 14 nov. Desde ese momento solo se agregan correcciones.
 
 ## Por día
 
 | 13 nov | 14 nov | 15 nov |
 | --- | --- | --- |
-| Pruebas con la región sintética; revisar equipo y red | Pruebas sobre Jezero real, prueba de HE4 y video de respaldo | Presenta |
+| Pruebas con la región sintética; revisar equipo y red | Pruebas con Jezero real, prueba de uso con las cinco personas y video de respaldo | Presenta el pitch |
 
 ## Recibe y entrega
 
-- **Recibe** de Tulio: la URL desplegada y la demo congelada. De Jairo y Milton: pantallas para probar.
-- **Entrega** a cada dueño: reportes de error con pasos para reproducirlos. Al pitch: capturas,
-  video y resultados de la prueba de HE4.
+- **Recibe** de Tulio: la URL de la app publicada y la versión congelada de la demo. De Jairo y
+  Milton: sus pantallas para probar.
+- **Entrega** a cada dueño: los reportes de error de su parte. Al pitch: capturas, video y
+  resultados de la prueba de uso.
 
 ## Fuera de alcance
 
-- Corregir código de otras carpetas sin avisar a su dueño: reportar y dejar que lo arregle quien lo mantiene.
+- Corregir código de partes que tienen otro dueño: reportar el error y dejar que lo arregle quien
+  mantiene esa parte.
