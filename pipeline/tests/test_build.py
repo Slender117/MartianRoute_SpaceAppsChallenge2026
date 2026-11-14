@@ -413,6 +413,7 @@ def test_build_region_derives_hazard_from_roughness_without_terrain_classes(regi
 
     meta = result.layer_meta["hazard"]
     assert meta["provenance"] == "derived" and meta["coverage"] == 1.0
+    assert meta["source"] == "dem.tif"
     lon_grid = np.linspace(BBOX[0], BBOX[2], SIZE)
     hazard = result.grids["hazard"]
     assert hazard[:, lon_grid > 77.36].mean() > 0.9

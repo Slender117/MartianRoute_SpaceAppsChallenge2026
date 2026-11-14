@@ -113,6 +113,7 @@ def _roughness_hazard(region: Region, dem_path, result: BuildResult) -> None:
     rms = roughness_to_region(dem_path, region)
     result.layer_meta["hazard"] = {
         "provenance": "derived",
+        "source": region.sources["dem"],
         "coverage": coverage(rms),
         "fill": "nearest",
         "method": (
