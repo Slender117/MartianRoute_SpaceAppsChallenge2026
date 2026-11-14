@@ -87,7 +87,8 @@ docs/                    arquitectura, reportes, capturas
 | GET | `/regions/{id}` | Manifest completo de una región |
 | GET | `/regions/{id}/traverse/{rover}` | Recorrido real del rover en GeoJSON |
 | POST | `/routes` | Una ruta en el modo pedido |
-| POST | `/routes/compare` | Las tres rutas a la vez |
+| POST | `/routes/compare` | Las tres rutas y la línea base a la vez |
+| POST | `/routes/safe-return` | Mapa de regreso seguro: minutos de regreso a la base por celda |
 
 Errores: 404 región inexistente; 422 punto fuera de la región, en pendiente intransitable o sin ruta.
 
@@ -96,20 +97,31 @@ Errores: 404 región inexistente; 422 punto fuera de la región, en pendiente in
 Costo por celda (`engine/cost.py`):
 
 ```
-costo = 1 + w_pendiente*(pendiente/máx)^2 + w_riesgo*hazard + w_inestabilidad*(1 - inercia_térmica)
+costo = 1 + w_pendiente*penalización_O2(pendiente) + w_riesgo*hazard + w_inestabilidad*(1 - inercia_térmica)
 costo *= (1 - w_ciencia*minerales)      # mínimo 0.1 por celda
 pendiente > máx del traje -> infinito (intransitable)
 ```
+
+`penalización_O2` (`engine/o2_model.py`, modelo de Edgar) es el O₂ extra de ida y vuelta respecto al
+plano según la curva de Minetti et al. (2002), normalizado a 0 en plano y 1 en la pendiente máxima.
+Sustituyó a `(pendiente/máx)²`: es casi lineal, así que castiga más las pendientes moderadas.
 
 | Modo | Pendiente | Riesgo | Inestabilidad | Ciencia |
 | --- | --- | --- | --- | --- |
 | Segura | 4.0 | 4.0 | 2.0 | 0 |
 | Rápida | 0.5 | 1.0 | 0.3 | 0 |
 | Científica | 1.5 | 2.0 | 1.0 | 0.8 |
+| Línea base | 0 | 0 | 0 | 0 |
+
+La línea base (`baseline`) es la ruta de mínima distancia que respeta la pendiente máxima. No es un
+modo para el astronauta: es la referencia de HE2 y HE3 (`vs_baseline` en cada ruta).
 
 Consumibles (`engine/consumables.py`): Tobler escalado a 2 km/h en plano con traje, distancia 3D por
-segmento, duración en horas y soles (1 sol = 24.66 h), O₂ de referencia 0.07 kg/h. Punto de no retorno:
-primer punto donde se gastó la mitad de la autonomía. Paradas: celdas con minerales o hielo > 0.6,
+segmento, duración en horas y soles (1 sol = 24.66 h), O₂ de referencia 0.07 kg/h. Autonomía
+planeable: la autonomía menos la reserva más estricta entre 20 % y 30 min. Trabajo fijo `suit.task_h`
+(0 por defecto) sumado a la duración. Punto de no retorno: primer punto donde lo gastado más el regreso
+supera la autonomía planeable menos el trabajo fijo. O₂ oficial (`o2_interval_kg`): intervalo por
+astronauta con la curva de Minetti entre dos cotas de gravedad, más el trabajo fijo; no cambia la ruta. Paradas: celdas con minerales o hielo > 0.6,
 separadas al menos 15 puntos. Alertas: tramos con más del 80 % de la pendiente máxima, exceso de
 autonomía y distancia a la base mayor que la permitida.
 

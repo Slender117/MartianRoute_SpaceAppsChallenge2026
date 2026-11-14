@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
 
+import { AssumptionsPanel } from "@/components/ui/AssumptionsPanel";
 import { LayerPanel } from "@/components/ui/LayerPanel";
 import { NavPanel } from "@/components/ui/NavPanel";
 import { RoutePanel } from "@/components/ui/RoutePanel";
@@ -34,6 +35,7 @@ export default function Home() {
           <LayerPanel />
           <RoutePanel />
           <NavPanel />
+          <AssumptionsPanel />
         </>
       )}
     </main>

@@ -15,6 +15,9 @@ O2_KG_PER_HOUR = 0.07
 CREW_SIZE = 2
 # Fracción de la autonomía del traje que no se planea gastar.
 AUTONOMY_RESERVE = 0.20
+# Reserva mínima al volver a la base (30 min, decisión del plan del equipo). Se aplica la más
+# estricta entre esta y AUTONOMY_RESERVE: ver usable_autonomy_h.
+WALKBACK_RESERVE_H = 0.5
 # Dosis equivalente en la superficie medida por Curiosity RAD, en mSv por día terrestre.
 RAD_MSV_PER_DAY = 0.64
 RAD_MSV_PER_DAY_ERROR = 0.12
@@ -52,16 +55,22 @@ def ascent_m(path: np.ndarray, dem: np.ndarray) -> float:
 
 
 def usable_autonomy_h(autonomy_h: float) -> float:
-    return autonomy_h * (1 - AUTONOMY_RESERVE)
+    """Autonomía planeable: la autonomía menos la reserva más estricta (20 % o 30 min).
 
-
-def point_of_no_return(elapsed_h: np.ndarray, back_h: np.ndarray, usable_h: float) -> int | None:
-    """Primer índice desde donde el regreso ya no alcanza con la autonomía utilizable.
-
-    En terreno plano es la mitad de esa autonomía. En pendiente se usa el tiempo real de regreso,
-    porque subir de vuelta lo que se bajó de ida tarda más.
+    Con 8 h manda el 20 % (1.6 h); con menos de 2.5 h de traje manda la reserva de 30 min. Una sola
+    regla alimenta la factibilidad, el punto de no retorno y el mapa de regreso seguro.
     """
-    idx = np.nonzero(elapsed_h + back_h >= usable_h)[0]
+    return autonomy_h - max(AUTONOMY_RESERVE * autonomy_h, WALKBACK_RESERVE_H)
+
+
+def point_of_no_return(elapsed_h: np.ndarray, back_h: np.ndarray, budget_h: float) -> int | None:
+    """Primer índice donde lo gastado más el regreso a pie ya no cabe en el presupuesto.
+
+    `budget_h` es la autonomía planeable menos el trabajo fijo. En terreno plano cae a la mitad
+    del presupuesto; en pendiente se usa el tiempo real de regreso, porque
+    subir de vuelta lo que se bajó de ida tarda más.
+    """
+    idx = np.nonzero(elapsed_h + back_h >= budget_h)[0]
     return int(idx[0]) if idx.size else None
 
 

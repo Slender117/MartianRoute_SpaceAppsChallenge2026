@@ -10,6 +10,7 @@ from app.engine.consumables import (
     ascent_m,
     point_of_no_return,
     segment_profile,
+    usable_autonomy_h,
 )
 from app.engine.cost import build_cost
 from app.engine.pathfind import NoPathError, find_path
@@ -110,11 +111,11 @@ def _eva_hours(flat_grids) -> float:
 
 def test_reserve_is_not_plannable(flat_grids):
     duration = _eva_hours(flat_grids)
-    # Le alcanza al traje, pero solo gastando parte del 20 % de reserva.
+    # Le alcanza al traje, pero solo gastando parte de la reserva.
     suit = SuitLimits(autonomy_h=duration / 0.9)
     route = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, suit)
 
-    assert route.usable_autonomy_h == pytest.approx(suit.autonomy_h * 0.8)
+    assert route.usable_autonomy_h == pytest.approx(usable_autonomy_h(suit.autonomy_h))
     assert route.margin_h < 0
     assert not route.feasible
     alert = next(a for a in route.alerts if a.type == "autonomy")
@@ -123,7 +124,8 @@ def test_reserve_is_not_plannable(flat_grids):
 
 
 def test_eva_within_usable_autonomy_is_feasible(flat_grids):
-    suit = SuitLimits(autonomy_h=_eva_hours(flat_grids) / 0.7, max_dist_km=100)
+    # La hora extra cubre la reserva aunque mande la de 30 min.
+    suit = SuitLimits(autonomy_h=_eva_hours(flat_grids) / 0.7 + 1, max_dist_km=100)
     route = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, suit)
 
     assert route.margin_h > 0
@@ -132,14 +134,62 @@ def test_eva_within_usable_autonomy_is_feasible(flat_grids):
     assert route.alerts == []
 
 
-def test_point_of_no_return_on_flat_ground_is_half_of_usable_autonomy():
+def test_point_of_no_return_on_flat_ground_is_half_of_the_budget():
     elapsed = np.linspace(0, 10, 101)
-    assert point_of_no_return(elapsed, elapsed, usable_h=6.4) == 32
+    assert point_of_no_return(elapsed, elapsed, budget_h=6.4) == 32
 
 
 def test_point_of_no_return_comes_earlier_if_the_way_back_is_slower():
     elapsed = np.linspace(0, 10, 101)
-    assert point_of_no_return(elapsed, 2 * elapsed, usable_h=6.4) == 22
+    assert point_of_no_return(elapsed, 2 * elapsed, budget_h=6.4) == 22
+
+
+def test_usable_autonomy_applies_the_stricter_reserve():
+    # Con 8 h manda el 20 % (1.6 h); con 2 h manda la reserva mínima de 30 min.
+    assert usable_autonomy_h(8.0) == pytest.approx(8.0 * 0.8)
+    assert usable_autonomy_h(2.0) == pytest.approx(2.0 - 0.5)
+
+
+def _autonomy_for_usable(usable_h: float) -> float:
+    """Autonomía del traje cuya parte planeable es `usable_h` (inversa de usable_autonomy_h)."""
+    by_percent = usable_h / 0.8
+    return by_percent if 0.2 * by_percent >= 0.5 else usable_h + 0.5
+
+
+def test_route_reports_the_point_of_no_return_at_the_planned_limit(flat_grids):
+    duration = _eva_hours(flat_grids)
+    # Autonomía planeable apenas menor que la EVA completa: el punto de no retorno cae en el
+    # destino. El 1e-6 evita depender del redondeo de punto flotante en la igualdad.
+    suit = SuitLimits(autonomy_h=_autonomy_for_usable(duration - 1e-6), max_dist_km=100)
+    route = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, suit)
+
+    assert route.point_of_no_return == len(route.path) - 1
+    assert route.point_of_no_return_km == pytest.approx(route.outbound_km)
+
+
+def test_fixed_task_time_adds_duration_and_o2(flat_grids):
+    walk = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, SuitLimits())
+    task = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, SuitLimits(task_h=1.0))
+
+    assert task.duration_h == pytest.approx(walk.duration_h + 1.0)
+    assert task.o2_interval_kg.low_kg == pytest.approx(walk.o2_interval_kg.low_kg + O2_KG_PER_HOUR)
+    assert task.o2_interval_kg.high_kg == pytest.approx(
+        walk.o2_interval_kg.high_kg + O2_KG_PER_HOUR
+    )
+
+
+def test_fixed_task_time_brings_the_point_of_no_return_earlier(flat_grids):
+    duration = _eva_hours(flat_grids)
+    usable = duration + 1.0
+    no_task = SuitLimits(autonomy_h=_autonomy_for_usable(usable), max_dist_km=100)
+    with_task = no_task.model_copy(update={"task_h": 1.5})
+
+    assert (
+        plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, no_task).point_of_no_return is None
+    )
+    route = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, with_task)
+    assert route.point_of_no_return is not None
+    assert not route.feasible
 
 
 def test_radiation_dose_follows_duration(flat_grids):
@@ -254,3 +304,36 @@ def test_validation_measures_how_far_the_route_strays(flat_grids):
         assert metrics.distance_ratio > 1.5
         assert metrics.mean_separation_m > 100
         assert metrics.max_separation_m >= metrics.mean_separation_m
+
+
+def test_baseline_ignores_hazard_and_takes_the_shortest_way(flat_grids):
+    flat_grids.slope[:] = 0
+    flat_grids.hazard[2:11, 9:15] = 1.0  # un campo de rocas justo entre los dos puntos
+    safe = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, SuitLimits())
+    baseline = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.baseline, SuitLimits())
+
+    assert baseline.outbound_km < safe.outbound_km
+
+
+def test_baseline_still_respects_the_max_slope(flat_grids):
+    route = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.baseline, SuitLimits())
+    cols = {round(p.lon * (len(flat_grids.dem) - 1)) for p in route.path if p.lat > 0.2}
+    assert MID not in cols  # rodea el muro por abajo
+
+
+def test_compare_reports_difference_against_baseline(flat_grids):
+    routes = compare_routes(flat_grids, NORTH_A, NORTH_B, SuitLimits())
+
+    baseline, safe = routes[WalkMode.baseline], routes[WalkMode.safe]
+    assert baseline.vs_baseline is None
+    assert baseline.vs_safe is not None
+    delta = safe.vs_baseline
+    assert delta.distance_km == pytest.approx(safe.distance_km - baseline.distance_km)
+    assert delta.o2_interval_kg.high_kg == pytest.approx(
+        safe.o2_interval_kg.high_kg - baseline.o2_interval_kg.high_kg
+    )
+
+
+def test_route_reports_an_ordered_o2_interval(flat_grids):
+    route = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, SuitLimits())
+    assert 0 < route.o2_interval_kg.low_kg <= route.o2_interval_kg.high_kg

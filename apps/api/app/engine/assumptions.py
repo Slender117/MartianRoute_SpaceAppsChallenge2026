@@ -15,8 +15,10 @@ from app.engine.consumables import (
     RAD_MSV_PER_DAY_ERROR,
     SOL_HOURS,
     SOLAR_EVENT_MGY,
+    WALKBACK_RESERVE_H,
 )
 from app.engine.cost import MIN_CELL_COST, MODE_WEIGHTS
+from app.engine.o2_model import G_MARS_MS2, O2_FLAT_KG_PER_M
 from app.engine.science import ICE_THRESHOLD, MIN_GAP, SCIENCE_THRESHOLD
 from app.geo import MARS_RADIUS_M
 from app.schemas.assumptions import Assumption, AssumptionsResponse
@@ -28,7 +30,10 @@ LUNAR_ON_MARS = "Valor lunar (Artemis) aplicado a Marte: la EVA en Marte sigue e
 
 LIMITS = [
     "Mientras una región tenga datos sintéticos, sus cifras no describen el terreno real de Marte.",
-    "La duración de la EVA solo cuenta la caminata: no incluye el trabajo en las paradas.",
+    "La duración de la EVA cuenta la caminata más el trabajo fijo (`task_h`), que vale 0 hasta que"
+    " el equipo fije un valor con fuente. No modela paradas de descanso.",
+    "El regreso usa la misma velocidad que la ida (Tobler a 2 km/h en plano). No hay una velocidad"
+    " de contingencia con fuente con DOI para regresar más rápido o más lento.",
     "Velocidad, autonomía, pendiente máxima y distancia a la base salen de documentos lunares de"
     " Artemis y se aplican a Marte sin prueba en 0.38 g.",
     "El regreso se calcula por el mismo camino de la ida.",
@@ -39,6 +44,11 @@ LIMITS = [
     "Las distancias siguen una grilla de 8 vecinos, que las sobrestima hasta cerca de 8 %.",
     "La pendiente del pipeline asume celdas cuadradas: lejos del ecuador pierde precisión.",
     "No hay alertas de clima todavía: la API no recibe la hora de salida.",
+    "La curva de O₂ por pendiente se midió en la Tierra, a 1 g y sin traje: solo aporta la forma."
+    " Por eso el O₂ por pendiente se da como intervalo y no como una cifra.",
+    "La cifra oficial de O₂ es `o2_interval_kg` (caminata con la curva de Minetti más el trabajo"
+    " fijo a la tasa por hora). `o2_estimate_kg` es solo duración × tasa por hora: sirve de"
+    " referencia y no se muestra en la interfaz.",
 ]
 
 
@@ -83,6 +93,33 @@ def build_assumptions() -> AssumptionsResponse:
             source=PENDING_SOURCE,
         ),
         Assumption(
+            id="o2_flat_per_m",
+            label="O₂ por metro en terreno plano",
+            value=O2_FLAT_KG_PER_M,
+            unit="kg/m",
+            provenance=modeled,
+            source=PENDING_SOURCE,
+            note="Consumo de O₂ ÷ velocidad en plano: hereda el [__] de esas dos cifras.",
+        ),
+        Assumption(
+            id="slope_cost_curve",
+            label="Costo de caminar según la pendiente",
+            value="1.64 J/kg/m en plano; 17.33 a +45 %",
+            provenance=observed,
+            source="Minetti et al. (2002)",
+            note="Medida en la Tierra sin traje: se usa solo la forma relativa al plano.",
+        ),
+        Assumption(
+            id="mars_gravity",
+            label="Gravedad en la superficie de Marte",
+            value=round(G_MARS_MS2, 3),
+            unit="m/s²",
+            provenance=Provenance.derived,
+            source="Konopliv et al. (2020)",
+            note="GM / R² con el GM de Konopliv et al. y el radio medio del proyecto. Fija las"
+            " cotas del intervalo de O₂; no cambia la ruta.",
+        ),
+        Assumption(
             id="crew_size",
             label="Integrantes de la EVA",
             value=CREW_SIZE,
@@ -106,6 +143,25 @@ def build_assumptions() -> AssumptionsResponse:
             unit="fracción",
             provenance=modeled,
             source=PROJECT_DECISION,
+        ),
+        Assumption(
+            id="task_time",
+            label="Trabajo fijo de la EVA (sin caminar)",
+            value=_suit_default("task_h"),
+            unit="h",
+            provenance=modeled,
+            source=PENDING_SOURCE,
+            note="Paradas y muestreo en el destino; se ajusta por petición con `suit.task_h`.",
+        ),
+        Assumption(
+            id="walkback_reserve",
+            label="Reserva al volver a la base (punto de no retorno)",
+            value=WALKBACK_RESERVE_H * 60,
+            unit="min",
+            provenance=modeled,
+            source=PROJECT_DECISION,
+            note="Fijada en el plan del equipo; falta una fuente con DOI. Se aplica la más estricta"
+            " entre esta y la reserva del 20 %: con 8 h manda el 20 %.",
         ),
         Assumption(
             id="max_slope",
@@ -239,6 +295,7 @@ def build_assumptions() -> AssumptionsResponse:
             (WalkMode.safe, "Segura"),
             (WalkMode.fast, "Rápida"),
             (WalkMode.science, "Científica"),
+            (WalkMode.baseline, "Línea base (mínima distancia)"),
         )
     ]
     return AssumptionsResponse(parameters=parameters, limits=LIMITS)
