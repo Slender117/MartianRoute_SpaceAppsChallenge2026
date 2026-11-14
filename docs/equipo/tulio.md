@@ -16,8 +16,9 @@ manifest), desplegar la app y llevarla hasta la demo congelada y la entrega. Es 
 
 ## Tareas
 
-- [x] Recuadro decidido (13 nov): se ajusta al mosaico NOAH-H, `[77.302, 18.305, 77.585, 18.595]`,
-      con grilla de 600 × 600 (~28.6 m por celda). El recorrido se recorta a esa zona (H2)
+- [x] Recuadro decidido (13 nov): `[77.316, 18.339, 77.566, 18.590]`, donde NOAH-H tiene dato en el
+      95.4 % de las celdas, con grilla de 600 × 600 (~24.8 m por celda). El recorrido se recorta a
+      esa zona (H2)
 - [ ] DEM real recortado y validado como Float32; heightmap y normal map para Jairo (H2)
 - [ ] Ortofoto, mapa mineral de Parente y THEMIS en la grilla común; medir el error de corregistro y
       el % con dato para HE1 (H2)
