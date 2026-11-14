@@ -27,7 +27,7 @@ porque no hay fuente para cómo cambia el costo en plano con 0.38 g.
 | `dem.npy`, `slope.npy` | `data/regions/jezero/` | Datos |
 | `layers/hazard.npy`, `layers/thermal_inertia.npy` | `data/regions/jezero/layers/` | Datos |
 | Recorrido de Perseverance | `M20_traverse_2026-11-12.json` (559 tramos por sol, sol 14 a 2022, CRS84) y `M20_waypoints_2026-11-12.json`. `science/convert_traverse.py` lo convierte a una sola LineString; quedan 4,688 puntos de los sols 1698 a 2022 al oeste del bbox de `regions.yaml` (lon < 77.25): ampliar el bbox o recortar | Ciencia con Datos |
-| `o2_flat_kg_per_m` | `o2_rate / base_speed` de `docs/supuestos.md`: 0.07 kg/h ÷ 2500 m/h = 2.8e-5 kg/m, hoy `[__]` | Backend |
+| `o2_flat_kg_per_m` | `o2_rate / base_speed` de `docs/supuestos.md`: 0.07 kg/h ÷ 2000 m/h = 3.5e-5 kg/m (escenario Luna; ver «Escenario Marte del O₂» en `docs/supuestos.md`) | Backend |
 | Gravedad | 0.38 g del plan | Ciencia |
 
 ## Qué sale y cómo se entrega
