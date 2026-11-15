@@ -8,6 +8,7 @@ apps/web       Next.js + React Three Fiber  → Vercel
 apps/api       FastAPI + motor de rutas A*  → Render / Railway
 pipeline       GDAL/Rasterio, offline       → Cloudflare R2
 packages/contracts  tipos TS generados del OpenAPI
+data/raw       crudos de cada región (sí se versionan)
 data/regions   salida del pipeline (no se versiona)
 ```
 
@@ -47,36 +48,31 @@ cp apps/web/.env.example apps/web/.env.local
 npm run dev:web
 ```
 
-## Jezero con datos reales
+## Jezero y Gale con datos reales
 
 `marsdata synthetic` genera una región inventada para las pruebas. Las regiones reales, `jezero` (CTX, ~25 m por
-celda) y `jezero_walk` (HiRISE, ~3 m por celda), se construyen en `data/regions-real/`, que tampoco se versiona.
-Fuentes y citas: [docs/creditos.md](docs/creditos.md).
+celda), `jezero_walk` (HiRISE, ~3 m por celda) y `gale` (HiRISE leído a 5 m, alrededor de Curiosity), se construyen
+en `data/regions-real/`, que no se versiona. Fuentes y citas: [docs/creditos.md](docs/creditos.md).
 
-**1. Datos.** Si alguien del equipo ya la construyó, copia su carpeta `data/regions-real/` en la misma ruta y pasa
-al paso 2. Para construirla desde cero:
+**1. Datos.** Los archivos crudos de cada región ya vienen en el repo, en `data/raw/<región>/`, así que no hay que
+descargar nada: basta con construir.
 
 ```bash
 cd pipeline
-.venv/Scripts/marsdata fetch --region jezero
-.venv/Scripts/marsdata fetch --region jezero_walk
-```
-
-`fetch` baja completos el DEM y la ortofoto de CTX, y de THEMIS y HiRISE lee solo la ventana de cada región.
-NOAH-H va a mano, porque su repositorio bloquea las descargas automáticas: baja el conjunto desde
-[doi:10.21954/ou.rd.17121482.v2](https://doi.org/10.21954/ou.rd.17121482.v2) y copia `Jezero_NOAHH_mosaic_IG.tif`
-en `data/raw/jezero/` y en `data/raw/jezero_walk/`. Minerales e hielo todavía no tienen producto: `build` los omite.
-
-```bash
 .venv/Scripts/marsdata build --region jezero --out ../data/regions-real
 .venv/Scripts/marsdata build --region jezero_walk --out ../data/regions-real
+.venv/Scripts/marsdata build --region gale --out ../data/regions-real
 ```
 
 Sin `--out`, `build` reemplaza la región sintética de `data/regions/`, que es la que esperan las pruebas de la API.
+Gale no tiene NOAH-H: su capa de riesgo sale de la rugosidad del DEM (ver `docs/supuestos.md`). Minerales e hielo
+todavía no tienen producto: `build` los omite.
 
-**Gale.** La región `gale`, centrada en Curiosity, se arma igual con `--region gale` y no necesita descargas a mano:
-`fetch` lee el DEM y la ortofoto de HiRISE a 5 m y THEMIS por ventana (unos 3 minutos). Como no hay NOAH-H de
-Gale, su capa de riesgo sale de la rugosidad del DEM (ver `docs/supuestos.md`).
+`marsdata fetch --region <región>` solo hace falta para regenerar los crudos o agregar una región: baja completos el
+DEM y la ortofoto de CTX, y de THEMIS y HiRISE lee solo la ventana de cada región. NOAH-H no se descarga solo,
+porque su repositorio bloquea las descargas automáticas. El del repo es el mosaico de
+[doi:10.21954/ou.rd.17121482.v2](https://doi.org/10.21954/ou.rd.17121482.v2) recomprimido sin pérdida, para que
+quepa en GitHub.
 
 **2. API.** En `apps/api/.env`, pon `ASSETS_DIR=../../data/regions-real` y reinicia la API; la web no cambia. Para
 volver a la sintética, regresa a `ASSETS_DIR=../../data/regions`.

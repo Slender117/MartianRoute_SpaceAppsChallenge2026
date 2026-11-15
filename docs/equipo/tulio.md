@@ -11,7 +11,7 @@ manifest), desplegar la app y llevarla hasta la demo congelada y la entrega. Es 
 ## Carpetas
 
 - `pipeline/` (`fetch/sources.py`, `process/`, `export.py`, `publish.py`, `config/regions.yaml`)
-- `data/regions/` (salida, no se versiona)
+- `data/raw/` (crudos de cada región, se versionan) y `data/regions/` (salida, no se versiona)
 - Configuración de despliegue (Vercel, Render o Railway, Cloudflare R2)
 
 ## Tareas

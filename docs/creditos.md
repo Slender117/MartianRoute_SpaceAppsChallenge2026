@@ -4,6 +4,9 @@ Cada producto que descarga el pipeline se registra aquí en formato APA 7, con s
 ficha de donde salió. Cuando una ficha pide citar a los autores, también va la publicación que describe
 el producto.
 
+Los archivos de cada región se versionan en `data/raw/<región>/` con el nombre que aparece aquí, para
+construir las regiones sin descargar nada. Se redistribuyen con su cita.
+
 ## Jezero
 
 ### Elevación: DTM de CTX a 20 m
@@ -87,6 +90,11 @@ Survey. https://doi.org/10.5066/P9QJDP48
 - Ficha: https://ordo.open.ac.uk/articles/dataset/NOAH-H_terrain_classifications_of_Jezero_Crater_Mars_zip/17121482/2
 - Descarga: https://ordo.open.ac.uk/ndownloader/files/33917705 (.zip de 336 MB). El servidor bloquea
   las descargas automáticas: se baja desde un navegador.
+- En el repo: el mismo mosaico recomprimido sin pérdida, de LZW a ZSTD nivel 9 con los mismos bloques
+  de 128 píxeles, porque el original pesa 125 MB y GitHub no acepta archivos de más de 100 MB. Los
+  píxeles, el CRS y la georreferencia son idénticos a los del original (comprobado píxel por píxel), y
+  `build` lo lee tan rápido como el original. ZSTD requiere GDAL con soporte ZSTD, que traen las
+  ruedas de rasterio del pipeline.
 - uint8 a 25 cm, Plate Carrée sobre esfera de 3,396,190 m. Según el readme, las imágenes HiRISE se
   georreferenciaron al ortomosaico HiRISE de Mars 2020 (el mismo de `jezero_walk`). Licencia CC BY 4.0.
 - Riesgo por grupo: `science/validation/noahh_ig_risk.csv` (Edgar), basado en Barrett et al. (2022).

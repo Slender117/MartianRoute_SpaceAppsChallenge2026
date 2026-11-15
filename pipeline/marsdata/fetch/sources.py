@@ -1,5 +1,8 @@
 """Descarga de productos de NASA y USGS a data/raw/<region>/.
 
+data/raw/ se versiona con los archivos de cada región: esto solo hace falta para regenerarlos o para
+agregar una región, y no repite lo que ya está en disco.
+
 Cada clave de `sources` en config/regions.yaml (dem, ortho, thermal_inertia...) se resuelve con
 el catálogo PRODUCTS de este archivo. Un producto se baja completo o, si es un mosaico grande, se
 lee solo la ventana de la región desde el archivo remoto (GDAL pide únicamente los bloques
