@@ -48,6 +48,8 @@ cp apps/web/.env.example apps/web/.env.local
 npm run dev:web
 ```
 
+La portada está en `/` y el planificador de rutas en `/planner` (el botón **Start** de la portada lleva ahí).
+
 ## Jezero y Gale con datos reales
 
 `marsdata synthetic` genera una región inventada para las pruebas. Las regiones reales, `jezero` (CTX, ~25 m por
