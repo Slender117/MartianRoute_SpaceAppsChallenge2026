@@ -1,6 +1,8 @@
+/* Colores y medidas compartidas por la portada y el planificador. */
 :root {
   --bg: #0b0605;
   --panel: rgba(20, 12, 10, 0.82);
+  --panel-strong: rgba(22, 13, 10, 0.94);
   --border: rgba(255, 140, 90, 0.25);
   --text: #f3e6df;
   --muted: #b39a8e;
@@ -8,6 +10,10 @@
   --safe: #4fd1a5;
   --fast: #ffc94d;
   --science: #6aa8ff;
+  --danger: #ff8a80;
+  --radius: 12px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
 }
 
 * {
@@ -20,57 +26,8 @@ body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-
-main {
-  position: fixed;
-  inset: 0;
-}
-
-.panel {
-  position: absolute;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 14px;
-  backdrop-filter: blur(6px);
-  max-width: min(320px, calc(100vw - 32px));
-}
-
-.panel h2 {
-  margin: 0 0 8px;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
-.panel button {
-  background: var(--accent);
-  color: #1a0d08;
-  border: 0;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.panel button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.panel button.ghost {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-
-.panel ul {
-  margin: 0;
-  padding-left: 18px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 .muted {
@@ -78,14 +35,446 @@ main {
 }
 
 .error {
-  color: #ff8a80;
+  color: var(--danger);
+}
+
+.tight {
+  margin: 0 0 6px;
+}
+
+/* Indicador de carga: un aro que gira (más lento si el sistema pide reducir movimiento). */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 122, 69, 0.25);
+  border-top-color: var(--accent);
+  vertical-align: -3px;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner-sm {
+  width: 12px;
+  height: 12px;
+  vertical-align: -1px;
+  border-color: rgba(26, 13, 8, 0.3);
+  border-top-color: #1a0d08;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Planificador (/planner): la escena ocupa toda la pantalla y los paneles flotan encima en una
+   grilla. Arriba al centro va la barra; a los lados, dos columnas que no se enciman aunque los
+   paneles crezcan (cada panel se desplaza por dentro si no cabe).
+   --------------------------------------------------------------------------------------------- */
+main.planner {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.hud {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr) minmax(0, 360px);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "left top right";
+  align-items: start;
+  gap: 12px;
+  padding: 16px;
+  /* El terreno recibe los clics donde no hay panel. */
+  pointer-events: none;
+}
+
+.hud-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  align-self: stretch;
+  min-height: 0;
+}
+
+.hud-left {
+  grid-area: left;
+}
+
+.hud-right {
+  grid-area: right;
+}
+
+.hud .panel,
+.planner-bar,
+.sheet {
+  pointer-events: auto;
+}
+
+.hud-col .panel {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.panel {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
+}
+
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.panel .subhead {
+  margin-top: 10px;
+}
+
+.panel ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.panel p {
+  margin: 0 0 8px;
+}
+
+/* Botones del planificador: primario (naranja) y "ghost" (solo borde). */
+.hud button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #1a0d08;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    opacity 0.15s,
+    filter 0.15s;
+}
+
+.hud button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.hud button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.hud button.ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.hud button.ghost:hover:not(:disabled) {
+  filter: none;
+  border-color: var(--accent);
+  background: rgba(255, 122, 69, 0.08);
+}
+
+.hud :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.hud input[type="range"],
+.hud input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.hud input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  flex: none;
+  cursor: pointer;
+}
+
+/* Casilla con su texto: toda la fila es clicable. */
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0;
+  cursor: pointer;
+}
+
+.check-gap {
+  margin-top: 10px;
+}
+
+.range {
+  display: block;
+  margin: 8px 0 2px;
+  font-size: 13px;
+}
+
+.range input {
+  display: block;
+  width: 100%;
+  margin: 6px 0 0;
+  cursor: pointer;
+}
+
+.panel-foot {
+  margin-top: 10px;
+}
+
+/* Barra de arriba: regreso a la portada, idioma y "Marte hoy". */
+.planner-bar {
+  grid-area: top;
+  justify-self: center;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
+}
+
+.planner-home {
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.planner-home:hover {
+  background: rgba(255, 122, 69, 0.1);
+}
+
+.lang-toggle {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.hud .lang-toggle button {
+  padding: 3px 9px;
+  font-size: 12px;
+  border-radius: 999px;
+}
+
+.hud .lang-toggle button.ghost {
+  border-color: transparent;
+}
+
+.hud button.chip {
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.hud button.chip-alert {
+  box-shadow: 0 0 0 2px rgba(255, 138, 101, 0.45);
+}
+
+/* "Marte hoy": se despliega debajo de la barra. */
+.live {
+  position: relative;
+}
+
+.live-body {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: min(320px, calc(100vw - 24px));
+  max-height: min(60vh, 520px);
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.live-body h2 {
+  margin: 12px 0 6px;
+}
+
+.live-body h2:first-child {
+  margin-top: 0;
+}
+
+.live-body p {
+  margin: 0 0 6px;
+}
+
+.live-alert a {
+  color: #ff8a65;
+  font-weight: 600;
+}
+
+.live-images {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.live-images img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+/* Planear caminata */
+.points {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  font-size: 13px;
+}
+
+.point {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.point.is-set {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.point:not(.is-set) .dot {
+  opacity: 0.35;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.dot-start {
+  background: #ffffff;
+}
+
+.dot-end {
+  background: var(--accent);
+}
+
+.points .hint {
+  flex-basis: 100%;
+}
+
+.mode-row {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0 4px;
+}
+
+.hud button.mode {
+  flex: 1;
+}
+
+.hud button.mode.ghost {
+  border-width: 1px;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.button-row button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* Tabla comparativa de rutas */
+.compare {
+  width: 100%;
+  margin-top: 12px;
+  font-size: 12px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.compare th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: help;
+}
+
+.compare td,
+.compare th {
+  padding: 4px;
+  vertical-align: top;
+}
+
+.compare tbody tr + tr td {
+  border-top: 1px solid rgba(255, 140, 90, 0.12);
+}
+
+/* Ruta que rompe un límite del traje: se lee aunque el color del modo sea parecido al rojo */
+.compare .infeasible {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.compare caption {
+  caption-side: bottom;
+  text-align: left;
+  font-size: 11px;
+  padding-top: 6px;
 }
 
 /* Leyenda de una capa por clases (LayerPanel). Nombres propios para no chocar con la leyenda del mapa
    de regreso seguro (.legend, .swatch). */
 .panel ul.class-legend {
   list-style: none;
-  padding: 0 0 6px 22px;
+  padding: 0 0 6px 23px;
   font-size: 12px;
 }
 
@@ -104,80 +493,23 @@ main {
   opacity: 0.85;
 }
 
-/* Nombres sobre el terreno 3D (SceneLabels): HTML fuera del canvas */
-.scene-labels {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.scene-label {
-  position: absolute;
-  left: 0;
-  top: 0;
-  padding: 2px 7px;
-  border-radius: 4px;
-  background: rgba(11, 6, 5, 0.6);
-  color: #fff;
-  font-size: 12px;
-  font-style: italic;
-  white-space: nowrap;
-  opacity: 0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-}
-
-/* Cambio de idioma ES / EN, arriba al centro (los paneles ocupan las esquinas) */
-.lang-toggle {
-  position: absolute;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  z-index: 2;
-}
-
-.lang-toggle button {
-  padding: 4px 8px;
+/* Leyenda del mapa de regreso seguro */
+.legend {
+  list-style: none;
+  padding-left: 23px !important;
   font-size: 12px;
 }
 
-/* Tabla comparativa de rutas */
-.compare {
-  width: 100%;
-  margin-top: 10px;
-  font-size: 12px;
-  border-collapse: collapse;
+.legend li {
+  margin: 2px 0;
 }
 
-.compare th {
-  text-align: left;
-  font-weight: 500;
-  color: var(--muted);
-  cursor: help;
-}
-
-.compare td,
-.compare th {
-  padding: 3px 4px;
-  vertical-align: top;
-}
-
-/* Ruta que rompe un límite del traje: se lee aunque el color del modo sea parecido al rojo */
-.compare .infeasible {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  color: #ff8a80; /* el mismo rojo que .error */
-}
-
-.compare caption {
-  caption-side: bottom;
-  text-align: left;
-  font-size: 11px;
-  padding-top: 6px;
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  vertical-align: middle;
 }
 
 /* Panel de supuestos: largo, así que se desplaza por dentro sin tapar el panel de rutas */
@@ -211,62 +543,151 @@ main {
   color: var(--fast);
 }
 
-/* Leyenda del mapa de regreso seguro */
-.legend {
-  list-style: none;
-  padding-left: 0 !important;
+.site-panel button {
+  display: block;
+  width: 100%;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+/* Nombres sobre el terreno 3D (SceneLabels): HTML fuera del canvas */
+.scene-labels {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scene-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(11, 6, 5, 0.6);
+  color: #fff;
   font-size: 12px;
+  font-style: italic;
+  white-space: nowrap;
+  opacity: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-.swatch {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  vertical-align: middle;
-}
-
-/* Panel "Marte hoy": arriba al centro, debajo del selector de idioma */
-.live-panel {
-  top: 60px;
+/* Aviso de carga de la escena: grande al centro mientras llega el relieve, pequeño después. */
+.scene-loader,
+.scene-chip {
+  position: absolute;
   left: 50%;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 999px;
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.scene-loader {
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 12px 18px;
+  font-size: 14px;
+}
+
+.scene-chip {
+  bottom: 16px;
   transform: translateX(-50%);
-  max-width: min(300px, calc(100vw - 32px));
-  z-index: 2;
-}
-
-.live-body {
-  margin-top: 8px;
+  padding: 6px 12px;
   font-size: 12px;
-  max-height: 45vh;
-  overflow-y: auto;
+  color: var(--muted);
 }
 
-.live-body h2 {
-  margin: 10px 0 4px;
+/* Celular: barra arriba a lo ancho y los paneles en una hoja inferior con pestañas. */
+.hud-narrow {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "top" "." "sheet";
+  padding: 8px;
+  gap: 8px;
 }
 
-.live-body p {
-  margin: 0 0 6px;
+.hud-narrow .planner-bar {
+  justify-self: stretch;
+  justify-content: space-between;
 }
 
-.live-alert a {
-  color: #ff8a65;
-  font-weight: 600;
+.hud-narrow .hud-left {
+  grid-area: sheet;
 }
 
-.live-images {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.sheet {
+  grid-area: sheet;
+  display: flex;
+  flex-direction: column;
+  max-height: min(55vh, 560px);
+  max-height: min(55dvh, 560px);
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.sheet-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sheet-tabs {
+  display: flex;
+  flex: 1;
   gap: 4px;
 }
 
-.live-images img {
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  border-radius: 4px;
-  display: block;
+.sheet-tabs button {
+  flex: 1;
+}
+
+.hud .sheet-toggle {
+  width: 38px;
+  padding: 6px 0;
+}
+
+.sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 14px 16px;
+}
+
+.sheet .panel {
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+@media (max-width: 720px) {
+  .planner-brand {
+    display: none;
+  }
+
+  .scene-chip {
+    top: 64px;
+    bottom: auto;
+  }
 }
 
 /* Portada (/) */
@@ -312,9 +733,22 @@ html:has(.landing) {
 }
 
 .landing-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 700;
   text-decoration: none;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Un Marte pequeño hecho con CSS: no descarga nada. */
+.landing-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffb08a, #c1502a 55%, #5a1e10 100%);
+  box-shadow: 0 0 10px rgba(255, 122, 69, 0.55);
 }
 
 .landing-nav nav {
@@ -337,6 +771,25 @@ html:has(.landing) {
 .landing-nav nav a:hover {
   color: var(--text);
   background: rgba(255, 140, 90, 0.1);
+}
+
+/* Sección que se está leyendo. */
+.landing-nav nav a[aria-current] {
+  color: var(--text);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* Botón de menú: solo en pantallas angostas. */
+.landing-menu {
+  display: none;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 38px;
+  height: 34px;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 .landing-lang {
@@ -376,6 +829,11 @@ main.landing-main {
 .landing-planet {
   position: absolute;
   inset: 0;
+}
+
+.mars-hero {
+  width: 100%;
+  height: 100%;
 }
 
 .landing-hero-text {
@@ -531,18 +989,91 @@ main.landing-main {
   box-shadow: 0 12px 40px rgba(255, 122, 69, 0.6);
 }
 
+.landing-start span {
+  display: inline-block;
+  transition: transform 0.15s;
+}
+
+.landing-start:hover span {
+  transform: translateX(3px);
+}
+
+/* Captura del planificador en "Cómo funciona". */
+.landing-shot {
+  margin: 0 0 24px;
+}
+
+.landing-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.landing-shot figcaption {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.landing-card {
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.landing-card:hover {
+  border-color: rgba(255, 140, 90, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-start,
+  .landing-start span,
+  .landing-card {
+    transition: none;
+  }
+}
+
 @media (max-width: 720px) {
   .landing-nav {
     gap: 8px;
     padding: 0 12px;
   }
 
-  .landing-brand {
-    display: none;
+  .landing-lang {
+    margin-left: auto;
   }
 
+  .landing-menu {
+    display: block;
+  }
+
+  /* Menú desplegable debajo de la barra. */
   .landing-nav nav {
-    margin-left: 0;
+    display: none;
+    position: absolute;
+    top: var(--nav-h);
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 8px 12px 12px;
+    flex-direction: column;
+    background: rgba(11, 6, 5, 0.96);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .landing-nav nav.is-open {
+    display: flex;
+  }
+
+  .landing-nav nav a {
+    padding: 12px 10px;
+    font-size: 16px;
+  }
+
+  .landing-nav nav a[aria-current] {
+    box-shadow: inset 3px 0 0 var(--accent);
   }
 
   .landing-hero-text {

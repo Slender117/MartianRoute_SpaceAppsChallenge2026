@@ -9,7 +9,7 @@ const OPTIONS: { id: Lang; label: string; title: string }[] = [
   { id: "en", label: "EN", title: "English" },
 ];
 
-/** Botones ES / EN, arriba al centro. El idioma elegido se recuerda en el navegador. */
+/** Botones ES / EN en la barra de arriba. El idioma elegido se recuerda en el navegador. */
 export function LanguageToggle() {
   const lang = useLang((s) => s.lang);
   const setLang = useLang((s) => s.setLang);
@@ -19,7 +19,7 @@ export function LanguageToggle() {
   useEffect(restore, [restore]);
 
   return (
-    <div className="panel lang-toggle" role="group" aria-label="Idioma / Language">
+    <div className="lang-toggle" role="group" aria-label="Idioma / Language">
       {OPTIONS.map((o) => (
         <button
           key={o.id}

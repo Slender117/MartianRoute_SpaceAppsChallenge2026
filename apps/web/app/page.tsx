@@ -1,16 +1,40 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useLang, type Lang } from "@/lib/i18n";
 import { LANDING, REPO_URL } from "@/lib/landing";
+import plannerShot from "@/public/img/planificador.webp";
 
 // three.js necesita el navegador: el planeta no se renderiza en el servidor.
 const MarsHero = dynamic(() => import("@/components/landing/MarsHero"), { ssr: false });
 
 const LANGS: Lang[] = ["es", "en"];
+const SECTIONS = ["about", "project", "data", "team"] as const;
+type Section = (typeof SECTIONS)[number];
+
+/** Sección que ocupa la mitad de la pantalla, para resaltarla en el menú. */
+function useActiveSection(): Section | null {
+  const [active, setActive] = useState<Section | null>(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) setActive(e.target.id as Section);
+      },
+      // Una franja delgada a media pantalla: solo una sección la cruza a la vez.
+      { rootMargin: "-45% 0px -50% 0px" },
+    );
+    for (const id of [...SECTIONS, "top", "repo"]) {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+  }, []);
+  return active;
+}
 
 /** Portada: Marte girando, secciones al hacer scroll y el botón Start fijo que abre el planificador. */
 export default function Landing() {
@@ -18,6 +42,8 @@ export default function Landing() {
   const setLang = useLang((s) => s.setLang);
   const restore = useLang((s) => s.restore);
   const t = LANDING[lang];
+  const active = useActiveSection();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(restore, [restore]);
 
@@ -25,14 +51,21 @@ export default function Landing() {
     <div className="landing">
       <header className="landing-nav">
         <a href="#top" className="landing-brand">
+          <span className="landing-logo" aria-hidden />
           Martian Route
         </a>
-        <nav aria-label={lang === "es" ? "Secciones" : "Sections"}>
-          <a href="#about">{t.nav.about}</a>
-          <a href="#project">{t.nav.project}</a>
-          <a href="#data">{t.nav.data}</a>
-          <a href="#team">{t.nav.team}</a>
-          <a href={REPO_URL} target="_blank" rel="noreferrer">
+        <nav id="landing-links" aria-label={t.sectionsLabel} className={menuOpen ? "is-open" : undefined}>
+          {SECTIONS.map((id) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              aria-current={active === id ? "location" : undefined}
+              onClick={() => setMenuOpen(false)}
+            >
+              {t.nav[id]}
+            </a>
+          ))}
+          <a href={REPO_URL} target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)}>
             {t.nav.repo} ↗
           </a>
         </nav>
@@ -43,6 +76,15 @@ export default function Landing() {
             </button>
           ))}
         </div>
+        <button
+          className="landing-menu"
+          aria-expanded={menuOpen}
+          aria-controls="landing-links"
+          aria-label={menuOpen ? t.menuClose : t.menuOpen}
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          <span aria-hidden>{menuOpen ? "✕" : "☰"}</span>
+        </button>
       </header>
 
       <main className="landing-main">
@@ -69,6 +111,15 @@ export default function Landing() {
 
         <section id="project" className="landing-section">
           <h2>{t.projectTitle}</h2>
+          <figure className="landing-shot">
+            <Image
+              src={plannerShot}
+              alt={t.shotAlt}
+              sizes="(max-width: 1088px) calc(100vw - 48px), 1040px"
+              placeholder="blur"
+            />
+            <figcaption className="muted">{t.shotCaption}</figcaption>
+          </figure>
           <div className="landing-grid">
             {t.projectCards.map((c) => (
               <article key={c.title} className="landing-card">
@@ -121,7 +172,7 @@ export default function Landing() {
       </main>
 
       <Link href="/planner" className="landing-start" title={t.startTitle}>
-        {t.start} →
+        {t.start} <span aria-hidden>→</span>
       </Link>
     </div>
   );

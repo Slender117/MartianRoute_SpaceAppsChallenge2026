@@ -19,11 +19,11 @@ export function LayerPanel() {
   if (!manifest) return null;
 
   return (
-    <section className="panel" style={{ top: 16, left: 16 }}>
+    <section className="panel layer-panel">
       <h2>{dataName(manifest.name, lang)}</h2>
       {["slope", ...manifest.layers].map((layer) => (
         <div key={layer}>
-          <label style={{ display: "block", margin: "4px 0" }}>
+          <label className="check">
             <input type="checkbox" checked={activeLayers.includes(layer)} onChange={() => toggleLayer(layer)} />{" "}
             {t.layers[layer] ?? layer}
           </label>
@@ -41,13 +41,13 @@ export function LayerPanel() {
         </div>
       ))}
       {manifest.traverses.length > 0 && (
-        <label style={{ display: "block", margin: "8px 0 4px" }}>
+        <label className="check check-gap">
           <input type="checkbox" checked={showTraverse} onChange={toggleTraverse} />{" "}
           {t.realTraverse(manifest.traverses[0])}
         </label>
       )}
       <SafeReturnToggle />
-      <button className="ghost" onClick={backToGlobe} style={{ marginTop: 8 }}>
+      <button className="ghost panel-foot" onClick={backToGlobe}>
         {t.backToGlobe}
       </button>
     </section>

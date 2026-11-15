@@ -12,8 +12,8 @@ export function SafeReturnToggle() {
   const t = useT();
 
   return (
-    <div style={{ margin: "8px 0 4px" }}>
-      <label style={{ display: "block" }}>
+    <div className="check-gap">
+      <label className="check">
         <input type="checkbox" checked={show} onChange={toggle} /> {t.safeReturn}
       </label>
       {show && res && (

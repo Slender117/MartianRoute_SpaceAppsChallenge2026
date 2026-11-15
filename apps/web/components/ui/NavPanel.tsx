@@ -15,12 +15,12 @@ export function NavPanel() {
   const vsSafe = route.vs_safe;
 
   return (
-    <section className="panel" style={{ bottom: 16, left: 16 }}>
+    <section className="panel nav-panel">
       <h2>{t.navTitle}</h2>
-      <p style={{ margin: "0 0 6px" }}>
+      <p className="tight">
         {route.distance_km.toFixed(2)} km · {route.duration_h.toFixed(1)} h ({route.duration_sols.toFixed(2)} {t.sols})
       </p>
-      <p className="muted" style={{ margin: "0 0 6px" }}>
+      <p className="muted tight">
         {t.dose(route.radiation_msv.toFixed(2))}
         {vsSafe && (
           <>
@@ -35,7 +35,7 @@ export function NavPanel() {
         )}
       </p>
       {pnr !== null && (
-        <p className="muted" style={{ margin: "0 0 6px" }}>
+        <p className="muted tight">
           {t.pnr(
             route.path[pnr].t_h.toFixed(1),
             route.point_of_no_return_km !== null ? route.point_of_no_return_km.toFixed(2) : null,

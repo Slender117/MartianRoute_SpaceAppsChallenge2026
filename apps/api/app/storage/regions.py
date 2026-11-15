@@ -4,9 +4,13 @@ import hashlib
 import io
 import json
 import re
-from dataclasses import dataclass
+from collections import OrderedDict
+from collections.abc import Callable, Hashable
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
+from threading import Lock
+from typing import TypeVar
 
 import httpx
 import numpy as np
@@ -21,6 +25,11 @@ OPTIONAL_LAYERS = ("hazard", "thermal_inertia", "ice", "minerals")
 # Los IDs terminan en rutas de archivo: no pueden traer separadores ni "..".
 _SAFE_ID = re.compile(r"[A-Za-z0-9_-]+")
 
+# Cuántos resultados intermedios guarda cada región (ver GridMemo).
+MEMO_SIZE = 8
+
+T = TypeVar("T")
+
 
 class NotFoundError(Exception):
     """La región o el recorrido pedidos no existen."""
@@ -28,6 +37,34 @@ class NotFoundError(Exception):
 
 class RegionDataError(Exception):
     """Los datos no se pudieron leer o no son consistentes con el manifest."""
+
+
+class GridMemo:
+    """Caché pequeña (la menos usada sale primero) de resultados que se repiten entre peticiones.
+
+    Por ejemplo, la penalización por pendiente es la misma para las cuatro rutas de una comparación,
+    y el mapa de regreso seguro no cambia si solo se mueve la autonomía del traje. Se usa desde
+    varios hilos (FastAPI corre las rutas síncronas en un grupo de hilos): el candado protege el
+    diccionario; el cálculo va fuera, y si dos hilos calculan lo mismo a la vez, gana cualquiera.
+    """
+
+    def __init__(self, size: int = MEMO_SIZE) -> None:
+        self._items: OrderedDict[Hashable, object] = OrderedDict()
+        self._size = size
+        self._lock = Lock()
+
+    def get(self, key: Hashable, compute: Callable[[], T]) -> T:
+        with self._lock:
+            if key in self._items:
+                self._items.move_to_end(key)
+                return self._items[key]  # type: ignore[return-value]
+        value = compute()
+        with self._lock:
+            self._items[key] = value
+            self._items.move_to_end(key)
+            while len(self._items) > self._size:
+                self._items.popitem(last=False)
+        return value
 
 
 @dataclass
@@ -39,6 +76,14 @@ class RegionGrids:
     thermal_inertia: np.ndarray  # 0–1, alto = roca firme (THEMIS)
     ice: np.ndarray  # 0–1, probabilidad de hielo (SWIM)
     minerals: np.ndarray  # 0–1, valor científico (CRISM)
+    # Solo las grillas de load_region (que no cambian) guardan resultados; las que se arman a mano,
+    # como en las pruebas, pueden modificarse y por eso no usan caché.
+    memo: GridMemo | None = field(default=None, repr=False, compare=False)
+
+
+def memoized(grids: RegionGrids, key: Hashable, compute: Callable[[], T]) -> T:
+    """Resultado guardado de `compute` para esta región, o calculado al momento si no hay caché."""
+    return compute() if grids.memo is None else grids.memo.get(key, compute)
 
 
 def _read_bytes(rel_path: str) -> bytes:
@@ -107,7 +152,8 @@ def load_region(region_id: str) -> RegionGrids:
         name: _read_grid(m, f"layers/{name}.npy") if name in m.layers else np.zeros_like(dem)
         for name in OPTIONAL_LAYERS
     }
-    return RegionGrids(manifest=m, dem=dem, slope=_read_grid(m, "slope.npy"), **layers)
+    slope = _read_grid(m, "slope.npy")
+    return RegionGrids(manifest=m, dem=dem, slope=slope, **layers, memo=GridMemo())
 
 
 def load_traverse(region_id: str, rover: str) -> dict:

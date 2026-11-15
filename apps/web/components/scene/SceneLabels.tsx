@@ -1,7 +1,7 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { Vector3 } from "three";
 
 import { regionFrame } from "@/lib/geo";
@@ -12,8 +12,9 @@ import { heightAt, useRegionExtras, useRegionHeights } from "./regionAssets";
 
 /**
  * Nombres anclados al terreno. Van en HTML fuera del <Canvas> (el <Html> de drei falla con
- * React 19): LabelAnchors proyecta cada punto a la pantalla en cada cuadro y LabelOverlay mueve
- * las etiquetas con esas posiciones, sin pasar por React.
+ * React 19): LabelAnchors proyecta cada punto a la pantalla cuando se dibuja un cuadro y avisa a
+ * LabelOverlay, que mueve las etiquetas con esas posiciones sin pasar por React. Si la cámara no
+ * se mueve no se dibujan cuadros, y las etiquetas tampoco hacen trabajo.
  */
 export interface PlacedLabel {
   name: string;
@@ -28,6 +29,8 @@ interface ScreenPoint {
 
 // Posiciones en pantalla: las escribe LabelAnchors y las lee LabelOverlay en el mismo cuadro.
 const screen: ScreenPoint[] = [];
+// LabelOverlay se suscribe aquí para acomodar las etiquetas después de cada proyección.
+const listeners = new Set<() => void>();
 
 const LIFT = 0.25; // la etiqueta flota sobre el punto, unida por una línea
 
@@ -62,6 +65,7 @@ export function LabelAnchors({ labels }: { labels: PlacedLabel[] }) {
         visible: v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05,
       };
     });
+    for (const notify of listeners) notify();
   });
 
   return (
@@ -82,22 +86,25 @@ export function LabelAnchors({ labels }: { labels: PlacedLabel[] }) {
   );
 }
 
-/** Fuera del Canvas: las etiquetas en HTML, movidas en cada cuadro. */
+/** Fuera del Canvas: las etiquetas en HTML, movidas cada vez que se dibuja un cuadro. */
 export function LabelOverlay({ labels }: { labels: PlacedLabel[] }) {
   const refs = useRef<(HTMLDivElement | null)[]>([]);
 
-  useEffect(() => {
-    let raf = 0;
-    const tick = () => {
-      // Primero se miden todas (lectura) y después se mueven (escritura), sin forzar el layout.
-      const items = refs.current.map((el, i) => ({ el, p: screen[i], w: el?.offsetWidth ?? 0, h: el?.offsetHeight ?? 0 }));
+  useLayoutEffect(() => {
+    // El tamaño de cada etiqueta se mide una vez por juego de nombres (cambia con el idioma), no en
+    // cada cuadro: leer offsetWidth después de mover elementos obliga al navegador a recalcular.
+    let sizes = refs.current.map((el) => ({ w: el?.offsetWidth ?? 0, h: el?.offsetHeight ?? 0 }));
+
+    const place = () => {
       const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
-      for (const { el, p, w, h } of items) {
-        if (!el) continue;
+      refs.current.forEach((el, i) => {
+        if (!el) return;
+        const p = screen[i];
         if (!p || !p.visible) {
           el.style.opacity = "0";
-          continue;
+          return;
         }
+        const { w, h } = sizes[i];
         // Si choca con una etiqueta ya puesta, sube por encima de ella.
         const x0 = p.x - w / 2;
         let y0 = p.y - h;
@@ -113,11 +120,22 @@ export function LabelOverlay({ labels }: { labels: PlacedLabel[] }) {
         placed.push({ x0, y0, x1: x0 + w, y1: y0 + h });
         el.style.opacity = "1";
         el.style.transform = `translate(${x0}px, ${y0}px)`;
-      }
-      raf = requestAnimationFrame(tick);
+      });
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+
+    place();
+    listeners.add(place);
+    // Si la fuente termina de cargar después, los anchos cambian: se miden de nuevo.
+    let alive = true;
+    void document.fonts?.ready.then(() => {
+      if (!alive) return;
+      sizes = refs.current.map((el) => ({ w: el?.offsetWidth ?? 0, h: el?.offsetHeight ?? 0 }));
+      place();
+    });
+    return () => {
+      alive = false;
+      listeners.delete(place);
+    };
   }, [labels]);
 
   return (

@@ -19,7 +19,7 @@ from app.engine.consumables import (
 from app.geo import cell_size_m, latlon_to_cell
 from app.schemas.route import LatLon, SuitLimits
 from app.schemas.safe_return import SafeReturnResponse
-from app.storage import RegionGrids
+from app.storage import RegionGrids, memoized
 
 # Valor de "sin regreso posible" en la grilla de minutos (máximo de uint16).
 NO_RETURN = np.iinfo(np.uint16).max
@@ -36,12 +36,22 @@ def time_per_meter_h(slope_deg: np.ndarray, max_slope_deg: float) -> np.ndarray:
 
 
 def return_hours(grids: RegionGrids, base: LatLon, max_slope_deg: float) -> np.ndarray:
-    """Horas de regreso a la base desde cada celda (infinito si no hay camino)."""
+    """Horas de regreso a la base desde cada celda (infinito si no hay camino).
+
+    Solo depende de la base y la pendiente máxima: se guarda por región (solo lectura), así que
+    mover la autonomía del traje no repite el Dijkstra.
+    """
     m = grids.manifest
-    cost = time_per_meter_h(grids.slope, max_slope_deg)
-    mcp = MCP_Geometric(cost, fully_connected=True, sampling=cell_size_m(m))
-    hours, _ = mcp.find_costs([latlon_to_cell(m, base.lat, base.lon)])
-    return hours
+    cell = latlon_to_cell(m, base.lat, base.lon)
+
+    def compute() -> np.ndarray:
+        cost = time_per_meter_h(grids.slope, max_slope_deg)
+        mcp = MCP_Geometric(cost, fully_connected=True, sampling=cell_size_m(m))
+        hours, _ = mcp.find_costs([cell])
+        hours.setflags(write=False)
+        return hours
+
+    return memoized(grids, ("return_hours", cell, float(max_slope_deg)), compute)
 
 
 def encode_minutes(hours: np.ndarray) -> str:

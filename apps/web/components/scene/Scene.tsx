@@ -3,9 +3,9 @@
 import { Stars } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
-import { Leva } from "leva";
+import dynamic from "next/dynamic";
 
-import { useDebugControls } from "@/components/debug/DebugControls";
+import { useSceneSettings } from "@/components/debug/sceneSettings";
 import { useMapStore } from "@/lib/store";
 
 import { CameraRig } from "./CameraRig";
@@ -15,17 +15,30 @@ import { RoutePath } from "./RoutePath";
 import { LabelAnchors, LabelOverlay, usePlacedLabels } from "./SceneLabels";
 import { TraverseOverlay } from "./TraverseOverlay";
 
+// Panel de ajustes (Leva) solo en desarrollo: en producción la condición es constante y el
+// paquete ni siquiera entra en la descarga.
+const DebugControls =
+  process.env.NODE_ENV === "production"
+    ? null
+    : dynamic(() => import("@/components/debug/DebugControls"), { ssr: false });
+
 /** Una sola escena para todo el recorrido: el zoom es una transición de cámara. */
 export default function Scene() {
   const view = useMapStore((s) => s.view);
-  const { sunIntensity, exaggeration, layerOpacity, bloom } = useDebugControls();
+  const { sunIntensity, exaggeration, layerOpacity, bloom } = useSceneSettings();
   const labels = usePlacedLabels(exaggeration);
   const showLabels = view === "region" && labels.length > 0;
 
   return (
     <>
-      <Leva hidden={process.env.NODE_ENV === "production"} collapsed />
-      <Canvas camera={{ position: [0, 0, 3.2], fov: 45, near: 0.01, far: 200 }} dpr={[1, 2]}>
+      {DebugControls && <DebugControls />}
+      <Canvas
+        camera={{ position: [0, 0, 3.2], fov: 45, near: 0.01, far: 200 }}
+        dpr={[1, 2]}
+        // En la región nada se mueve solo: se dibuja un cuadro solo cuando algo cambia (cámara,
+        // capas, rutas). El globo gira y el zoom es una animación, así que ahí se dibuja siempre.
+        frameloop={view === "region" ? "demand" : "always"}
+      >
         <color attach="background" args={["#0b0605"]} />
         <ambientLight intensity={0.25} />
         {/* Luz de cielo: rellena las laderas en sombra sin aplanar el relieve. */}

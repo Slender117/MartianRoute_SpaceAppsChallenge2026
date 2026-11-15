@@ -34,6 +34,7 @@ function SourceTag({ src }: { src: LiveSource }) {
 /**
  * Panel "Marte hoy": llegadas de eyecciones solares a Marte (DONKI), dónde está Perseverance y sus
  * últimas imágenes. Si una eyección llega cerca de hoy, propone activar el escenario de evento solar.
+ * Es un botón de la barra de arriba que despliega el detalle debajo.
  */
 export function LivePanel() {
   const regionId = useMapStore((s) => s.regionId);
@@ -71,78 +72,88 @@ export function LivePanel() {
   };
 
   return (
-    <section className="panel live-panel">
-      <button className="ghost" onClick={() => setOpen(!open)}>
-        {open ? t.hide : t.liveTitle}
-        {alert && !open ? " ⚠" : ""}
+    <div className="live">
+      <button
+        className={alert ? "chip chip-alert" : "chip ghost"}
+        aria-expanded={open}
+        aria-controls="live-body"
+        onClick={() => setOpen(!open)}
+      >
+        {t.liveTitle}
+        {alert ? " ⚠" : ""} <span aria-hidden>{open ? "▴" : "▾"}</span>
       </button>
-      {open && error && <p className="error">{error}</p>}
-      {open && data && sw && (
-        <div className="live-body">
-          <h2>
-            {t.liveSpaceWeather} <SourceTag src={sw.source} />
-          </h2>
-          {alert ? (
-            <>
-              <p className="live-alert">
-                <a href={alert.link} target="_blank" rel="noreferrer">
-                  {alertText()}
-                </a>
-              </p>
-              <button disabled={solarEvent} onClick={() => setSolarEvent(true)}>
-                {solarEvent ? t.liveScenarioOn : t.liveUseScenario}
-              </button>
-            </>
-          ) : (
-            <p className="muted">{t.liveNoAlert}</p>
-          )}
-          <p className="muted">{t.liveArrivals(sw.arrivals.length, DONKI_DAYS)}</p>
-
-          {data.rover && (
+      {open && (
+        <section id="live-body" className="panel live-body" aria-label={t.liveTitle}>
+          {error && <p className="error">{error}</p>}
+          {!data && !error && <p className="muted">…</p>}
+          {data && sw && (
             <>
               <h2>
-                {t.liveRover(data.rover.sol)} <SourceTag src={data.rover.source} />
+                {t.liveSpaceWeather} <SourceTag src={sw.source} />
               </h2>
-              <p>
-                {data.rover.distance_to_base_km !== null &&
-                  t.liveRoverDistance(data.rover.distance_to_base_km.toFixed(1))}
-                {data.rover.in_region === false && ` · ${t.liveRoverOutside}`}
-                {data.rover.odometry_km !== null && (
-                  <span className="muted"> · {t.liveOdometry(data.rover.odometry_km.toFixed(1))}</span>
-                )}
-              </p>
+              {alert ? (
+                <>
+                  <p className="live-alert">
+                    <a href={alert.link} target="_blank" rel="noreferrer">
+                      {alertText()}
+                    </a>
+                  </p>
+                  <button disabled={solarEvent} onClick={() => setSolarEvent(true)}>
+                    {solarEvent ? t.liveScenarioOn : t.liveUseScenario}
+                  </button>
+                </>
+              ) : (
+                <p className="muted">{t.liveNoAlert}</p>
+              )}
+              <p className="muted">{t.liveArrivals(sw.arrivals.length, DONKI_DAYS)}</p>
+
+              {data.rover && (
+                <>
+                  <h2>
+                    {t.liveRover(data.rover.sol)} <SourceTag src={data.rover.source} />
+                  </h2>
+                  <p>
+                    {data.rover.distance_to_base_km !== null &&
+                      t.liveRoverDistance(data.rover.distance_to_base_km.toFixed(1))}
+                    {data.rover.in_region === false && ` · ${t.liveRoverOutside}`}
+                    {data.rover.odometry_km !== null && (
+                      <span className="muted"> · {t.liveOdometry(data.rover.odometry_km.toFixed(1))}</span>
+                    )}
+                  </p>
+                </>
+              )}
+
+              <h2>
+                {t.liveImages(data.images.latest_sol)} <SourceTag src={data.images.source} />
+              </h2>
+              {data.images.images.length ? (
+                <div className="live-images">
+                  {data.images.images.map((img) => (
+                    <a
+                      key={img.image_id}
+                      href={img.page_url ?? img.full_url ?? img.thumbnail_url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {/* Imágenes de NASA servidas desde mars.nasa.gov: next/image exigiría configurar el dominio. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img.thumbnail_url}
+                        alt={`${img.camera}, sol ${img.sol}`}
+                        title={`${img.camera} · ${formatUtc(img.taken_utc, lang)}`}
+                        loading="lazy"
+                        onError={(e) => (e.currentTarget.style.display = "none")}
+                      />
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">{t.liveNoImages}</p>
+              )}
             </>
           )}
-
-          <h2>
-            {t.liveImages(data.images.latest_sol)} <SourceTag src={data.images.source} />
-          </h2>
-          {data.images.images.length ? (
-            <div className="live-images">
-              {data.images.images.map((img) => (
-                <a
-                  key={img.image_id}
-                  href={img.page_url ?? img.full_url ?? img.thumbnail_url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {/* Imágenes de NASA servidas desde mars.nasa.gov: next/image exigiría configurar el dominio. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={img.thumbnail_url}
-                    alt={`${img.camera}, sol ${img.sol}`}
-                    title={`${img.camera} · ${formatUtc(img.taken_utc, lang)}`}
-                    loading="lazy"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                  />
-                </a>
-              ))}
-            </div>
-          ) : (
-            <p className="muted">{t.liveNoImages}</p>
-          )}
-        </div>
+        </section>
       )}
-    </section>
+    </div>
   );
 }

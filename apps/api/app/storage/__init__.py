@@ -1,4 +1,5 @@
 from app.storage.regions import (
+    GridMemo,
     NotFoundError,
     RegionDataError,
     RegionGrids,
@@ -6,9 +7,11 @@ from app.storage.regions import (
     load_manifest,
     load_region,
     load_traverse,
+    memoized,
 )
 
 __all__ = [
+    "GridMemo",
     "NotFoundError",
     "RegionDataError",
     "RegionGrids",
@@ -16,4 +19,5 @@ __all__ = [
     "load_manifest",
     "load_region",
     "load_traverse",
+    "memoized",
 ]
