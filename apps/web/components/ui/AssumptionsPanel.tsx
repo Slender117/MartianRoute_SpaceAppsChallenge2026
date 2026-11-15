@@ -12,9 +12,12 @@ const PENDING = "[__]";
 const formatValue = (v: number | string | null, noValue: string) =>
   v === null ? noValue : typeof v === "number" ? String(Number(v.toPrecision(3))) : v;
 
-/** Panel "Supuestos y límites": cada parámetro del modelo con su valor, procedencia y fuente. */
-export function AssumptionsPanel() {
-  const [open, setOpen] = useState(false);
+/**
+ * Panel "Supuestos y límites": cada parámetro del modelo con su valor, procedencia y fuente.
+ * `defaultOpen`: en la pestaña de celular ya se abrió a propósito, no hace falta otro clic.
+ */
+export function AssumptionsPanel({ defaultOpen = false }: { defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   const [data, setData] = useState<AssumptionsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const lang = useLang((s) => s.lang);
@@ -31,11 +34,12 @@ export function AssumptionsPanel() {
   }, [open, data, lang]);
 
   return (
-    <section className="panel assumptions" style={{ bottom: 16, right: 16 }}>
-      <button className="ghost" onClick={() => setOpen(!open)}>
+    <section className="panel assumptions">
+      <button className="ghost" aria-expanded={open} onClick={() => setOpen(!open)}>
         {open ? t.hide : t.assumptions}
       </button>
       {open && error && <p className="error">{error}</p>}
+      {open && !data && !error && <p className="muted">…</p>}
       {open && data && (
         <div className="scroll">
           <ul>
@@ -51,7 +55,7 @@ export function AssumptionsPanel() {
               </li>
             ))}
           </ul>
-          <h2 style={{ marginTop: 10 }}>{t.limits}</h2>
+          <h2 className="subhead">{t.limits}</h2>
           <ul>
             {data.limits.map((l) => (
               <li key={l}>{l}</li>
