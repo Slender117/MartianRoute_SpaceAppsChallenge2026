@@ -4,7 +4,7 @@ import numpy as np
 
 from app.engine.o2_model import slope_penalty
 from app.schemas.route import WalkMode
-from app.storage import RegionGrids
+from app.storage import RegionGrids, memoized
 
 # Pesos por modo. Todas las capas llegan normalizadas a 0–1.
 # La línea base tiene todos los pesos en 0: el costo queda en 1 por metro y el A* devuelve la ruta
@@ -20,15 +20,29 @@ MODE_WEIGHTS: dict[WalkMode, dict[str, float]] = {
 MIN_CELL_COST = 0.1
 
 
+def mode_free_terms(grids: RegionGrids, max_slope_deg: float) -> tuple[np.ndarray, np.ndarray]:
+    """Penalización por pendiente e inestabilidad. No dependen del modo: las cuatro rutas de una
+    comparación las comparten, y se guardan por región y pendiente máxima (solo lectura)."""
+
+    def compute() -> tuple[np.ndarray, np.ndarray]:
+        # O₂ extra por pendiente (Minetti), 0 en plano y 1 en la máxima: ver engine/o2_model.py
+        penalty = slope_penalty(grids.slope, max_slope_deg)
+        instability = 1.0 - grids.thermal_inertia
+        penalty.setflags(write=False)
+        instability.setflags(write=False)
+        return penalty, instability
+
+    return memoized(grids, ("cost_terms", float(max_slope_deg)), compute)
+
+
 def build_cost(grids: RegionGrids, mode: WalkMode, max_slope_deg: float) -> np.ndarray:
     """Costo de cruzar cada celda; infinito donde la pendiente supera la máxima del traje."""
     w = MODE_WEIGHTS[mode]
-    instability = 1.0 - grids.thermal_inertia
+    penalty, instability = mode_free_terms(grids, max_slope_deg)
 
     cost = (
         1.0  # distancia
-        # O₂ extra por pendiente (Minetti), 0 en plano y 1 en la máxima: ver engine/o2_model.py
-        + w["slope"] * slope_penalty(grids.slope, max_slope_deg)
+        + w["slope"] * penalty
         + w["hazard"] * grids.hazard
         + w["instability"] * instability
     )
