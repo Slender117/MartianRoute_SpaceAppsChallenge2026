@@ -2,15 +2,16 @@
 
 import { useTexture } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
-import { useEffect, useMemo } from "react";
-import { BufferAttribute, PlaneGeometry, SRGBColorSpace, type Texture } from "three";
+import { Suspense, useEffect, useMemo } from "react";
+import { BufferAttribute, PlaneGeometry, SRGBColorSpace, type BufferGeometry, type Texture } from "three";
 
 import { assetUrl } from "@/lib/api";
 import { regionFrame, TERRAIN_SIZE } from "@/lib/geo";
 import { useMapStore } from "@/lib/store";
-import type { RegionManifest } from "@/lib/types";
+import type { LatLon, RegionManifest } from "@/lib/types";
 
 import { useRegionExtras, useRegionHeights } from "./regionAssets";
+import { SafeReturnVeil, type Displacement } from "./SafeReturnVeil";
 
 // Color de la ortofoto en escala de grises: la tiñe del tono del suelo marciano (solo visual).
 const SOIL_TINT = "#e3a27a";
@@ -21,6 +22,9 @@ const SOIL_COLOR = "#c1643c";
  * malla con el relieve real (heightmap.bin), ortofoto como textura y cada capa activa como un
  * velo semitransparente sobre la misma geometría. Las regiones viejas sin heightmap.bin usan el
  * heightmap.png como displacementMap.
+ *
+ * Carga por partes: el relieve aparece en cuanto llegan las alturas, la ortofoto se pone encima al
+ * descargarse y cada capa se descarga la primera vez que se enciende.
  */
 export function RegionTerrain({ exaggeration, layerOpacity = 0.75 }: { exaggeration: number; layerOpacity?: number }) {
   const manifest = useMapStore((s) => s.manifest)!;
@@ -29,11 +33,21 @@ export function RegionTerrain({ exaggeration, layerOpacity = 0.75 }: { exaggerat
 
   if (!extras) return null;
   if (!extras.assets?.heightmap) {
-    return <DisplacedTerrain manifest={manifest} exaggeration={exaggeration} layerOpacity={layerOpacity} />;
+    return (
+      <Suspense fallback={null}>
+        <DisplacedTerrain
+          key={manifest.id}
+          manifest={manifest}
+          exaggeration={exaggeration}
+          layerOpacity={layerOpacity}
+        />
+      </Suspense>
+    );
   }
   if (!heights) return null;
   return (
     <MeshTerrain
+      key={manifest.id}
       manifest={manifest}
       heights={heights}
       exaggeration={exaggeration}
@@ -43,22 +57,36 @@ export function RegionTerrain({ exaggeration, layerOpacity = 0.75 }: { exaggerat
   );
 }
 
-function useLayerTextures(manifest: RegionManifest, orthoPath?: string): Record<string, Texture> {
-  const urls = useMemo(() => {
-    const entries = manifest.layers.concat("slope").map((l) => [l, assetUrl(manifest.id, `textures/${l}.png`)]);
-    if (orthoPath) entries.push(["__ortho", assetUrl(manifest.id, orthoPath)]);
-    return Object.fromEntries(entries) as Record<string, string>;
-  }, [manifest, orthoPath]);
-  const textures = useTexture(urls) as Record<string, Texture>;
-  // Los colores de las capas están en sRGB: sin esto se ven lavados y no coinciden con la leyenda.
-  useMemo(() => {
-    for (const t of Object.values(textures)) {
-      t.colorSpace = SRGBColorSpace;
-      t.anisotropy = 8;
-      t.needsUpdate = true;
-    }
-  }, [textures]);
-  return textures;
+/**
+ * Las capas y la ortofoto están en sRGB: sin esto se ven lavadas y no coinciden con la leyenda.
+ * Función fija (no una flecha en cada render): useTexture la vuelve a llamar si cambia.
+ */
+function prepareColorTexture(t: Texture | Texture[]) {
+  for (const texture of Array.isArray(t) ? t : [t]) {
+    if (texture.colorSpace === SRGBColorSpace) continue;
+    texture.colorSpace = SRGBColorSpace;
+    texture.anisotropy = 8;
+    texture.needsUpdate = true;
+  }
+}
+
+/** Marca el relieve como visible mientras el componente está montado (aviso de carga). */
+function useTerrainReady() {
+  const setTerrainReady = useMapStore((s) => s.setTerrainReady);
+  useEffect(() => {
+    setTerrainReady(true);
+    return () => setTerrainReady(false);
+  }, [setTerrainReady]);
+}
+
+type PickHandler = (e: ThreeEvent<MouseEvent>) => void;
+
+function usePickHandler(fromScene: (p: ThreeEvent<MouseEvent>["point"]) => LatLon): PickHandler {
+  const pickPoint = useMapStore((s) => s.pickPoint);
+  return (e) => {
+    e.stopPropagation();
+    pickPoint(fromScene(e.point));
+  };
 }
 
 function MeshTerrain({
@@ -74,10 +102,9 @@ function MeshTerrain({
   layerOpacity: number;
   orthoPath?: string;
 }) {
-  const activeLayers = useMapStore((s) => s.activeLayers);
-  const pickPoint = useMapStore((s) => s.pickPoint);
   const frame = useMemo(() => regionFrame(manifest, exaggeration), [manifest, exaggeration]);
-  const textures = useLayerTextures(manifest, orthoPath);
+  const onClick = usePickHandler(frame.fromScene);
+  useTerrainReady();
 
   // Un vértice por celda de la grilla; la misma geometría la comparten el suelo y los velos.
   const geometry = useMemo(() => {
@@ -95,31 +122,103 @@ function MeshTerrain({
   }, [manifest, heights, frame]);
   useEffect(() => () => geometry.dispose(), [geometry]);
 
-  const onClick = (e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation();
-    pickPoint(frame.fromScene(e.point));
-  };
-
-  const ortho = textures.__ortho;
+  const ground = <Ground geometry={geometry} onClick={onClick} />;
   return (
     <group rotation={[-Math.PI / 2, 0, 0]}>
-      <mesh geometry={geometry} onClick={onClick}>
-        <meshStandardMaterial map={ortho ?? null} color={ortho ? SOIL_TINT : SOIL_COLOR} roughness={1} metalness={0} />
-      </mesh>
-
-      {activeLayers.map((layer, i) => (
-        <mesh key={layer} geometry={geometry} renderOrder={i + 1}>
-          <meshLambertMaterial
-            map={textures[layer]}
-            transparent
-            opacity={layerOpacity}
-            depthWrite={false}
-            polygonOffset
-            polygonOffsetFactor={-1 - i}
-          />
-        </mesh>
-      ))}
+      {orthoPath ? (
+        <Suspense fallback={ground}>
+          <OrthoGround url={assetUrl(manifest.id, orthoPath)} geometry={geometry} onClick={onClick} />
+        </Suspense>
+      ) : (
+        ground
+      )}
+      <Veils manifest={manifest} geometry={geometry} opacity={layerOpacity} />
     </group>
+  );
+}
+
+/** Suelo de color liso: mientras llega la ortofoto, o si la región no tiene. */
+function Ground({ geometry, onClick }: { geometry: BufferGeometry; onClick: PickHandler }) {
+  return (
+    <mesh geometry={geometry} onClick={onClick}>
+      <meshStandardMaterial color={SOIL_COLOR} roughness={1} metalness={0} />
+    </mesh>
+  );
+}
+
+function OrthoGround({ url, geometry, onClick }: { url: string; geometry: BufferGeometry; onClick: PickHandler }) {
+  const map = useTexture(url, prepareColorTexture) as Texture;
+  return (
+    <mesh geometry={geometry} onClick={onClick}>
+      <meshStandardMaterial map={map} color={SOIL_TINT} roughness={1} metalness={0} />
+    </mesh>
+  );
+}
+
+/** Las capas activas como velos sobre el relieve y, encima de todas, el mapa de regreso seguro. */
+function Veils({
+  manifest,
+  geometry,
+  opacity,
+  displacement,
+}: {
+  manifest: RegionManifest;
+  geometry: BufferGeometry;
+  opacity: number;
+  displacement?: Displacement;
+}) {
+  const activeLayers = useMapStore((s) => s.activeLayers);
+  return (
+    <>
+      {activeLayers.map((layer, i) => (
+        // Cada capa en su propio Suspense: mientras se descarga, el resto de la escena sigue igual.
+        <Suspense key={layer} fallback={null}>
+          <LayerVeil
+            url={assetUrl(manifest.id, `textures/${layer}.png`)}
+            geometry={geometry}
+            order={i + 1}
+            opacity={opacity}
+            displacement={displacement}
+          />
+        </Suspense>
+      ))}
+      <SafeReturnVeil
+        geometry={geometry}
+        order={activeLayers.length + 1}
+        opacity={opacity}
+        displacement={displacement}
+      />
+    </>
+  );
+}
+
+function LayerVeil({
+  url,
+  geometry,
+  order,
+  opacity,
+  displacement,
+}: {
+  url: string;
+  geometry: BufferGeometry;
+  order: number;
+  opacity: number;
+  displacement?: Displacement;
+}) {
+  const map = useTexture(url, prepareColorTexture) as Texture;
+  return (
+    <mesh geometry={geometry} renderOrder={order}>
+      {/* Lambert y no Basic: MeshBasicMaterial no soporta displacementMap */}
+      <meshLambertMaterial
+        map={map}
+        transparent
+        opacity={opacity}
+        depthWrite={false}
+        polygonOffset
+        polygonOffsetFactor={-order}
+        {...displacement}
+      />
+    </mesh>
   );
 }
 
@@ -135,46 +234,24 @@ function DisplacedTerrain({
   exaggeration: number;
   layerOpacity: number;
 }) {
-  const activeLayers = useMapStore((s) => s.activeLayers);
-  const pickPoint = useMapStore((s) => s.pickPoint);
   const frame = useMemo(() => regionFrame(manifest, exaggeration), [manifest, exaggeration]);
-  const heightmap = useTexture(assetUrl(manifest.id, "heightmap.png"));
-  const textures = useLayerTextures(manifest);
+  const onClick = usePickHandler(frame.fromScene);
+  const heightmap = useTexture(assetUrl(manifest.id, "heightmap.png")) as Texture;
+  useTerrainReady();
 
-  const onClick = (e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation();
-    pickPoint(frame.fromScene(e.point));
-  };
+  const geometry = useMemo(() => new PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, LEGACY_SEGMENTS, LEGACY_SEGMENTS), []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  const displacement = useMemo(
+    () => ({ displacementMap: heightmap, displacementScale: frame.heightScale }),
+    [heightmap, frame.heightScale],
+  );
 
   return (
     <group rotation={[-Math.PI / 2, 0, 0]}>
-      <mesh onClick={onClick}>
-        <planeGeometry args={[TERRAIN_SIZE, TERRAIN_SIZE, LEGACY_SEGMENTS, LEGACY_SEGMENTS]} />
-        <meshStandardMaterial
-          color={SOIL_COLOR}
-          roughness={1}
-          flatShading
-          displacementMap={heightmap}
-          displacementScale={frame.heightScale}
-        />
+      <mesh geometry={geometry} onClick={onClick}>
+        <meshStandardMaterial color={SOIL_COLOR} roughness={1} flatShading {...displacement} />
       </mesh>
-
-      {activeLayers.map((layer, i) => (
-        <mesh key={layer} renderOrder={i + 1}>
-          <planeGeometry args={[TERRAIN_SIZE, TERRAIN_SIZE, LEGACY_SEGMENTS, LEGACY_SEGMENTS]} />
-          {/* Lambert y no Basic: MeshBasicMaterial no soporta displacementMap */}
-          <meshLambertMaterial
-            map={textures[layer]}
-            transparent
-            opacity={layerOpacity}
-            depthWrite={false}
-            polygonOffset
-            polygonOffsetFactor={-1 - i}
-            displacementMap={heightmap}
-            displacementScale={frame.heightScale}
-          />
-        </mesh>
-      ))}
+      <Veils manifest={manifest} geometry={geometry} opacity={layerOpacity} displacement={displacement} />
     </group>
   );
 }

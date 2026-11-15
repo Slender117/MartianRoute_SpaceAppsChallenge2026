@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { regionFrame } from "@/lib/geo";
 import { useMapStore } from "@/lib/store";
-import type { WalkMode } from "@/lib/types";
+import type { LatLon, WalkMode } from "@/lib/types";
 
 import { heightAt, useRegionExtras, useRegionHeights } from "./regionAssets";
 
@@ -17,58 +17,89 @@ export const MODE_COLORS: Record<WalkMode, string> = {
 };
 
 const LIFT = 0.04; // separa la línea del terreno para que no parpadee
+const START_COLOR = "#ffffff";
+const END_COLOR = "#ff7a45";
 
 /**
- * Ruta del modo activo (resaltada), las otras en tenue, y marcadores de inicio/destino/paradas.
- * El detalle de cada parada se lee en NavPanel.
+ * Ruta del modo activo (resaltada), las otras en tenue, marcadores de inicio y destino, y paradas.
+ * El detalle de cada parada se lee en NavPanel. Los puntos en la escena se calculan una vez por
+ * juego de rutas: cambiar de modo solo cambia el grosor y la opacidad.
  */
 export function RoutePath({ exaggeration }: { exaggeration: number }) {
   const manifest = useMapStore((s) => s.manifest)!;
-  const { routes, mode, start, end } = useMapStore();
+  const routes = useMapStore((s) => s.routes);
+  const mode = useMapStore((s) => s.mode);
+  const start = useMapStore((s) => s.start);
+  const end = useMapStore((s) => s.end);
   const frame = useMemo(() => regionFrame(manifest, exaggeration), [manifest, exaggeration]);
   const heights = useRegionHeights(manifest, useRegionExtras(manifest.id));
-  const [zMin] = manifest.elevation_range;
 
-  // Los extremos se apoyan en el terreno; sin heightmap.bin, a la altura base.
-  const marker = (p: { lat: number; lon: number }, color: string, key: string) => (
-    <mesh
-      key={key}
-      position={frame.toScene(p.lat, p.lon, heights ? heightAt(heights, manifest, p.lat, p.lon) : zMin, LIFT)}
-    >
-      <sphereGeometry args={[0.06, 16, 16]} />
-      <meshBasicMaterial color={color} toneMapped={false} />
-    </mesh>
+  const lines = useMemo(
+    () =>
+      Object.values(routes).map((r) => ({
+        mode: r.mode,
+        points: r.path.map((p) => frame.toScene(p.lat, p.lon, p.elev, LIFT)),
+      })),
+    [routes, frame],
   );
 
+  // Cada parada, a la altura del punto de la ruta más cercano.
   const active = routes[mode];
+  const stops = useMemo(
+    () =>
+      active?.stops.map((s) => {
+        let best = active.path[0];
+        let bestD = Infinity;
+        for (const q of active.path) {
+          const d = (q.lat - s.lat) ** 2 + (q.lon - s.lon) ** 2;
+          if (d < bestD) [best, bestD] = [q, d];
+        }
+        return { position: frame.toScene(s.lat, s.lon, best.elev, LIFT * 3), ice: s.type === "ice" };
+      }) ?? [],
+    [active, frame],
+  );
+
+  // Los extremos se apoyan en el terreno; sin heightmap.bin, a la altura base.
+  const markerAt = (p: LatLon) =>
+    frame.toScene(
+      p.lat,
+      p.lon,
+      heights ? heightAt(heights, manifest, p.lat, p.lon) : manifest.elevation_range[0],
+      LIFT,
+    );
 
   return (
     <group>
-      {Object.values(routes).map((r) => (
+      {lines.map(({ mode: m, points }) => (
         <Line
-          key={r.mode}
-          points={r.path.map((p) => frame.toScene(p.lat, p.lon, p.elev, LIFT))}
-          color={MODE_COLORS[r.mode]}
-          lineWidth={r.mode === mode ? 4 : 1.5}
+          key={m}
+          points={points}
+          color={MODE_COLORS[m]}
+          lineWidth={m === mode ? 4 : 1.5}
           transparent
-          opacity={r.mode === mode ? 1 : 0.35}
+          opacity={m === mode ? 1 : 0.35}
         />
       ))}
 
-      {!active && start && marker(start, "#ffffff", "start")}
-      {!active && end && marker(end, "#ff7a45", "end")}
+      {start && (
+        <mesh position={markerAt(start)}>
+          <sphereGeometry args={[0.06, 16, 16]} />
+          <meshBasicMaterial color={START_COLOR} toneMapped={false} />
+        </mesh>
+      )}
+      {end && (
+        <mesh position={markerAt(end)}>
+          <sphereGeometry args={[0.06, 16, 16]} />
+          <meshBasicMaterial color={END_COLOR} toneMapped={false} />
+        </mesh>
+      )}
 
-      {active?.stops.map((s, i) => {
-        const p = active.path.reduce((best, q) =>
-          Math.hypot(q.lat - s.lat, q.lon - s.lon) < Math.hypot(best.lat - s.lat, best.lon - s.lon) ? q : best,
-        );
-        return (
-          <mesh key={i} position={frame.toScene(s.lat, s.lon, p.elev, LIFT * 3)}>
-            <octahedronGeometry args={[0.08]} />
-            <meshBasicMaterial color={s.type === "ice" ? "#b4f0ff" : "#3ddc84"} toneMapped={false} />
-          </mesh>
-        );
-      })}
+      {stops.map((s, i) => (
+        <mesh key={i} position={s.position}>
+          <octahedronGeometry args={[0.08]} />
+          <meshBasicMaterial color={s.ice ? "#b4f0ff" : "#3ddc84"} toneMapped={false} />
+        </mesh>
+      ))}
     </group>
   );
 }
