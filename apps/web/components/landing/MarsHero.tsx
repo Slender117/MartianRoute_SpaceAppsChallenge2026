@@ -2,8 +2,8 @@
 
 import { Stars } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
-import { CanvasTexture, SRGBColorSpace, type Mesh } from "three";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AdditiveBlending, BackSide, CanvasTexture, Color, ShaderMaterial, SRGBColorSpace, type Mesh } from "three";
 
 // Pseudoaleatorio con semilla: el planeta se ve igual en cada visita.
 function rng(seed: number) {
@@ -78,9 +78,44 @@ function marsTexture(): CanvasTexture {
   return tex;
 }
 
+/**
+ * Halo de la atmósfera: una esfera un poco mayor, vista por dentro, que brilla más cerca del borde
+ * del planeta y se desvanece hacia afuera (solo decorativo).
+ */
+function atmosphereMaterial(): ShaderMaterial {
+  return new ShaderMaterial({
+    uniforms: { glowColor: { value: new Color("#ff8f5c") } },
+    vertexShader: /* glsl */ `
+      varying vec3 vNormal;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: /* glsl */ `
+      uniform vec3 glowColor;
+      varying vec3 vNormal;
+      void main() {
+        float rim = pow(max(-vNormal.z, 0.0), 1.6);
+        gl_FragColor = vec4(glowColor * rim, 1.0);
+      }`,
+    side: BackSide,
+    blending: AdditiveBlending,
+    transparent: true,
+    depthWrite: false,
+  });
+}
+
 function Planet({ spin }: { spin: boolean }) {
   const planet = useRef<Mesh>(null);
   const map = useMemo(marsTexture, []);
+  const atmosphere = useMemo(atmosphereMaterial, []);
+  useEffect(
+    () => () => {
+      map.dispose();
+      atmosphere.dispose();
+    },
+    [map, atmosphere],
+  );
   // En pantallas anchas el planeta va a la derecha para no tapar el título.
   const wide = useThree((s) => s.viewport.aspect > 1.2);
 
@@ -98,23 +133,49 @@ function Planet({ spin }: { spin: boolean }) {
         <sphereGeometry args={[1, 96, 96]} />
         <meshStandardMaterial map={map} bumpMap={map} bumpScale={0.6} roughness={0.95} />
       </mesh>
+      <mesh scale={1.1} material={atmosphere}>
+        <sphereGeometry args={[1, 64, 64]} />
+      </mesh>
     </group>
   );
 }
 
-/** Marte girando para la portada. Respeta "reducir movimiento" del sistema. */
+/**
+ * Marte girando para la portada. Respeta "reducir movimiento" del sistema (el planeta queda quieto)
+ * y deja de dibujar cuando sale de la pantalla: al leer las secciones de abajo no gasta GPU.
+ */
 export default function MarsHero() {
   const spin = useMemo(
     () => typeof window === "undefined" || !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     [],
   );
+  const box = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <Canvas camera={{ position: [0, 0, 3.1], fov: 45 }} dpr={[1, 2]} aria-hidden>
-      <ambientLight intensity={0.12} />
-      <directionalLight position={[5, 2, 4]} intensity={2.6} />
-      <Stars radius={60} depth={30} count={2500} factor={3} fade speed={spin ? 0.5 : 0} />
-      <Planet spin={spin} />
-    </Canvas>
+    <div ref={box} className="mars-hero">
+      <Canvas
+        camera={{ position: [0, 0, 3.1], fov: 45 }}
+        dpr={[1, 2]}
+        // Quieto o fuera de la pantalla: un cuadro cuando haga falta (al cambiar el tamaño), no 60 por segundo.
+        frameloop={spin && visible ? "always" : "demand"}
+        aria-hidden
+      >
+        {/* Fondo opaco del color de la página: el halo se suma a él sin dejar un aro oscuro. */}
+        <color attach="background" args={["#0b0605"]} />
+        <ambientLight intensity={0.12} />
+        <directionalLight position={[5, 2, 4]} intensity={2.6} />
+        <Stars radius={60} depth={30} count={2500} factor={3} fade speed={spin ? 0.5 : 0} />
+        <Planet spin={spin} />
+      </Canvas>
+    </div>
   );
 }

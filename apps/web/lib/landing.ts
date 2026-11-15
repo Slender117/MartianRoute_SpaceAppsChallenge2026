@@ -8,6 +8,9 @@ const es = {
   nav: { about: "Acerca de", project: "Proyecto", data: "Datos", team: "Equipo", repo: "Repositorio" },
   start: "Start",
   startTitle: "Abrir el planificador de rutas",
+  menuOpen: "Abrir el menú",
+  menuClose: "Cerrar el menú",
+  sectionsLabel: "Secciones",
   heroKicker: "NASA Space Apps Challenge 2026",
   heroTitle: "Martian Route",
   heroText:
@@ -21,6 +24,10 @@ const es = {
   ],
 
   projectTitle: "Cómo funciona",
+  shotAlt:
+    "El planificador en el cráter Jezero: la ruta de la base al destino de la demo sobre el relieve y la ortofoto de CTX, con el mapa de regreso seguro en verde, amarillo y rojo",
+  shotCaption:
+    "Captura del planificador con datos reales de Jezero: la ruta de la demo y el mapa de regreso seguro (verde: ida y vuelta dentro de la autonomía planeable).",
   projectCards: [
     {
       title: "Tres rutas y una referencia",
@@ -85,6 +92,9 @@ const en: LandingStrings = {
   nav: { about: "About", project: "Project", data: "Data", team: "Team", repo: "Repository" },
   start: "Start",
   startTitle: "Open the route planner",
+  menuOpen: "Open the menu",
+  menuClose: "Close the menu",
+  sectionsLabel: "Sections",
   heroKicker: "NASA Space Apps Challenge 2026",
   heroTitle: "Martian Route",
   heroText:
@@ -98,6 +108,10 @@ const en: LandingStrings = {
   ],
 
   projectTitle: "How it works",
+  shotAlt:
+    "The planner at Jezero crater: the route from the base to the demo destination over the CTX terrain and orthophoto, with the safe-return map in green, yellow and red",
+  shotCaption:
+    "Screenshot of the planner with real Jezero data: the demo route and the safe-return map (green: round trip within the plannable autonomy).",
   projectCards: [
     {
       title: "Three routes and a reference",
