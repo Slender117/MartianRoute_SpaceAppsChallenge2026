@@ -1,10 +1,10 @@
 {
  "space_weather": {
-  "fetched_at": "2026-11-14T19:52:41.760239+00:00",
+  "fetched_at": "2026-11-14T20:13:47.233997+00:00",
   "data": [
    {
     "simulation_id": "WSA-ENLIL/49473/1",
-    "cme_id": null,
+    "cme_id": "2026-11-09T18:15:00-CME-001",
     "cme_start": "2026-11-09T18:15:00Z",
     "speed_km_s": 726.0,
     "arrival_time": "2026-11-13T12:00:00Z",
@@ -15,7 +15,7 @@
    },
    {
     "simulation_id": "WSA-ENLIL/49360/1",
-    "cme_id": null,
+    "cme_id": "2026-11-01T19:00:00-CME-001",
     "cme_start": "2026-11-01T19:00:00Z",
     "speed_km_s": 357.0,
     "arrival_time": "2026-11-07T06:00:00Z",
@@ -26,7 +26,7 @@
    },
    {
     "simulation_id": "WSA-ENLIL/49326/1",
-    "cme_id": null,
+    "cme_id": "2026-10-29T10:36:00-CME-001",
     "cme_start": "2026-10-29T10:36:00Z",
     "speed_km_s": 287.0,
     "arrival_time": "2026-11-04T08:00:00Z",
@@ -37,7 +37,7 @@
    },
    {
     "simulation_id": "WSA-ENLIL/49274/1",
-    "cme_id": null,
+    "cme_id": "2026-10-26T01:26:00-CME-001",
     "cme_start": "2026-10-26T01:26:00Z",
     "speed_km_s": 285.0,
     "arrival_time": "2026-11-01T02:00:00Z",
@@ -48,7 +48,7 @@
    },
    {
     "simulation_id": "WSA-ENLIL/49248/1",
-    "cme_id": null,
+    "cme_id": "2026-10-25T19:24:00-CME-001",
     "cme_start": "2026-10-25T19:24:00Z",
     "speed_km_s": 275.0,
     "arrival_time": "2026-11-01T01:00:00Z",
@@ -59,7 +59,7 @@
    },
    {
     "simulation_id": "WSA-ENLIL/49280/1",
-    "cme_id": null,
+    "cme_id": "2026-10-26T18:48:00-CME-001",
     "cme_start": "2026-10-26T18:48:00Z",
     "speed_km_s": 616.0,
     "arrival_time": "2026-10-31T11:00:00Z",
@@ -69,19 +69,19 @@
     "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49280/-1"
    },
    {
-    "simulation_id": "WSA-ENLIL/49257/1",
-    "cme_id": null,
-    "cme_start": "2026-10-26T09:00:00Z",
-    "speed_km_s": 873.0,
-    "arrival_time": "2026-10-31T00:00:00Z",
+    "simulation_id": "WSA-ENLIL/49252/1",
+    "cme_id": "2026-10-26T09:48:00-CME-001",
+    "cme_start": "2026-10-26T09:48:00Z",
+    "speed_km_s": 681.0,
+    "arrival_time": "2026-10-30T18:00:00Z",
     "glancing_blow": true,
     "minor_impact": false,
-    "model_completion": "2026-10-26T15:40:00Z",
-    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49257/-1"
+    "model_completion": "2026-10-26T13:10:00Z",
+    "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/49252/-1"
    },
    {
     "simulation_id": "WSA-ENLIL/49259/1",
-    "cme_id": null,
+    "cme_id": "2026-10-26T09:00:00-CME-001",
     "cme_start": "2026-10-26T09:00:00Z",
     "speed_km_s": 873.0,
     "arrival_time": "2026-10-30T18:00:00Z",
@@ -92,7 +92,7 @@
    },
    {
     "simulation_id": "WSA-ENLIL/49216/1",
-    "cme_id": null,
+    "cme_id": "2026-10-23T04:18:00-CME-001",
     "cme_start": "2026-10-23T04:18:00Z",
     "speed_km_s": 597.0,
     "arrival_time": "2026-10-27T12:00:00Z",
@@ -104,7 +104,7 @@
   ]
  },
  "rover": {
-  "fetched_at": "2026-11-14T20:05:51.785394+00:00",
+  "fetched_at": "2026-11-14T20:13:47.233997+00:00",
   "data": {
    "rover": "Perseverance",
    "sol": 2022,
@@ -117,7 +117,7 @@
   }
  },
  "images": {
-  "fetched_at": "2026-11-14T20:05:51.785394+00:00",
+  "fetched_at": "2026-11-14T20:13:47.233997+00:00",
   "data": {
    "latest_sol": 2031,
    "images": [
