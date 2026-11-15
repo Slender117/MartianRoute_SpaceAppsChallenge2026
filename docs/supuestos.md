@@ -13,20 +13,20 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
 | --- | --- | --- | --- | --- |
 | `base_speed` | Velocidad con traje en terreno plano | 2 km/h | modeled | Coan (2020), §4.2.1.3.1.1: ritmo lunar sobre regolito casi plano |
 | `tobler_coefficient` | Coeficiente de la función de Tobler | 3.5 | modeled | Tobler (1993), escalada a la velocidad con traje |
-| `o2_rate` | Consumo de O₂ por persona | 0.07 kg/h | modeled | Waligora y Horrigan (1975), tabla 2: media de las EVA lunares de Apollo; convertido con Weir (1949) |
-| `o2_flat_per_m` | O₂ por metro en terreno plano | 3.5 × 10⁻⁵ kg/m | modeled | Derivado: `o2_rate` ÷ `base_speed` |
+| `o2_rate` | Consumo de O₂ por persona | 0.07 kg/h | modeled | Waligora y Horrigan (1975), tabla 2: media de las EVA lunares de Apollo; convertido con Weir (1949). Escenario Luna; ver «Escenario Marte del O₂» |
+| `o2_flat_per_m` | O₂ por metro en terreno plano | 3.5 × 10⁻⁵ kg/m | modeled | Derivado: `o2_rate` ÷ `base_speed`. No hay dato de NASA con traje a 3/8 g y 2 km/h |
 | `slope_cost_curve` | Costo de caminar según la pendiente | 1.64 J/kg/m en plano; 17.33 a +45 % | observed | Minetti et al. (2002); solo la forma |
 | `mars_gravity` | Gravedad en la superficie de Marte | 3.728 m/s² | derived | GM / R² con GM = 42,828.37 km³/s² de Konopliv et al. (2020) y el radio medio de 3,389.5 km |
-| `crew_size` | Integrantes de la EVA | 2 | modeled | Decisión del proyecto |
+| `crew_size` | Integrantes de la EVA | 2 | modeled | Decisión del proyecto; la DRA 5.0 pide de 2 a 4 personas por EVA en Marte (Drake, 2009, §5.2.1) |
 | `autonomy` | Autonomía del traje | 8 h | modeled | Coan (2020), §4.1.4: EVA de hasta 8 h (6 ± 2 h), más 1 h de O₂ secundario; Drake y Watts (2014), §9.2 |
-| `autonomy_reserve` | Reserva de autonomía | 20 % | modeled | Decisión del proyecto |
+| `autonomy_reserve` | Reserva de autonomía | 20 % | modeled | Decisión del proyecto; NASA no fija reserva para Marte (consumos por hora TBD en Drake y Watts, 2014, p. 403) |
 | `task_time` | Trabajo fijo de la EVA (sin caminar) | 0 h | modeled | `[__]`: se ajusta por petición con `suit.task_h` |
 | `walkback_reserve` | Reserva mínima al volver a la base | 30 min | modeled | Decisión del proyecto (plan del equipo); falta fuente con DOI. Se aplica la más estricta entre esta y el 20 % |
-| `max_slope` | Pendiente máxima caminable | 20° | modeled | Coan (2020), §4.2.1.3: subir, bajar o cruzar pendientes de hasta 20° |
-| `max_distance` | Distancia máxima a la base | 10 km | modeled | Regreso a pie de emergencia: Coan (2020), §4.2.1.3.1.1; NASA (2025), [V2 11030]; Drake y Watts (2014), §9.2 |
-| `max_dose` | Límite de dosis por EVA | sin valor | modeled | NASA (2022), §4.8: no hay límite por EVA |
-| `career_dose_limit` | Límite de dosis efectiva de carrera | 600 mSv | observed | NASA (2022), [V1 4030] |
-| `radiation_rate` | Dosis equivalente en la superficie de Gale | 0.64 ± 0.12 mSv/día | observed | Hassler et al. (2014): Curiosity RAD en el cráter Gale; se aplica a Jezero como supuesto |
+| `max_slope` | Pendiente máxima caminable | 20° | modeled | Coan (2020), §4.2.1.3: subir, bajar o cruzar pendientes de hasta 20°. 20° equivalen a 36 % de pendiente; NASA solo ha probado con traje hasta 30 % (~16.7°; Norcross et al., 2010) |
+| `max_distance` | Distancia máxima a la base | 10 km | modeled | Regreso a pie de emergencia: Coan (2020), §4.2.1.3.1.1; NASA (2025), [V2 11030]; Drake y Watts (2014), §9.2. Supuesto lunar; Marte por definir. Escenarios: 1.8 a 3.5 km (Ogilvie et al., 2026) y 15 km (Drake, 2009, nocional) |
+| `max_dose` | Límite de dosis por EVA | sin valor | modeled | NASA (2023), §4.8: no hay límite por EVA |
+| `career_dose_limit` | Límite de dosis efectiva de carrera | 600 mSv | observed | NASA (2023), [V1 4030] |
+| `radiation_rate` | Dosis equivalente en la superficie | 0.64 ± 0.12 mSv/día | observed | Hassler et al. (2014): Gale, ~300 días en máximo solar (2012-2013), no Jezero; rango de 0.25 a 0.95 mSv/día en Guo et al. (2021) |
 | `solar_event_dose` | Dosis absorbida del escenario de evento solar | 8.1 mGy | observed | NASA JPL (2024) |
 | `solar_alert_before` | Inicio de la alerta antes de que una eyección solar llegue a Marte | 72 h | modeled | Decisión del proyecto; la llegada la pronostica WSA-ENLIL en DONKI (CCMC de NASA) |
 | `solar_alert_after` | Fin de la alerta después de la llegada | 48 h | modeled | Decisión del proyecto |
@@ -47,17 +47,27 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
 - **Tasa de fondo.** `CLAUDE.md` pedía verificar el valor aproximado de 0.67 mSv/día. Hassler et al.
   (2014) reportan 0.64 ± 0.12 mSv/día (0.21 ± 0.04 mGy/día de dosis absorbida) en los primeros 300 días
   de Curiosity en Gale. Una revisión posterior cita 0.67 para otro periodo de promedio; se usa el valor
-  del artículo original. La dosis real varía con el ciclo solar y con la presión de la atmósfera.
+  del artículo original. La dosis real varía con el ciclo solar y con la presión de la atmósfera: entre máximo y mínimo
+  solar, RAD midió en Gale de 0.25 a 0.95 mSv/día (Guo et al., 2021, §4.3.4). La cifra de 0.64 no
+  aparece en el resumen de Hassler et al. (2014) y no se pudo leer el texto completo. En Jezero no hay
+  dosis medida; con la presión de MEDA, la dosis sería de 1.0 a 1.1 veces la de Gale (estimación
+  propia con la sensibilidad a la presión de Guo et al., 2021).
 - **Evento solar.** El escenario usa el evento del 20 de mayo de 2024: 8.1 mGy junto al rover, el mayor
-  medido por RAD hasta esa fecha. Se aplica completo como peor caso observado, no como predicción: un
+  medido por RAD hasta esa fecha. Fue el más fuerte de 19 eventos de partículas registrados en la
+  superficie en ~12.5 años, con un pico de 352 µGy/h (Posner et al., 2025). Se aplica completo como peor caso observado, no como predicción: un
   evento futuro podría ser mayor. Es dosis absorbida, así que no se suma a los mSv de fondo: convertirla
   requiere el factor de calidad de ese evento, que no tenemos.
-- **Sin límite por EVA.** NASA-STD-3001 Vol. 1 Rev. B (NASA, 2022, §4.8) no define un límite por
+- **Sin límite por EVA.** NASA-STD-3001 Vol. 1 Rev. C (NASA, 2023, §4.8), que reemplaza a la Rev. B con
+  el mismo texto, no define un límite por
   EVA. Define dos: la dosis efectiva de carrera debe ser menor a 600 mSv para cualquier edad y sexo,
   sumando todas las misiones ([V1 4030]), y el diseño debe proteger a la tripulación del evento solar
   de referencia (los eventos de octubre de 1989) por debajo de 250 mSv ([V1 4031]). La API informa el
   límite de carrera (`career_dose_limit`), reporta la dosis de la EVA y solo genera una alerta si el
-  cliente manda `max_dose_msv`.
+  cliente manda `max_dose_msv`. La misma norma fija para los órganos formadores de sangre 250 mGy-Eq
+  en 30 días (tabla 4.8-1).
+- **Alertas.** DONKI (NASA) avisa cuándo llega a Marte una eyección solar (CME), pero su catálogo
+  de eventos de partículas no tiene mediciones en Marte. Para esos eventos, Löwe et al. (2025)
+  proponen alertar cuando la dosis local supera en 25 % el fondo, lo que da al menos 30 min de aviso.
 
 ## Notas sobre los límites de la EVA
 
@@ -70,20 +80,56 @@ misión ni una especificación de traje. Son preguntas abiertas del proyecto.
   que los astronautas de Apolo pidieron agua para un regreso de 10 km si falla el vehículo. La DRA 5.0
   (Drake y Watts, 2014, §9.2, supuesto l.6) asume 10 km en la Luna y deja Marte por definir, porque no
   se ha probado en gravedad marciana. Para una EVA solo a pie, sin rover, Coan (2020) da 2 km radiales
-  y 16 km acumulados.
+  y 16 km acumulados. Para Marte, el trabajo más reciente de NASA considera un regreso a pie de 30 o
+  60 min a 2.2 mph, es decir, ~1.8 o ~3.5 km (Ogilvie et al., 2026). Los ~15 km de la DRA 5.0 (Drake,
+  2009, §2.1) son una cifra de planeación sin derivación.
 - **Velocidad: 2 km/h.** Coan (2020) la da sobre regolito casi plano, sin pendiente ni rocas; la
   función de Tobler del motor la reduce con la pendiente.
 - **Pendiente: 20°.** Coan (2020, §4.2.1.3) pide caminar subiendo, bajando o de través en pendientes de
-  hasta 20°; Apolo 15 anduvo en pendientes de unos 17°.
+  hasta 20°; Apolo 15 anduvo en pendientes de unos 17°. 20° equivalen a 36 % de pendiente (tan 20° = 0.36), y NASA
+  solo ha medido caminata con traje hasta 30 % (~16.7°; Norcross et al., 2010): entre 30 y 36 % no hay
+  datos de NASA con traje.
 - **Consumo de O₂: 0.07 kg/h por persona.** La tasa metabólica media de todas las EVA lunares de
   Apollo 11 a 17 fue de 980 × 10³ J/h (234 kcal/h), medida en 158.7 h de EVA (Waligora y Horrigan,
   1975, tabla 2); por EVA y astronauta fue de 197 a 302 kcal/h. Con la ecuación de Weir (1949), en
   todo el rango del cociente respiratorio (0.7 a 1.0), 234 kcal/h equivalen a 0.066 a 0.071 kg/h de
-  O₂ (1.429 g/L). Se midió en la Luna (1/6 g) con el traje A7L; en Marte, a 0.38 g, caminar podría
-  costar más.
+  O₂ (1.429 g/L). Se midió en la Luna (1/6 g) con el traje A7L; en Marte cuesta más: ver «Escenario Marte
+  del O₂».
 - **Autonomía: 8 h.** Coan (2020, §4.1.4) fija EVA de hasta 8 h (6 ± 2 h) con 1 h extra de O₂
   secundario para contingencias; la DRA 5.0 (§9.2) pide un traje para EVA de 8 h. La reserva del 20 %
   (`autonomy_reserve`) sigue siendo decisión del proyecto.
+- **Lo que sí es de Marte.** La autonomía de 8 h (Drake y Watts, 2014, §9.2) y la EVA en pareja
+  (Drake, 2009, §5.2.1) vienen de documentos de NASA para Marte.
+- **Carga sostenible.** NASA considera sostenible trabajar al 30-40 % de la capacidad aeróbica máxima
+  en una EVA larga, medido en simulaciones lunares (Strock et al., 2024). Para Marte, Ogilvie et al.
+  (2026) proponen ~43 % en 8 h. Caminar con traje en Marte (19-22 mL/kg/min) es el 52-61 % de un
+  mínimo de aptitud de 36.5 mL/kg/min (cálculo propio; la cifra de 36.5 está por confirmar en la
+  norma). Por eso 8 h de autonomía no son 8 h de caminata seguida.
+- **Reglas de Marte que el modelo no usa todavía.** Máximo 12 h de EVA cada 48 h y 24 h por semana
+  (Drake y Watts, 2014, p. 399); otro tripulante debe poder llegar en 45 min (p. 401); más allá de la
+  distancia de regreso a pie hace falta un refugio (Drake, 2009, addendum, p. 283).
+
+## Escenario Marte del O₂
+
+Los valores de la tabla (0.07 kg/h y 3.5 × 10⁻⁵ kg/m) son el **escenario Luna**. Coinciden con la
+media de Apollo y con la columna «Apollo» del EVA Walkback Test (0.15 lb/h ≈ 0.068 kg/h; Norcross et
+al., 2008). La NASA no ha publicado un consumo de diseño para Marte: el consumo de O₂ por hora sigue
+como «TBD» (Drake y Watts, 2014, p. 403). Además, afirma que la gravedad marciana «presentará cargas
+de trabajo mayores» que la lunar (Dunn et al., 2022).
+
+| Fuente | Condición | VO₂ | O₂ por persona | Etiqueta |
+| --- | --- | --- | --- | --- |
+| Norcross et al. (2008) | Traje Mark III, 3/8 g, plano, 1.07 m/s | ~20-22 mL/kg/min (lectura de gráfica) | ~0.15 kg/h | observed |
+| Ogilvie et al. (2026), §III.C.3 | Extrapolación a 0.98 m/s (2.2 mph), 3/8 g | ~19 mL/kg/min | 0.12-0.13 kg/h | modeled |
+| Norcross et al. (2010), IST-2 | Traje, 0.32 g simulado (~85 % del peso marciano), 0.56-0.97 m/s, plano | ~16 mL/kg/min (lectura de gráfica) | ~0.11 kg/h | observed |
+
+Las conversiones a kg/h son cálculo propio, con una persona de 81 kg y 1.429 g/L de O₂. El escenario
+Marte cuesta entre **1.6 y 2.2 veces** el escenario Luna.
+
+**Por metro no hay dato marciano a 2 km/h (0.56 m/s).** El EVA Walkback Test no probó velocidades
+menores de ~1.07 m/s («Did not test at lower walking speeds», Ogilvie et al., 2026, presentación).
+Con IST-2, según la velocidad de cada sujeto, el costo queda entre **3.2 y 5.5 × 10⁻⁵ kg/m** (cálculo
+propio, orientativo). El valor del proyecto, 3.5 × 10⁻⁵, está en el extremo bajo de ese rango.
 
 ## Costo de O₂ por pendiente (`science/model/eva_cost.py`)
 
@@ -196,27 +242,63 @@ referencia en la API y no se muestra en la interfaz.
   https://doi.org/10.1016/j.icarus.2021.114701
 - Coan, D. (2020). *Exploration EVA system concept of operations* (EVA-EXP-0042, Rev. B). NASA
   Johnson Space Center. https://ntrs.nasa.gov/citations/20205008200
+- Drake, B. G. (Ed.). (2009). *Human exploration of Mars Design Reference Architecture 5.0*
+  (NASA/SP-2009-566). NASA. Sin DOI ni ID de NTRS.
+  https://www.nasa.gov/wp-content/uploads/2015/09/373665main_nasa-sp-2009-566.pdf
+- Drake, B. G. (Ed.). (2009). *Human exploration of Mars Design Reference Architecture 5.0:
+  Addendum* (NASA/SP-2009-566-ADD). NASA. Sin DOI ni ID de NTRS.
+  https://www.nasa.gov/wp-content/uploads/2015/09/373667main_nasa-sp-2009-566-add.pdf
 - Drake, B. G., & Watts, K. D. (Eds.). (2014). *Human exploration of Mars Design Reference
   Architecture 5.0, addendum #2* (NASA/SP-2009-566-ADD2). NASA.
   https://ntrs.nasa.gov/citations/20160003093
+- Dunn, J., Benson, E., Norcross, J., & Newby, N. (2022). *Evidence report: Risk of injury and
+  compromised performance due to EVA operations*. NASA Human Research Program.
+  https://ntrs.nasa.gov/citations/20220004017
+- Guo, J., Zeitlin, C., Wimmer-Schweingruber, R. F., Hassler, D. M., Ehresmann, B., Rafkin, S.,
+  Freiherr von Forstner, J. L., Khaksarighiri, S., Liu, W., & Wang, Y. (2021). Radiation environment
+  for future human exploration on the surface of Mars: The current understanding based on MSL/RAD
+  dose measurements. *The Astronomy and Astrophysics Review, 29*(1), 8.
+  https://doi.org/10.1007/s00159-021-00136-5
 - Hassler, D. M., et al. (2014). Mars' surface radiation environment measured with the Mars Science
   Laboratory's Curiosity rover. *Science, 343*(6169), 1244797. https://doi.org/10.1126/science.1244797
 - Konopliv, A. S., Park, R. S., Rivoldini, A., Baland, R.-M., Le Maistre, S., Van Hoolst, T., Yseboodt, M.,
   & Dehant, V. (2020). Detection of the Chandler wobble of Mars from orbiting spacecraft. *Geophysical
   Research Letters, 47*, e2020GL090568. https://doi.org/10.1029/2020GL090568
+- Löwe, J. L., Khaksarighiri, S., Wimmer-Schweingruber, R. F., Hassler, D. M., Ehresmann, B.,
+  Guo, J., Reitz, G., Berger, T., Matthiä, D., Zeitlin, C., & Löffler, S. (2025). Nowcasting solar
+  energetic particle events for Mars missions. *Space Weather, 23*(4), e2025SW004372.
+  https://doi.org/10.1029/2025SW004372
 - Minetti, A. E., Moia, C., Roi, G. S., Susta, D., & Ferretti, G. (2002). Energy cost of walking and
   running at extreme uphill and downhill slopes. *Journal of Applied Physiology, 93*(3), 1039–1046.
   https://doi.org/10.1152/japplphysiol.01177.2001
-- NASA. (2022). *NASA space flight human-system standard, volume 1, revision B: Crew health*
-  (NASA-STD-3001 Vol. 1 Rev. B). https://www.nasa.gov/wp-content/uploads/2020/10/2022-01-05_nasa-std-3001_vol.1_rev._b_final_draft_with_signature_010522.pdf
+- Norcross, J., Lee, L., De Witt, J. K., Klein, J. S., Wessel, J. H., III, & Gernhardt, M. L.
+  (2008, mayo). *Feasibility of suited 10-km ambulation "walkback" on the Moon* [Presentación].
+  Aerospace Medical Association, Boston, MA. https://ntrs.nasa.gov/citations/20080014853
+- Norcross, J. R., Clowers, K. G., Clark, T., Harvill, L., Morency, R. M., Stroud, L., Desantis, L.,
+  Vos, J. R., & Gernhardt, M. L. (2010). *Metabolic costs and biomechanics of inclined ambulation and
+  exploration tasks in a planetary suit* (NASA/TP-2010-216125). NASA.
+  https://ntrs.nasa.gov/citations/20110003409
+- NASA. (2023). *NASA spaceflight human-system standard, volume 1* (NASA-STD-3001 Vol. 1 Rev. C).
+  Office of the Chief Health and Medical Officer.
+  https://standards.nasa.gov/sites/default/files/standards/NASA/C//nasa-std-3001-vol-1-rev-c-signature.pdf
 - NASA. (2025). *NASA spaceflight human-system standard, volume 2, revision E: Human factors,
   habitability, and environmental health* (NASA-STD-3001 Vol. 2 Rev. E).
   https://ntrs.nasa.gov/citations/20250004555
 - NASA Jet Propulsion Laboratory. (2024, 10 de junio). *NASA watches Mars light up during epic solar
   storm*. https://www.jpl.nasa.gov/news/nasa-watches-mars-light-up-during-epic-solar-storm/
+- Ogilvie, R., Swartout, B., Hoffmann, B., McFarland, S., & Hickox, L. (2026, julio). *Mars spacesuit
+  mass requirements* (ICES-2026-127). 55th International Conference on Environmental Systems.
+  https://ntrs.nasa.gov/citations/20260003038 (presentación: https://ntrs.nasa.gov/citations/20260005410)
+- Posner, A., Richardson, I. G., & Zeitlin, C. J. (2025). Mars ground level enhancements in the
+  context of the solar energetic particle clock. *Solar Physics, 300*(8), 102.
+  https://doi.org/10.1007/s11207-025-02482-4
 - Richter, C., Braunstein, B., Winnard, A., Nasser, M., & Weber, T. (2017). Human biomechanical and
   cardiopulmonary responses to partial gravity – A systematic review. *Frontiers in Physiology, 8*,
   583. https://doi.org/10.3389/fphys.2017.00583
+- Strock, N. C., Frisco, D., Estep, P. N., Schlotman, T., Norcross, J., Prejean, B. J., &
+  Marshall-Goebel, K. (2024). *Evaluation of aerobic capacity in relation to simulated lunar surface
+  extravehicular activities* [Resumen]. Aerospace Medical Association.
+  https://ntrs.nasa.gov/citations/20230014953
 - Tobler, W. (1993). *Three presentations on geographical analysis and modeling* (Technical Report
   93-1). National Center for Geographic Information and Analysis.
 - Waligora, J. M., & Horrigan, D. J. (1975). Metabolism and heat dissipation during Apollo EVA
