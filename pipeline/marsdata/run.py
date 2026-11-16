@@ -1,13 +1,13 @@
-"""CLI del pipeline.
+"""Pipeline CLI.
 
-marsdata synthetic [--region jezero]   región de prueba, sin descargas
-marsdata fetch --region jezero         descarga datos crudos de NASA
-marsdata build --region jezero         procesa crudos → data/regions/jezero
-marsdata publish                       sube data/regions/ a R2
+marsdata synthetic [--region jezero]   test region, no downloads
+marsdata fetch --region jezero         downloads raw NASA data
+marsdata build --region jezero         processes raw files → data/regions/jezero
+marsdata publish                       uploads data/regions/ to R2
 
---out cambia la carpeta de salida de synthetic y build. Ojo: build escribe la región real con el
-mismo ID que la sintética, y las pruebas de la API (test_demo_scenario) esperan la sintética en
-data/regions; para probar la real sin pisarla, usar otra carpeta y apuntar ASSETS_DIR a ella.
+--out changes the output folder of synthetic and build. Note: build writes the real region with the
+same ID as the synthetic one, and the API tests (test_demo_scenario) expect the synthetic one in
+data/regions; to test the real one without overwriting it, use another folder and set ASSETS_DIR.
 """
 
 import argparse
@@ -46,7 +46,7 @@ def _build(region, out_dir: Path) -> Path:
             f"{p['length_m'] / 1000:.2f} km, {len(traverses[rover])} puntos"
         )
     for key in result.missing:
-        print(f"{key:<20} sin archivo en data/raw/{region.id}: capa omitida")
+        print(f"{key:<20} no file in data/raw/{region.id}: layer skipped")
     return out
 
 
@@ -79,7 +79,7 @@ def main() -> None:
     else:
         out = _build(region, args.out)
 
-    print(f"Región '{region.id}' escrita en {out}")
+    print(f"Region '{region.id}' written to {out}")
 
 
 if __name__ == "__main__":

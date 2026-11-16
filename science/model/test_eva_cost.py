@@ -86,7 +86,7 @@ def test_fit_recovers_the_route_on_held_out_pairs():
         )
 
     print(
-        f"pesos ajustados ({wh:.2f}, {wi:.2f}); separación en tramos no vistos: "
-        f"{held(cost_fn(wh, wi)):.1f} m ajustado, {held(default):.1f} m con pesos por defecto"
+        f"fitted weights ({wh:.2f}, {wi:.2f}); separation on unseen segments: "
+        f"{held(cost_fn(wh, wi)):.1f} m fitted, {held(default):.1f} m with default weights"
     )
     assert held(cost_fn(wh, wi)) < held(default)

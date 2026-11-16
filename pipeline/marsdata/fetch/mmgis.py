@@ -1,12 +1,12 @@
-"""Recorridos de rovers desde MMGIS (JPL), con el sol de cada tramo.
+"""Rover traverses from MMGIS (JPL), with the sol of each segment.
 
-El recorrido de Perseverance en MMGIS ya trae el sol de cada tramo. El de Curiosity no: cada tramo
-termina en un waypoint, y el sol se toma del waypoint donde termina. Desde pipeline/:
+Perseverance's traverse in MMGIS already has the sol of each segment. Curiosity's does not: each
+segment ends at a waypoint, and the sol is taken from the waypoint where it ends. From pipeline/:
 
-    python -m marsdata.fetch.mmgis MSL ../MSL_traverse_<fecha>.json
+    python -m marsdata.fetch.mmgis MSL ../MSL_traverse_<date>.json
 
-baja el recorrido y los waypoints y escribe el recorrido con soles, en el formato que lee
-process/traverse.py (una LineString por tramo con `sol` en sus propiedades).
+downloads the traverse and the waypoints and writes the traverse with sols, in the format read by
+process/traverse.py (one LineString per segment with `sol` in its properties).
 """
 
 import json
@@ -20,14 +20,14 @@ import numpy as np
 from marsdata.region import METERS_PER_DEGREE
 
 MMGIS_URL = "https://mars.nasa.gov/mmgis-maps/{mission}/Layers/json/{mission}_{layer}.json"
-# Distancia máxima entre el final de un tramo y su waypoint. En el recorrido de Curiosity del
-# 14 nov 2026, 1316 de 1317 tramos terminan a menos de 1 m de uno.
+# Maximum distance between the end of a segment and its waypoint. In the Curiosity traverse of
+# 14 Nov 2026, 1316 of 1317 segments end less than 1 m from one.
 MAX_MATCH_M = 2.0
 CRS84 = {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}}
 
 
 def _flatten(geometry: dict) -> list[list[float]]:
-    """Coordenadas de una LineString o MultiLineString, sin repetir los puntos de unión."""
+    """Coordinates of a LineString or MultiLineString, without repeating the join points."""
     parts = geometry["coordinates"]
     if geometry["type"] == "LineString":
         parts = [parts]
@@ -40,10 +40,10 @@ def _flatten(geometry: dict) -> list[list[float]]:
 
 
 def traverse_with_sols(traverse: dict, waypoints: dict, max_match_m: float = MAX_MATCH_M) -> dict:
-    """Una LineString por tramo, en el orden del archivo, con el sol del waypoint donde termina.
+    """One LineString per segment, in file order, with the sol of the waypoint where it ends.
 
-    Un tramo que no termina en un waypoint hereda el sol del anterior. El sol nunca baja de un
-    tramo al siguiente, para que ordenar por sol no cambie el orden del recorrido.
+    A segment that does not end at a waypoint inherits the previous sol. The sol never decreases
+    from one segment to the next, so sorting by sol does not change the traverse order.
     """
     props = [w["properties"] for w in waypoints["features"]]
     lon = np.array([p["lon"] for p in props])
@@ -79,7 +79,7 @@ def _get(mission: str, layer: str) -> dict:
 
 
 def write_feature_collection(fc: dict, path: Path) -> None:
-    """Un tramo por línea, como los archivos de MMGIS, para que los cambios se lean en un diff."""
+    """One segment per line, like the MMGIS files, so changes read well in a diff."""
     head = {k: v for k, v in fc.items() if k != "features"}
     body = ",\n".join(json.dumps(f, ensure_ascii=False) for f in fc["features"])
     text = json.dumps(head, ensure_ascii=False)[:-1] + ', "features": [\n' + body + "\n]}\n"

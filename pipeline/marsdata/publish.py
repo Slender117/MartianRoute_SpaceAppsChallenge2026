@@ -1,4 +1,4 @@
-"""Sube data/regions/ a Cloudflare R2 (API compatible con S3)."""
+"""Uploads data/regions/ to Cloudflare R2 (S3-compatible API)."""
 
 import mimetypes
 import os

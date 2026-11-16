@@ -1,7 +1,7 @@
-"""Fuentes de NASA en tiempo real y cómo se leen sus respuestas.
+"""Real-time NASA sources and how their responses are read.
 
-Cada función `parse_*` recibe el JSON tal como lo da NASA y devuelve solo lo que usa la app. No
-hacen peticiones, así que las pruebas las ejercitan con respuestas guardadas.
+Each `parse_*` function takes the JSON exactly as NASA returns it and keeps only what the app
+uses. They make no requests, so the tests exercise them with saved responses.
 """
 
 from datetime import UTC, datetime, timedelta
@@ -9,17 +9,17 @@ from typing import Any
 
 from app.schemas.live import CmeArrival, RoverImage
 
-# DONKI (Space Weather Database Of Notifications, Knowledge, Information) del CCMC de NASA. Las
-# simulaciones WSA-ENLIL pronostican a qué planetas y naves llega cada eyección de masa coronal.
+# DONKI (Space Weather Database Of Notifications, Knowledge, Information) from NASA's CCMC. The
+# WSA-ENLIL simulations forecast which planets and spacecraft each coronal mass ejection reaches.
 DONKI_ENLIL_URL = "https://api.nasa.gov/DONKI/WSAEnlilSimulations"
 DONKI_PAGE = "https://kauai.ccmc.gsfc.nasa.gov/DONKI/"
 DONKI_DAYS = 30
 
-# Posición de Perseverance: capa de waypoints del MMGIS de JPL (un punto por localización).
+# Perseverance position: waypoint layer of JPL's MMGIS (one point per location).
 WAYPOINTS_URL = "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json"
 WAYPOINTS_PAGE = "https://mars.nasa.gov/mars2020/mission/where-is-the-rover/"
 
-# Imágenes crudas de Perseverance, las mismas de la galería pública.
+# Perseverance raw images, the same as in the public gallery.
 RAW_IMAGES_URL = "https://mars.nasa.gov/rss/api/"
 RAW_IMAGES_PARAMS = {
     "feed": "raw_images",
@@ -32,14 +32,14 @@ RAW_IMAGES_PARAMS = {
 RAW_IMAGES_PAGE = "https://mars.nasa.gov/mars2020/multimedia/raw-images/"
 MAX_IMAGES = 6
 
-# Ventana de alerta alrededor de la llegada prevista de una eyección a Marte (decisión del
-# proyecto): desde 72 h antes hasta 48 h después.
+# Alert window around the forecast arrival of an ejection at Mars (project
+# decision): from 72 h before to 48 h after.
 SOLAR_ALERT_BEFORE_H = 72.0
 SOLAR_ALERT_AFTER_H = 48.0
 
 
 def parse_time(value: str | None) -> datetime | None:
-    """Fechas de NASA: "2026-11-13T12:00Z", "2026-11-06T12:16:25.848" o "2026-11-06T15:59:53Z"."""
+    """NASA dates: "2026-11-13T12:00Z", "2026-11-06T12:16:25.848" or "2026-11-06T15:59:53Z"."""
     if not value:
         return None
     text = value.strip().replace("Z", "+00:00")
@@ -58,7 +58,7 @@ def _float(value: Any) -> float | None:
 
 
 def parse_enlil(simulations: list[dict]) -> list[CmeArrival]:
-    """Llegadas a Marte. Si una eyección se simuló varias veces, queda la simulación más nueva."""
+    """Arrivals at Mars. If an ejection was simulated several times, the newest run is kept."""
     by_cme: dict[str, CmeArrival] = {}
     for sim in simulations or []:
         completion = parse_time(sim.get("modelCompletionTime"))
@@ -86,7 +86,7 @@ def parse_enlil(simulations: list[dict]) -> list[CmeArrival]:
 
 
 def solar_alert(arrivals: list[CmeArrival], now: datetime) -> CmeArrival | None:
-    """La llegada más cercana a `now` dentro de la ventana; si hay varias, la que aún no llega."""
+    """The arrival closest to `now` inside the window; if several, the one still to come."""
     inside = [
         a
         for a in arrivals
@@ -102,10 +102,10 @@ def solar_alert(arrivals: list[CmeArrival], now: datetime) -> CmeArrival | None:
 
 
 def parse_waypoints(collection: dict) -> dict:
-    """Último punto del rover: el de sol, site y drive más altos."""
+    """Last rover point: the one with the highest sol, site and drive."""
     points = [f for f in collection.get("features") or [] if f.get("properties")]
     if not points:
-        raise ValueError("la capa de waypoints no trae puntos")
+        raise ValueError("the waypoint layer has no points")
 
     def order(f: dict) -> tuple[int, int, int]:
         p = f["properties"]
@@ -117,7 +117,7 @@ def parse_waypoints(collection: dict) -> dict:
     lon = _float(p.get("lon")) if p.get("lon") is not None else _float(coords[0])
     lat = _float(p.get("lat")) if p.get("lat") is not None else _float(coords[1])
     if lat is None or lon is None:
-        raise ValueError("el último waypoint no trae coordenadas")
+        raise ValueError("the last waypoint has no coordinates")
     total_m = _float(p.get("dist_total_m"))
     return {
         "rover": "Perseverance",
@@ -132,7 +132,7 @@ def parse_waypoints(collection: dict) -> dict:
 
 
 def parse_raw_images(payload: dict) -> tuple[int | None, list[RoverImage]]:
-    """Imágenes más recientes, una por cámara, sin las miniaturas de ingeniería."""
+    """Most recent images, one per camera, without the engineering thumbnails."""
     images: list[RoverImage] = []
     cameras: set[str] = set()
     for item in payload.get("images") or []:

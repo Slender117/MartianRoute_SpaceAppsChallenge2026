@@ -8,9 +8,9 @@ import type { RouteResponse, WalkMode } from "@/lib/types";
 const ROWS: WalkMode[] = ["safe", "fast", "science", "baseline"];
 
 /**
- * Tabla comparativa: O₂ como intervalo, tiempo, dosis, riesgo y diferencia contra la línea base
- * (la ruta de mínima distancia). Cada encabezado dice de dónde sale su cifra. Una ruta que rompe
- * un límite del traje se marca "no factible" en rojo; el detalle está en el panel de Navegación.
+ * Comparison table: O₂ as an interval, time, dose, risk and difference against the baseline
+ * (the minimum-distance route). Each header says where its figure comes from. A route that breaks
+ * a suit limit is marked "not feasible" in red; the detail is in the Navigation panel.
  */
 export function CompareTable({ routes }: { routes: Partial<Record<WalkMode, RouteResponse>> }) {
   const t = useT();

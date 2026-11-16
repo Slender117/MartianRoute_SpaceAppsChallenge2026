@@ -1,7 +1,7 @@
-"""Compara las rutas propuestas con el recorrido real de un rover.
+"""Compares the proposed routes with a rover's real traverse.
 
-Rover y rutas se miden igual: como caminos de celda en celda sobre la misma grilla y el mismo DEM.
-Así la proporción de distancias no depende de cuántos vértices traiga el GeoJSON del recorrido.
+Rover and routes are measured the same way: as cell-to-cell paths on the same grid and DEM.
+That way the distance ratio does not depend on how many vertices the traverse GeoJSON has.
 """
 
 import numpy as np
@@ -18,15 +18,15 @@ from app.storage import RegionDataError, RegionGrids
 
 
 def _traverse_coords(geojson: dict) -> np.ndarray:
-    """Coordenadas del GeoJSON como arreglo (N, 2) de (lon, lat)."""
+    """GeoJSON coordinates as an (N, 2) array of (lon, lat)."""
     try:
         return np.array([point[:2] for point in geojson["geometry"]["coordinates"]], dtype=float)
     except (KeyError, TypeError, ValueError) as e:
-        raise RegionDataError("El recorrido no es un LineString de GeoJSON válido") from e
+        raise RegionDataError("The traverse is not a valid GeoJSON LineString") from e
 
 
 def traverse_to_cells(m: RegionManifest, coords: np.ndarray) -> tuple[np.ndarray, int]:
-    """Recorrido como camino continuo de celdas, y cuántos de sus puntos caen fuera de la región."""
+    """Traverse as a continuous path of cells, and how many of its points fall outside."""
     rows, cols = latlon_to_fractional(m, coords[:, 1], coords[:, 0])
     h, w = m.shape
     inside = (
@@ -35,9 +35,9 @@ def traverse_to_cells(m: RegionManifest, coords: np.ndarray) -> tuple[np.ndarray
     outside = int((~inside).sum())
     rows, cols = rows[inside], cols[inside]
     if rows.size < 2:
-        raise NoPathError(f"El recorrido no tiene un tramo dentro de la región {m.id}")
+        raise NoPathError(f"The traverse has no segment inside region {m.id}")
 
-    # Un punto por celda atravesada, para muestrear el DEM igual que en las rutas.
+    # One point per crossed cell, to sample the DEM the same way as the routes.
     steps = np.ceil(np.maximum(np.abs(np.diff(rows)), np.abs(np.diff(cols)))).astype(int)
     pieces = [
         np.linspace([r0, c0], [r1, c1], max(n, 1), endpoint=False)
@@ -56,7 +56,7 @@ def validate_traverse(
     cell_m = cell_size_m(m)
     track, outside = traverse_to_cells(m, _traverse_coords(geojson))
     if len(track) < 2:
-        raise NoPathError(f"El recorrido no tiene un tramo dentro de la región {m.id}")
+        raise NoPathError(f"The traverse has no segment inside region {m.id}")
 
     track_km = float(segment_profile(track, grids.dem, cell_m)[0].sum() / 1000)
     tree = cKDTree(track * np.array(cell_m))

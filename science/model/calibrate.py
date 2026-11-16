@@ -1,4 +1,4 @@
-"""Calibración offline de los pesos de terreno contra un recorrido real. No va a la API."""
+"""Offline calibration of the terrain weights against a real traverse. Not part of the API."""
 
 import numpy as np
 from scipy.spatial import cKDTree
@@ -9,7 +9,7 @@ WEIGHT_GRID = np.geomspace(0.1, 10, 7)
 def route(
     cost: np.ndarray, start: tuple[int, int], goal: tuple[int, int], cell_m: tuple[float, float]
 ) -> np.ndarray:
-    """Camino de costo mínimo, con el mismo MCP_Geometric que usa el motor del equipo."""
+    """Minimum-cost path, with the same MCP_Geometric the team's engine uses."""
     from skimage.graph import MCP_Geometric
 
     mcp = MCP_Geometric(cost, fully_connected=True, sampling=cell_m)
@@ -18,7 +18,7 @@ def route(
 
 
 def separation_m(path: np.ndarray, ref: np.ndarray, cell_m: tuple[float, float]) -> float:
-    """Separación media simétrica entre una ruta y un recorrido, en metros."""
+    """Symmetric mean separation between a route and a traverse, in meters."""
     scale = np.array(cell_m)
     d_ref = cKDTree(path * scale).query(ref * scale)[0]
     d_path = cKDTree(ref * scale).query(path * scale)[0]
@@ -31,10 +31,10 @@ def fit_weights(
     cell_m: tuple[float, float],
     grid: np.ndarray = WEIGHT_GRID,
 ) -> tuple[tuple[float, float], np.ndarray]:
-    """Pesos (riesgo, inestabilidad) que acercan la ruta de costo mínimo a cada tramo real.
+    """Weights (hazard, instability) that bring the minimum-cost route closest to each real segment.
 
-    `cost_fn(w_hazard, w_instability)` devuelve la grilla de costo. Es una búsqueda en rejilla: el
-    resultado incluye la superficie de la pérdida, y un valle plano indica pesos que el recorrido
+    `cost_fn(w_hazard, w_instability)` returns the cost grid. It is a grid search: the
+    result includes the loss surface, and a flat valley flags weights that the traverse
     no distingue.
     """
     loss = np.zeros((len(grid), len(grid)))

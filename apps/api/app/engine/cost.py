@@ -1,4 +1,4 @@
-"""Construcción de la grilla de costo según el modo de caminata."""
+"""Builds the cost grid for each walking mode."""
 
 import numpy as np
 
@@ -6,9 +6,9 @@ from app.engine.o2_model import slope_penalty
 from app.schemas.route import WalkMode
 from app.storage import RegionGrids, memoized
 
-# Pesos por modo. Todas las capas llegan normalizadas a 0–1.
-# La línea base tiene todos los pesos en 0: el costo queda en 1 por metro y el A* devuelve la ruta
-# de mínima distancia que respeta la pendiente máxima. Sirve de referencia para HE2 y HE3.
+# Weights per mode. All layers arrive normalized to 0–1.
+# The baseline has every weight at 0: cost stays at 1 per meter and the search returns the
+# minimum-distance route that respects the maximum slope. It is the reference for HE2 and HE3.
 MODE_WEIGHTS: dict[WalkMode, dict[str, float]] = {
     WalkMode.safe: {"slope": 4.0, "hazard": 4.0, "instability": 2.0, "science": 0.0},
     WalkMode.fast: {"slope": 0.5, "hazard": 1.0, "instability": 0.3, "science": 0.0},
@@ -16,16 +16,16 @@ MODE_WEIGHTS: dict[WalkMode, dict[str, float]] = {
     WalkMode.baseline: {"slope": 0.0, "hazard": 0.0, "instability": 0.0, "science": 0.0},
 }
 
-# Costo mínimo por celda: evita que el bono científico vuelva gratis una celda.
+# Minimum cost per cell: keeps the science bonus from making a cell free.
 MIN_CELL_COST = 0.1
 
 
 def mode_free_terms(grids: RegionGrids, max_slope_deg: float) -> tuple[np.ndarray, np.ndarray]:
-    """Penalización por pendiente e inestabilidad. No dependen del modo: las cuatro rutas de una
-    comparación las comparten, y se guardan por región y pendiente máxima (solo lectura)."""
+    """Slope and instability penalties. They do not depend on the mode: the four routes of a
+    comparison share them, and they are cached per region and maximum slope (read-only)."""
 
     def compute() -> tuple[np.ndarray, np.ndarray]:
-        # O₂ extra por pendiente (Minetti), 0 en plano y 1 en la máxima: ver engine/o2_model.py
+        # Extra O₂ from slope (Minetti), 0 on flat ground, 1 at the maximum: see engine/o2_model.py
         penalty = slope_penalty(grids.slope, max_slope_deg)
         instability = 1.0 - grids.thermal_inertia
         penalty.setflags(write=False)
@@ -36,7 +36,7 @@ def mode_free_terms(grids: RegionGrids, max_slope_deg: float) -> tuple[np.ndarra
 
 
 def build_cost(grids: RegionGrids, mode: WalkMode, max_slope_deg: float) -> np.ndarray:
-    """Costo de cruzar cada celda; infinito donde la pendiente supera la máxima del traje."""
+    """Cost of crossing each cell; infinite where the slope exceeds the suit maximum."""
     w = MODE_WEIGHTS[mode]
     penalty, instability = mode_free_terms(grids, max_slope_deg)
 
@@ -54,7 +54,7 @@ def build_cost(grids: RegionGrids, mode: WalkMode, max_slope_deg: float) -> np.n
 
 
 def cost_breakdown(grids: RegionGrids, path: np.ndarray) -> dict[str, float]:
-    """Promedio de cada factor a lo largo de la ruta, para mostrar en la UI."""
+    """Mean of each factor along the route, for the UI."""
     rows, cols = path[:, 0], path[:, 1]
     return {
         "slope": float(grids.slope[rows, cols].mean()),

@@ -1,7 +1,8 @@
-"""Catálogo de parámetros del modelo, con su fuente, para el panel "Supuestos y límites".
+"""Catalog of model parameters with their sources, for the "Assumptions and limits" panel.
 
-Lee las constantes del motor: no hay una segunda copia de ningún valor. docs/supuestos.md trae las
-referencias completas. El marcador [__] señala un valor que sigue sin fuente abierta confirmada.
+It reads the engine constants: there is no second copy of any value. docs/supuestos.md has the
+full references. The [__] marker flags a value that still has no confirmed open source. The texts
+here are the Spanish version (?lang=es); assumptions_en.py has the English one, the default.
 """
 
 from app.engine.constraints import SLOPE_WARNING_RATIO

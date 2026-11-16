@@ -1,12 +1,12 @@
-"""HE3 exploratorio: tres variantes que no reemplazan el resultado fijado de antemano (he3.py).
+"""Exploratory HE3: three variants that do not replace the result fixed in advance (he3.py).
 
-Se corrieron después de ver que HE3 no se sostiene, así que cualquier p de aquí es exploratorio:
-sirve para decidir qué medir la próxima vez, no para afirmar la hipótesis. Cada variante calibra
-solo con trechos de calibración (sol ≤ 606) y mide con los de medición, igual que he3.py.
+They were run after seeing that HE3 does not hold, so any p here is exploratory: it helps
+decide what to measure next time, not to claim the hypothesis. Each variant calibrates
+only on calibration stretches (sol ≤ 606) and measures on the measurement ones, like he3.py.
 
-- largos: trechos de 1 a 3 km en vez de 0.5 a 1 km (más celdas para que las rutas se separen).
-- intransitable: NOAH-H como fracción de ondulaciones grandes por celda en vez del riesgo medio.
-- pendiente: también se calibra el peso de pendiente (fijo en 4.0 en he3.py).
+- largos: stretches of 1 to 3 km instead of 0.5 to 1 km (more cells so routes can separate).
+- intransitable: NOAH-H as the fraction of large ripples per cell instead of the mean risk.
+- pendiente: the slope weight is calibrated too (fixed at 4.0 in he3.py).
 
     python science/validation/he3_exploratorio.py --assets ../regions_real
 """
@@ -24,7 +24,7 @@ OUT = Path(__file__).with_name("he3_exploratorio.json")
 
 
 def stretches(m, items):
-    """{id: (conjunto, celdas)} con los trechos que caen enteros dentro de la región."""
+    """{id: (set, cells)} with the stretches that fall entirely inside the region."""
     from app.engine.pathfind import NoPathError
     from app.engine.validation import traverse_to_cells
 
@@ -40,7 +40,7 @@ def stretches(m, items):
 
 
 def fit(layer, segments, cell_m, max_slope, slopes):
-    """Mejores pesos de A (con la capa) y de B (capa en 0), recorriendo los pesos de pendiente."""
+    """Best weights of A (with the layer) and of B (layer at 0), sweeping the slope weights."""
     a = b = None
     for ws in slopes:
         w_h, w_i, w_i_b, loss = he3.calibrate(he3.layers(layer, max_slope, ws), segments, cell_m)
@@ -110,7 +110,7 @@ def main():
         medians, tests = measure(layer, g, med, cell_m, max_slope, a, b)
         results[name] = {"n_calibracion": len(cal), "n_medicion": len(med), "A": a, "B": b,
                          "separacion_mediana_m": medians, "pruebas": tests}  # fmt: skip
-        print(f"\n{name}: calibración {len(cal)}, medición {len(med)}")
+        print(f"\n{name}: calibration {len(cal)}, measurement {len(med)}")
         print(f"  A {a} · B {b}")
         rounded = {k: round(v, 1) for k, v in medians.items()}
         print(f"  medianas {rounded}")

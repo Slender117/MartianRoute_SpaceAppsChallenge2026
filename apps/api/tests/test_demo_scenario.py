@@ -1,11 +1,11 @@
-"""El escenario de demo tiene que separar los tres modos.
+"""The demo scenario has to separate the three modes.
 
-Corre sobre la salida de `marsdata synthetic` en data/regions, no sobre una grilla armada para la
-prueba: si un cambio en los pesos o en synthetic.py vuelve iguales las rutas, esta prueba falla.
+It runs on the output of `marsdata synthetic` in data/regions, not on a grid built for the
+test: if a change in the weights or in synthetic.py makes the routes equal, this test fails.
 
-Para correrla sobre Jezero real, apunta DEMO_ASSETS_DIR a la carpeta de `marsdata build` (por
-ejemplo `DEMO_ASSETS_DIR=../../data/regions-real pytest tests/test_demo_scenario.py`). Las pruebas
-que solo tienen sentido con el terreno armado de la sintética se saltan con datos reales.
+To run it on real Jezero, point DEMO_ASSETS_DIR to the `marsdata build` folder (for
+example `DEMO_ASSETS_DIR=../../data/regions-real pytest tests/test_demo_scenario.py`). The tests
+that only make sense with the synthetic shaped terrain are skipped with real data.
 """
 
 import os
@@ -22,19 +22,19 @@ from app.geo import latlon_to_cell
 from app.schemas.route import PLANNING_MODES, LatLon, RouteResponse, SuitLimits, WalkMode
 from app.storage import RegionGrids, load_manifest, load_region, load_traverse
 
-# Ruta relativa a apps/api, como ASSETS_DIR en .env.
+# Path relative to apps/api, like ASSETS_DIR in .env.
 API_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = (API_DIR / os.getenv("DEMO_ASSETS_DIR", "../../data/regions")).resolve()
 ROCK_FIELD = 0.5
-# Destino de la etiqueta "Ahorro de O₂ por pendiente" de regions.yaml (análisis de Edgar sobre
-# Jezero real): la ruta corta sube pendientes y Segura las rodea gastando menos O₂.
+# Destination of the "O₂ savings on slopes" label in regions.yaml (Edgar's analysis on
+# real Jezero): the short route climbs slopes and Safe goes around them using less O₂.
 O2_SAVINGS_END = LatLon(lat=18.5223, lon=77.4289)
 
 
 @pytest.fixture
 def grids(monkeypatch) -> RegionGrids:
     if not (DATA_DIR / "jezero" / "manifest.json").exists():
-        message = "Falta la región de demo: corre `marsdata synthetic`"
+        message = "The demo region is missing: run `marsdata synthetic`"
         if os.getenv("CI"):
             pytest.fail(message)
         pytest.skip(message)
@@ -50,7 +50,7 @@ def grids(monkeypatch) -> RegionGrids:
 @pytest.fixture
 def routes(grids) -> dict[WalkMode, RouteResponse]:
     demo = grids.manifest.demo
-    assert demo is not None, "regions.yaml debe definir el escenario de demo"
+    assert demo is not None, "regions.yaml must define the demo scenario"
     return compare_routes(grids, demo.start, demo.end, SuitLimits())
 
 
@@ -64,17 +64,17 @@ def test_modes_take_different_paths(grids, routes):
         cells_a = {tuple(c) for c in _cells(grids, routes[a])}
         cells_b = {tuple(c) for c in _cells(grids, routes[b])}
         shared = len(cells_a & cells_b) / min(len(cells_a), len(cells_b))
-        assert shared < 0.7, f"{a} y {b} comparten {shared:.0%} de la ruta"
+        assert shared < 0.7, f"{a} and {b} share {shared:.0%} of the route"
 
 
 def test_modes_have_different_distances(grids, routes):
-    # Con datos reales los modos pueden rodear por caminos distintos de largo parecido: ahí manda
-    # HE2 (caminos distintos), no la distancia.
+    # With real data the modes can detour along different paths of similar length: there HE2
+    # (different paths) rules, not distance.
     if not grids.manifest.synthetic:
-        pytest.skip("Solo la región sintética está armada para separar distancias")
+        pytest.skip("Only the synthetic region is shaped to separate distances")
     for a, b in combinations(PLANNING_MODES, 2):
         gap = abs(routes[a].distance_km - routes[b].distance_km) / routes[a].distance_km
-        assert gap >= 0.05, f"{a} y {b} difieren solo {gap:.1%} en distancia"
+        assert gap >= 0.05, f"{a} and {b} differ by only {gap:.1%} in distance"
 
 
 def test_each_mode_does_what_its_name_says(grids, routes):
@@ -86,7 +86,7 @@ def test_each_mode_does_what_its_name_says(grids, routes):
     assert fast.distance_km < safe.distance_km
     assert hazard_along(WalkMode.fast).max() > ROCK_FIELD
     assert hazard_along(WalkMode.safe).max() < ROCK_FIELD
-    # Jezero real no tiene capa de minerales todavía: sin ella no hay ciencia que buscar.
+    # Real Jezero has no mineral layer yet: without it there is no science to look for.
     if "minerals" in grids.manifest.layers:
         assert science.science_km > safe.science_km
         assert science.stops
@@ -105,20 +105,20 @@ def test_routes_carry_the_synthetic_label_of_the_region(grids, routes):
 
 
 def test_he2_three_modes_differ_on_real_jezero(grids, routes):
-    """HE2: sobre el Jezero real, los tres modos dan rutas distintas.
+    """HE2: on real Jezero, the three modes give different routes.
 
-    Con datos sintéticos se salta: las pruebas de arriba ya cubren la región sintética. Cuando el
-    pipeline publique Jezero real (`synthetic: false`), esta prueba corre sola. Si falla, el plan B
-    es cambiar los puntos de demo en regions.yaml antes de tocar los pesos.
+    With synthetic data it is skipped: the tests above already cover the synthetic region. When the
+    pipeline publishes real Jezero (`synthetic: false`), this test runs alone. If it fails, plan B
+    is to change the demo points in regions.yaml before touching the weights.
     """
     if grids.manifest.synthetic:
-        pytest.skip("Jezero sigue siendo sintético: HE2 se mide al publicar los datos reales")
+        pytest.skip("Jezero is still synthetic: HE2 is measured when the real data is published")
 
     for a, b in combinations(PLANNING_MODES, 2):
         cells_a = {tuple(c) for c in _cells(grids, routes[a])}
         cells_b = {tuple(c) for c in _cells(grids, routes[b])}
         shared = len(cells_a & cells_b) / min(len(cells_a), len(cells_b))
-        assert shared < 0.7, f"HE2: {a} y {b} comparten {shared:.0%} de la ruta"
+        assert shared < 0.7, f"HE2: {a} and {b} share {shared:.0%} of the route"
 
 
 def test_jezero_base_follows_the_coordinate_convention(grids):
@@ -146,10 +146,10 @@ def test_baseline_is_the_shortest_route(routes):
 
 
 def test_safe_saves_o2_on_slopes_on_real_jezero(grids):
-    """En el destino de "Ahorro de O₂ por pendiente", Segura gasta menos O₂ y corre menos riesgo
-    que la ruta más corta, en las dos cotas del intervalo."""
+    """At the "O₂ savings on slopes" destination, Safe uses less O₂ and takes less risk
+    than the shortest route, at both bounds of the interval."""
     if grids.manifest.synthetic:
-        pytest.skip("El destino de ahorro de O₂ se eligió sobre Jezero real")
+        pytest.skip("The O₂ savings destination was chosen on real Jezero")
 
     routes = compare_routes(grids, grids.manifest.base, O2_SAVINGS_END, SuitLimits())
     safe, short = routes[WalkMode.safe], routes[WalkMode.baseline]

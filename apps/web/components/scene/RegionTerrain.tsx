@@ -13,18 +13,18 @@ import type { LatLon, RegionManifest } from "@/lib/types";
 import { useRegionExtras, useRegionHeights } from "./regionAssets";
 import { SafeReturnVeil, type Displacement } from "./SafeReturnVeil";
 
-// Color de la ortofoto en escala de grises: la tiñe del tono del suelo marciano (solo visual).
+// Color of the grayscale orthophoto: it tints it with the Martian soil tone (visual only).
 const SOIL_TINT = "#e3a27a";
 const SOIL_COLOR = "#c1643c";
 
 /**
- * Terreno de la región con sus capas fusionadas encima, como en las vistas de unidades geológicas:
- * malla con el relieve real (heightmap.bin), ortofoto como textura y cada capa activa como un
- * velo semitransparente sobre la misma geometría. Las regiones viejas sin heightmap.bin usan el
+ * Region terrain with its layers fused on top, like geologic unit views: a mesh with
+ * the real relief (heightmap.bin), the orthophoto as a texture and each active layer as a
+ * semi-transparent veil over the same geometry. Older regions without heightmap.bin use the
  * heightmap.png como displacementMap.
  *
- * Carga por partes: el relieve aparece en cuanto llegan las alturas, la ortofoto se pone encima al
- * descargarse y cada capa se descarga la primera vez que se enciende.
+ * Loads in parts: the relief appears as soon as the heights arrive, the orthophoto goes on top
+ * when it downloads, and each layer downloads the first time it is turned on.
  */
 export function RegionTerrain({ exaggeration, layerOpacity = 0.75 }: { exaggeration: number; layerOpacity?: number }) {
   const manifest = useMapStore((s) => s.manifest)!;
@@ -58,8 +58,8 @@ export function RegionTerrain({ exaggeration, layerOpacity = 0.75 }: { exaggerat
 }
 
 /**
- * Las capas y la ortofoto están en sRGB: sin esto se ven lavadas y no coinciden con la leyenda.
- * Función fija (no una flecha en cada render): useTexture la vuelve a llamar si cambia.
+ * The layers and the orthophoto are in sRGB: without this they look washed out and do not match the legend.
+ * A fixed function (not an arrow on every render): useTexture calls it again if it changes.
  */
 function prepareColorTexture(t: Texture | Texture[]) {
   for (const texture of Array.isArray(t) ? t : [t]) {
@@ -70,7 +70,7 @@ function prepareColorTexture(t: Texture | Texture[]) {
   }
 }
 
-/** Marca el relieve como visible mientras el componente está montado (aviso de carga). */
+/** Marks the relief as visible while the component is mounted (loading notice). */
 function useTerrainReady() {
   const setTerrainReady = useMapStore((s) => s.setTerrainReady);
   useEffect(() => {
@@ -106,7 +106,7 @@ function MeshTerrain({
   const onClick = usePickHandler(frame.fromScene);
   useTerrainReady();
 
-  // Un vértice por celda de la grilla; la misma geometría la comparten el suelo y los velos.
+  // One vertex per grid cell; the ground and the veils share the same geometry.
   const geometry = useMemo(() => {
     const [h, w] = manifest.shape;
     const [zMin, zMax] = manifest.elevation_range;
@@ -137,7 +137,7 @@ function MeshTerrain({
   );
 }
 
-/** Suelo de color liso: mientras llega la ortofoto, o si la región no tiene. */
+/** Plain-colored ground: while the orthophoto arrives, or if the region has none. */
 function Ground({ geometry, onClick }: { geometry: BufferGeometry; onClick: PickHandler }) {
   return (
     <mesh geometry={geometry} onClick={onClick}>
@@ -155,7 +155,7 @@ function OrthoGround({ url, geometry, onClick }: { url: string; geometry: Buffer
   );
 }
 
-/** Las capas activas como velos sobre el relieve y, encima de todas, el mapa de regreso seguro. */
+/** The active layers as veils over the relief and, above them all, the safe-return map. */
 function Veils({
   manifest,
   geometry,
@@ -171,7 +171,7 @@ function Veils({
   return (
     <>
       {activeLayers.map((layer, i) => (
-        // Cada capa en su propio Suspense: mientras se descarga, el resto de la escena sigue igual.
+        // Each layer in its own Suspense: while it downloads, the rest of the scene stays the same.
         <Suspense key={layer} fallback={null}>
           <LayerVeil
             url={assetUrl(manifest.id, `textures/${layer}.png`)}
@@ -224,7 +224,7 @@ function LayerVeil({
 
 const LEGACY_SEGMENTS = 192;
 
-/** Regiones publicadas antes del heightmap.bin: el PNG de 16 bits desplaza un plano. */
+/** Regions published before heightmap.bin: the 16-bit PNG displaces a plane. */
 function DisplacedTerrain({
   manifest,
   exaggeration,

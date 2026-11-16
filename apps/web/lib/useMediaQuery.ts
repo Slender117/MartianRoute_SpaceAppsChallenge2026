@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
 
 /**
- * true si la consulta de CSS se cumple (por ejemplo "(max-width: 720px)"), y se actualiza al
- * cambiar el tamaño de la ventana. En el servidor siempre es false.
+ * true if the CSS query matches (for example "(max-width: 720px)"), and it updates when
+ * the window is resized. On the server it is always false.
  */
 export function useMediaQuery(query: string): boolean {
   return useSyncExternalStore(

@@ -7,7 +7,7 @@ from app.schemas.route import LatLon, Provenance
 
 class LayerMeta(BaseModel):
     provenance: Provenance
-    source: str = Field(description="ID del producto de origen")
+    source: str = Field(description="Source product ID")
 
 
 class DemoScenario(BaseModel):
@@ -19,11 +19,11 @@ class DemoScenario(BaseModel):
 class RegionManifest(BaseModel):
     id: str
     name: str
-    # [lon_min, lat_min, lon_max, lat_max] en grados (planetocéntrico, este positivo)
+    # [lon_min, lat_min, lon_max, lat_max] in degrees (planetocentric, east positive)
     bbox: tuple[float, float, float, float]
     shape: tuple[int, int]  # (filas, columnas)
     resolution_m: float
-    elevation_range: tuple[float, float]  # (min, max) en metros
+    elevation_range: tuple[float, float]  # (min, max) in meters
     base: LatLon
     layers: list[str]
     traverses: list[str] = []
@@ -33,18 +33,18 @@ class RegionManifest(BaseModel):
     crs: str | None = None
     synthetic: bool = False
     layer_meta: dict[str, LayerMeta] = {}
-    checksums: dict[str, str] = Field(default={}, description="SHA-256 por archivo de la región")
+    checksums: dict[str, str] = Field(default={}, description="SHA-256 per region file")
     demo: DemoScenario | None = None
 
     @model_validator(mode="after")
     def _check_coordinates(self) -> Self:
         lon_min, lat_min, lon_max, lat_max = self.bbox
         if not (-180 <= lon_min < lon_max <= 180 and -90 <= lat_min < lat_max <= 90):
-            raise ValueError(f"bbox fuera de la convención de -180 a 180: {self.bbox}")
+            raise ValueError(f"bbox outside the -180 to 180 convention: {self.bbox}")
         points = [self.base] + ([self.demo.start, self.demo.end] if self.demo else [])
         for p in points:
             if not (lat_min <= p.lat <= lat_max and lon_min <= p.lon <= lon_max):
-                raise ValueError(f"({p.lat}, {p.lon}) queda fuera del bbox de {self.id}")
+                raise ValueError(f"({p.lat}, {p.lon}) falls outside the bbox of {self.id}")
         return self
 
 

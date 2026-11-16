@@ -34,7 +34,7 @@ def test_route_goes_around_steep_wall(flat_grids):
 
     assert tuple(path[0]) == (5, 5) and tuple(path[-1]) == (5, 55)
     assert not np.any(flat_grids.slope[path[:, 0], path[:, 1]] > 25)
-    # Para cruzar el muro tiene que bajar hasta el hueco.
+    # To cross the wall it has to go down to the gap.
     assert path[:, 0].max() >= 52
 
 
@@ -85,7 +85,7 @@ def test_eva_counts_the_way_back(flat_grids):
 
     assert route.distance_km == pytest.approx(2 * route.outbound_km)
     assert route.duration_h == pytest.approx(route.outbound_h + route.return_h)
-    # En terreno plano la vuelta tarda lo mismo que la ida.
+    # On flat ground the way back takes as long as the way out.
     assert route.return_h == pytest.approx(route.outbound_h)
     assert route.path[-1].t_h == pytest.approx(route.outbound_h)
 
@@ -111,7 +111,7 @@ def _eva_hours(flat_grids) -> float:
 
 def test_reserve_is_not_plannable(flat_grids):
     duration = _eva_hours(flat_grids)
-    # Le alcanza al traje, pero solo gastando parte de la reserva.
+    # The suit can make it, but only by using part of the reserve.
     suit = SuitLimits(autonomy_h=duration / 0.9)
     route = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, suit)
 
@@ -120,11 +120,11 @@ def test_reserve_is_not_plannable(flat_grids):
     assert not route.feasible
     alert = next(a for a in route.alerts if a.type == "autonomy")
     assert alert.severity == AlertSeverity.critical
-    assert "reserva" in alert.message
+    assert "reserve" in alert.message
 
 
 def test_eva_within_usable_autonomy_is_feasible(flat_grids):
-    # La hora extra cubre la reserva aunque mande la de 30 min.
+    # The extra hour covers the reserve even when the 30 min one rules.
     suit = SuitLimits(autonomy_h=_eva_hours(flat_grids) / 0.7 + 1, max_dist_km=100)
     route = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, suit)
 
@@ -145,21 +145,21 @@ def test_point_of_no_return_comes_earlier_if_the_way_back_is_slower():
 
 
 def test_usable_autonomy_applies_the_stricter_reserve():
-    # Con 8 h manda el 20 % (1.6 h); con 2 h manda la reserva mínima de 30 min.
+    # With 8 h the 20 % rules (1.6 h); with 2 h the minimum 30 min reserve rules.
     assert usable_autonomy_h(8.0) == pytest.approx(8.0 * 0.8)
     assert usable_autonomy_h(2.0) == pytest.approx(2.0 - 0.5)
 
 
 def _autonomy_for_usable(usable_h: float) -> float:
-    """Autonomía del traje cuya parte planeable es `usable_h` (inversa de usable_autonomy_h)."""
+    """Suit autonomy whose plannable part is `usable_h` (inverse of usable_autonomy_h)."""
     by_percent = usable_h / 0.8
     return by_percent if 0.2 * by_percent >= 0.5 else usable_h + 0.5
 
 
 def test_route_reports_the_point_of_no_return_at_the_planned_limit(flat_grids):
     duration = _eva_hours(flat_grids)
-    # Autonomía planeable apenas menor que la EVA completa: el punto de no retorno cae en el
-    # destino. El 1e-6 evita depender del redondeo de punto flotante en la igualdad.
+    # Plannable autonomy just below the whole EVA: the point of no return falls at the
+    # destination. The 1e-6 avoids depending on floating-point rounding in the equality.
     suit = SuitLimits(autonomy_h=_autonomy_for_usable(duration - 1e-6), max_dist_km=100)
     route = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, suit)
 
@@ -217,7 +217,7 @@ def test_solar_event_scenario_warns_with_time_back_to_base(flat_grids):
     alert = next(a for a in route.alerts if a.type == "radiation")
     assert alert.severity == AlertSeverity.warning
     assert f"{route.return_h:.1f} h" in alert.message
-    # Sigue viable: un escenario no es un límite roto, y los mGy no se suman a los mSv.
+    # Still viable: a scenario is not a broken limit, and mGy are not added to mSv.
     assert route.feasible
     baseline = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, suit)
     assert route.radiation_msv == baseline.radiation_msv
@@ -296,7 +296,7 @@ def test_validation_against_a_route_identical_to_the_rover(flat_grids):
 
 
 def test_validation_measures_how_far_the_route_strays(flat_grids):
-    # El rover cruza el muro; las rutas no pueden y se separan para buscar el hueco.
+    # The rover crosses the wall; the routes cannot and split up to find the gap.
     geojson = {"geometry": {"coordinates": [[0.3, 0.9], [0.7, 0.9]]}}
     result = validate_traverse(flat_grids, "rover", geojson, SuitLimits())
 
@@ -308,7 +308,7 @@ def test_validation_measures_how_far_the_route_strays(flat_grids):
 
 def test_baseline_ignores_hazard_and_takes_the_shortest_way(flat_grids):
     flat_grids.slope[:] = 0
-    flat_grids.hazard[2:11, 9:15] = 1.0  # un campo de rocas justo entre los dos puntos
+    flat_grids.hazard[2:11, 9:15] = 1.0  # a boulder field right between the two points
     safe = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.safe, SuitLimits())
     baseline = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.baseline, SuitLimits())
 
@@ -318,7 +318,7 @@ def test_baseline_ignores_hazard_and_takes_the_shortest_way(flat_grids):
 def test_baseline_still_respects_the_max_slope(flat_grids):
     route = plan_route(flat_grids, NORTH_A, NORTH_B, WalkMode.baseline, SuitLimits())
     cols = {round(p.lon * (len(flat_grids.dem) - 1)) for p in route.path if p.lat > 0.2}
-    assert MID not in cols  # rodea el muro por abajo
+    assert MID not in cols  # goes around the wall from below
 
 
 def test_compare_reports_difference_against_baseline(flat_grids):

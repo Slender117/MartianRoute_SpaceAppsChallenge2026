@@ -6,13 +6,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    # Directorio local con las regiones (desarrollo) o URL pública de R2 (producción).
+    # Local directory with the regions (development) or public R2 URL (production).
     assets_dir: str | None = None
     assets_url: str | None = None
     cors_origins: str = "http://localhost:3000"
-    # Llave de https://api.nasa.gov para DONKI. DEMO_KEY sirve para probar, pero se agota pronto.
+    # https://api.nasa.gov key for DONKI. DEMO_KEY works for testing but runs out quickly.
     nasa_api_key: str = "DEMO_KEY"
-    # false: /live usa solo la copia guardada (sin internet, o en las pruebas).
+    # false: /live only uses the saved copy (no internet, or in tests).
     live_data: bool = True
 
     @property

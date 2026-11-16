@@ -1,4 +1,4 @@
-"""Búsqueda de la ruta de menor costo sobre la grilla (MCP de scikit-image)."""
+"""Least-cost route search on the grid (scikit-image MCP)."""
 
 import numpy as np
 from skimage.graph import MCP_Geometric
@@ -14,16 +14,16 @@ def find_path(
     end: tuple[int, int],
     sampling: tuple[float, float] | None = None,
 ) -> np.ndarray:
-    """Devuelve la ruta como arreglo (N, 2) de (fila, columna). sampling: tamaño de celda."""
+    """Return the route as an (N, 2) array of (row, col). sampling: cell size."""
     if start == end:
-        raise NoPathError("El inicio y el destino caen en la misma celda")
+        raise NoPathError("Start and destination fall in the same cell")
     for name, cell in (("inicio", start), ("destino", end)):
         if not np.isfinite(cost[cell]):
-            raise NoPathError(f"El punto de {name} no es caminable (pendiente excesiva)")
+            raise NoPathError(f"The {name} point is not walkable (slope too steep)")
 
     mcp = MCP_Geometric(cost, fully_connected=True, sampling=sampling)
     cumulative, _ = mcp.find_costs([start], [end])
     if not np.isfinite(cumulative[end]):
-        raise NoPathError("No existe una ruta caminable entre los puntos")
+        raise NoPathError("There is no walkable route between the points")
 
     return np.asarray(mcp.traceback(end), dtype=np.int64)

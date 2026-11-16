@@ -1,4 +1,4 @@
-"""Actualiza la copia sin conexión: `python -m app.live` (desde apps/api, con internet)."""
+"""Refreshes the offline copy: `python -m app.live` (from apps/api, with internet)."""
 
 import asyncio
 import json
@@ -15,7 +15,7 @@ def main() -> int:
     print(f"Guardado {SNAPSHOT_PATH}")
     for key, part in data.items():
         state = f"SIN ACTUALIZAR ({errors[key]})" if key in errors else "actualizado"
-        print(f"  {key}: {state}, datos del {part['fetched_at']}")
+        print(f"  {key}: {state}, data from {part['fetched_at']}")
     return 1 if errors else 0
 
 

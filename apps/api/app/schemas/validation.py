@@ -15,16 +15,16 @@ class TrackMetrics(BaseModel):
 
 
 class RouteValidation(TrackMetrics):
-    distance_ratio: float = Field(description="Distancia de la ruta dividida entre la del rover")
-    mean_separation_m: float = Field(description="Separación media de la ruta al recorrido real")
+    distance_ratio: float = Field(description="Route distance divided by the rover's")
+    mean_separation_m: float = Field(description="Mean separation of the route from the traverse")
     max_separation_m: float
 
 
 class ValidationResponse(BaseModel):
     region: str
     rover: str
-    synthetic_data: bool = Field(description="Verdadero si el recorrido o el terreno son de prueba")
-    points_outside: int = Field(description="Puntos del recorrido que quedan fuera de la región")
+    synthetic_data: bool = Field(description="True if the traverse or the terrain are test data")
+    points_outside: int = Field(description="Traverse points that fall outside the region")
     traverse: TrackMetrics
     routes: dict[WalkMode, RouteValidation]
     provenance: dict[str, Provenance]

@@ -25,12 +25,12 @@ def compare(req: CompareRequest) -> dict[WalkMode, RouteResponse]:
 
 @router.post("/validate", response_model=ValidationResponse)
 def validate(req: ValidationRequest) -> ValidationResponse:
-    """Métricas de las tres rutas contra el recorrido real de un rover."""
+    """Metrics of the three routes against a rover's real traverse."""
     grids = load_region(req.region)
     return validate_traverse(grids, req.rover, load_traverse(req.region, req.rover), req.suit)
 
 
 @router.post("/safe-return", response_model=SafeReturnResponse)
 def safe_return(req: SafeReturnRequest) -> SafeReturnResponse:
-    """Mapa de regreso seguro: minutos de regreso a pie a la base desde cada celda."""
+    """Safe-return map: minutes to walk back to base from each cell."""
     return build_safe_return(load_region(req.region), req.base, req.suit)

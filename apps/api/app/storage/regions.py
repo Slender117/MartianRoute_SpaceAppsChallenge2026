@@ -1,4 +1,4 @@
-"""Lectura de regiones precalculadas (manifest + grillas .npy) desde disco o R2."""
+"""Reads precomputed regions (manifest + .npy grids) from disk or R2."""
 
 import hashlib
 import io
@@ -19,33 +19,33 @@ from pydantic import ValidationError
 from app.config import get_settings
 from app.schemas.region import RegionManifest
 
-# Capas opcionales: si una región no la tiene, se usa una grilla de ceros.
+# Optional layers: if a region does not have one, a grid of zeros is used.
 OPTIONAL_LAYERS = ("hazard", "thermal_inertia", "ice", "minerals")
 
-# Los IDs terminan en rutas de archivo: no pueden traer separadores ni "..".
+# IDs end up in file paths: they cannot contain separators or "..".
 _SAFE_ID = re.compile(r"[A-Za-z0-9_-]+")
 
-# Cuántos resultados intermedios guarda cada región (ver GridMemo).
+# How many intermediate results each region keeps (see GridMemo).
 MEMO_SIZE = 8
 
 T = TypeVar("T")
 
 
 class NotFoundError(Exception):
-    """La región o el recorrido pedidos no existen."""
+    """The requested region or traverse does not exist."""
 
 
 class RegionDataError(Exception):
-    """Los datos no se pudieron leer o no son consistentes con el manifest."""
+    """The data could not be read or is not consistent with the manifest."""
 
 
 class GridMemo:
-    """Caché pequeña (la menos usada sale primero) de resultados que se repiten entre peticiones.
+    """Small cache (least recently used goes first) of results repeated across requests.
 
-    Por ejemplo, la penalización por pendiente es la misma para las cuatro rutas de una comparación,
-    y el mapa de regreso seguro no cambia si solo se mueve la autonomía del traje. Se usa desde
-    varios hilos (FastAPI corre las rutas síncronas en un grupo de hilos): el candado protege el
-    diccionario; el cálculo va fuera, y si dos hilos calculan lo mismo a la vez, gana cualquiera.
+    For example, the slope penalty is the same for the four routes of a comparison,
+    and the safe-return map does not change if only the suit autonomy moves. It is used from
+    several threads (FastAPI runs sync routes in a thread pool): the lock protects the
+    dictionary; the computation runs outside it, and if two threads compute the same, either wins.
     """
 
     def __init__(self, size: int = MEMO_SIZE) -> None:
@@ -72,17 +72,17 @@ class RegionGrids:
     manifest: RegionManifest
     dem: np.ndarray  # metros
     slope: np.ndarray  # grados
-    hazard: np.ndarray  # 0–1, obstáculos (HiRISE/CTX)
-    thermal_inertia: np.ndarray  # 0–1, alto = roca firme (THEMIS)
-    ice: np.ndarray  # 0–1, probabilidad de hielo (SWIM)
-    minerals: np.ndarray  # 0–1, valor científico (CRISM)
-    # Solo las grillas de load_region (que no cambian) guardan resultados; las que se arman a mano,
-    # como en las pruebas, pueden modificarse y por eso no usan caché.
+    hazard: np.ndarray  # 0–1, obstacles (HiRISE/CTX)
+    thermal_inertia: np.ndarray  # 0–1, high = firm rock (THEMIS)
+    ice: np.ndarray  # 0–1, ice probability (SWIM)
+    minerals: np.ndarray  # 0–1, science value (CRISM)
+    # Only load_region grids (which do not change) cache results; hand-built ones,
+    # as in the tests, can be modified, so they do not use the cache.
     memo: GridMemo | None = field(default=None, repr=False, compare=False)
 
 
 def memoized(grids: RegionGrids, key: Hashable, compute: Callable[[], T]) -> T:
-    """Resultado guardado de `compute` para esta región, o calculado al momento si no hay caché."""
+    """Cached result of `compute` for this region, or computed now if there is no cache."""
     return compute() if grids.memo is None else grids.memo.get(key, compute)
 
 
@@ -94,33 +94,33 @@ def _read_bytes(rel_path: str) -> bytes:
         try:
             r = httpx.get(f"{s.assets_url.rstrip('/')}/{rel_path}", timeout=30)
         except httpx.HTTPError as e:
-            raise RegionDataError(f"No se pudo leer {rel_path}: {e}") from e
+            raise RegionDataError(f"Could not read {rel_path}: {e}") from e
         if r.status_code == 404:
             raise FileNotFoundError(rel_path)
         if r.is_error:
-            raise RegionDataError(f"No se pudo leer {rel_path}: HTTP {r.status_code}")
+            raise RegionDataError(f"Could not read {rel_path}: HTTP {r.status_code}")
         return r.content
     raise RegionDataError("Configura ASSETS_DIR o ASSETS_URL")
 
 
 def _read_verified(m: RegionManifest, rel_path: str) -> bytes:
-    """Lee un archivo de la región y lo compara con el checksum del manifest."""
+    """Reads a region file and checks it against the manifest checksum."""
     try:
         data = _read_bytes(f"{m.id}/{rel_path}")
     except FileNotFoundError as e:
-        raise RegionDataError(f"Falta {rel_path} en la región {m.id}") from e
+        raise RegionDataError(f"{rel_path} is missing in region {m.id}") from e
     expected = m.checksums.get(rel_path)
     if expected and hashlib.sha256(data).hexdigest() != expected:
-        raise RegionDataError(f"{rel_path} no coincide con el checksum del manifest de {m.id}")
+        raise RegionDataError(f"{rel_path} does not match the manifest checksum of {m.id}")
     return data
 
 
 def _read_grid(m: RegionManifest, rel_path: str) -> np.ndarray:
     grid = np.load(io.BytesIO(_read_verified(m, rel_path))).astype(np.float32)
     if grid.shape != m.shape:
-        raise RegionDataError(f"{rel_path} mide {grid.shape}; el manifest de {m.id} dice {m.shape}")
+        raise RegionDataError(f"{rel_path} is {grid.shape}; the manifest of {m.id} says {m.shape}")
     if not np.isfinite(grid).all():
-        raise RegionDataError(f"{rel_path} tiene celdas sin dato en la región {m.id}")
+        raise RegionDataError(f"{rel_path} has cells with no data in region {m.id}")
     return grid
 
 
@@ -128,20 +128,20 @@ def list_regions() -> list[RegionManifest]:
     try:
         index = json.loads(_read_bytes("index.json"))
     except FileNotFoundError as e:
-        raise RegionDataError("No hay regiones publicadas: falta index.json") from e
+        raise RegionDataError("No regions published: index.json is missing") from e
     return [load_manifest(rid) for rid in index["regions"]]
 
 
 @lru_cache(maxsize=16)
 def load_manifest(region_id: str) -> RegionManifest:
     if not _SAFE_ID.fullmatch(region_id):
-        raise NotFoundError(f"Región '{region_id}' no encontrada")
+        raise NotFoundError(f"Region '{region_id}' not found")
     try:
         return RegionManifest.model_validate_json(_read_bytes(f"{region_id}/manifest.json"))
     except FileNotFoundError as e:
-        raise NotFoundError(f"Región '{region_id}' no encontrada") from e
+        raise NotFoundError(f"Region '{region_id}' not found") from e
     except ValidationError as e:
-        raise RegionDataError(f"Manifest inválido en la región {region_id}: {e}") from e
+        raise RegionDataError(f"Invalid manifest in region {region_id}: {e}") from e
 
 
 @lru_cache(maxsize=4)
@@ -159,5 +159,5 @@ def load_region(region_id: str) -> RegionGrids:
 def load_traverse(region_id: str, rover: str) -> dict:
     m = load_manifest(region_id)
     if rover not in m.traverses:
-        raise NotFoundError(f"No hay recorrido de '{rover}' en '{region_id}'")
+        raise NotFoundError(f"No '{rover}' traverse in '{region_id}'")
     return json.loads(_read_verified(m, f"traverses/{rover}.geojson"))

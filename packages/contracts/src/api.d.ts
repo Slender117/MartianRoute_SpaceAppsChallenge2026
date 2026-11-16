@@ -64,7 +64,7 @@ export interface paths {
         };
         /**
          * Get Traverse
-         * @description Recorrido real del rover en GeoJSON, para comparar con la ruta propuesta.
+         * @description The rover's real traverse as GeoJSON, to compare with the proposed route.
          */
         get: operations["get_traverse_regions__region_id__traverse__rover__get"];
         put?: never;
@@ -120,7 +120,7 @@ export interface paths {
         put?: never;
         /**
          * Validate
-         * @description Métricas de las tres rutas contra el recorrido real de un rover.
+         * @description Metrics of the three routes against a rover's real traverse.
          */
         post: operations["validate_routes_validate_post"];
         delete?: never;
@@ -140,7 +140,7 @@ export interface paths {
         put?: never;
         /**
          * Safe Return
-         * @description Mapa de regreso seguro: minutos de regreso a pie a la base desde cada celda.
+         * @description Safe-return map: minutes to walk back to base from each cell.
          */
         post: operations["safe_return_routes_safe_return_post"];
         delete?: never;
@@ -158,7 +158,7 @@ export interface paths {
         };
         /**
          * Get Assumptions
-         * @description Parámetros del modelo con su fuente y límites conocidos, en español o en inglés.
+         * @description Model parameters with their sources and known limits, in English (default) or Spanish.
          */
         get: operations["get_assumptions_assumptions_get"];
         put?: never;
@@ -178,8 +178,8 @@ export interface paths {
         };
         /**
          * Live
-         * @description Marte hoy: llegadas de eyecciones solares (DONKI), posición de Perseverance y sus últimas
-         *     imágenes. Si NASA no responde, devuelve la copia guardada e indica de cuándo es.
+         * @description Mars today: solar ejection arrivals (DONKI), Perseverance's position and its latest
+         *     images. If NASA does not answer, it returns the saved copy and says when it is from.
          */
         get: operations["live_live_get"];
         put?: never;
@@ -198,7 +198,7 @@ export interface components {
         Alert: {
             /**
              * At
-             * @description Índice del punto de la ruta de ida donde aplica
+             * @description Index of the outbound route point where it applies
              */
             at: number;
             /** Type */
@@ -207,17 +207,17 @@ export interface components {
             severity: components["schemas"]["AlertSeverity"];
             /**
              * Message
-             * @description Texto en español; la web arma el de otros idiomas con code
+             * @description Text in English; the web builds other languages from code
              */
             message: string;
             /**
              * Code
-             * @description Variante de la alerta: steep_segment, autonomy_over_suit, autonomy_reserve, too_far, dose_over_limit o solar_event
+             * @description Alert variant: steep_segment, autonomy_over_suit, autonomy_reserve, too_far, dose_over_limit o solar_event
              */
             code: string;
             /**
              * Values
-             * @description Cifras del mensaje, para traducirlo sin la API
+             * @description Figures in the message, to translate it without the API
              */
             values?: {
                 [key: string]: number;
@@ -270,7 +270,7 @@ export interface components {
             /**
              * Arrival Time
              * Format: date-time
-             * @description Llegada prevista a Marte (UTC), según WSA-ENLIL
+             * @description Forecast arrival at Mars (UTC), per WSA-ENLIL
              */
             arrival_time: string;
             /** Glancing Blow */
@@ -289,7 +289,7 @@ export interface components {
         CompareRequest: {
             /** Region */
             region: string;
-            /** @description Nodo base de la EVA; si falta, se usa la base de la región */
+            /** @description EVA base node; if missing, the region's base is used */
             start?: components["schemas"]["LatLon"] | null;
             end: components["schemas"]["LatLon"];
             /**
@@ -303,7 +303,7 @@ export interface components {
             suit: components["schemas"]["SuitLimits"];
             /**
              * Solar Event
-             * @description Escenario: evento solar durante la EVA
+             * @description Scenario: solar event during the EVA
              * @default false
              */
             solar_event: boolean;
@@ -333,7 +333,7 @@ export interface components {
         };
         /**
          * LatLon
-         * @description Planetocéntrico, longitud este, de -180 a 180 en toda la app.
+         * @description Planetocentric, east longitude, -180 to 180 across the app.
          */
         LatLon: {
             /** Lat */
@@ -346,7 +346,7 @@ export interface components {
             provenance: components["schemas"]["Provenance"];
             /**
              * Source
-             * @description ID del producto de origen
+             * @description Source product ID
              */
             source: string;
         };
@@ -363,19 +363,19 @@ export interface components {
         };
         /**
          * O2Interval
-         * @description O₂ por astronauta entre las dos cotas de gravedad del modelo de Minetti.
+         * @description O₂ per astronaut between the two gravity bounds of the Minetti model.
          *
-         *     No hay valor central: falta la fuente de cómo cambia el costo en plano con la gravedad.
+         *     There is no central value: the source for how flat-ground cost changes with gravity is missing.
          */
         O2Interval: {
             /**
              * Low Kg
-             * @description Cota baja: el costo en plano no cambia con la gravedad
+             * @description Low bound: flat-ground cost does not change with gravity
              */
             low_kg: number;
             /**
              * High Kg
-             * @description Cota alta: el costo en plano escala con la gravedad
+             * @description High bound: flat-ground cost scales with gravity
              */
             high_kg: number;
         };
@@ -389,13 +389,13 @@ export interface components {
             elev: number;
             /**
              * T H
-             * @description Tiempo transcurrido en la ida al llegar a este punto, en horas
+             * @description Elapsed time on the way out when reaching this point, in hours
              */
             t_h: number;
         };
         /**
          * Provenance
-         * @description De dónde sale una capa o una cifra.
+         * @description Where a layer or a figure comes from.
          * @enum {string}
          */
         Provenance: "observed" | "derived" | "modeled";
@@ -455,7 +455,7 @@ export interface components {
             };
             /**
              * Checksums
-             * @description SHA-256 por archivo de la región
+             * @description SHA-256 per region file
              * @default {}
              */
             checksums: {
@@ -480,7 +480,7 @@ export interface components {
         };
         /**
          * RouteDelta
-         * @description Diferencia de una ruta contra otra de referencia (esta ruta menos la de referencia).
+         * @description Difference of a route against a reference (this route minus the reference).
          */
         RouteDelta: {
             /** Distance Km */
@@ -491,7 +491,7 @@ export interface components {
             duration_sols: number;
             /** O2 Estimate Kg */
             o2_estimate_kg: number;
-            /** @description Diferencia en cada cota del intervalo de O₂ */
+            /** @description Difference at each bound of the O₂ interval */
             o2_interval_kg: components["schemas"]["O2Interval"];
             /** Radiation Msv */
             radiation_msv: number;
@@ -499,7 +499,7 @@ export interface components {
             science_km: number;
             /**
              * Shared Path
-             * @description Fracción de esta ruta que coincide con la segura (0-1)
+             * @description Fraction of this route shared with the safe one (0-1)
              */
             shared_path: number;
         };
@@ -507,7 +507,7 @@ export interface components {
         RouteRequest: {
             /** Region */
             region: string;
-            /** @description Nodo base de la EVA; si falta, se usa la base de la región */
+            /** @description EVA base node; if missing, the region's base is used */
             start?: components["schemas"]["LatLon"] | null;
             end: components["schemas"]["LatLon"];
             /**
@@ -521,7 +521,7 @@ export interface components {
             suit: components["schemas"]["SuitLimits"];
             /**
              * Solar Event
-             * @description Escenario: evento solar durante la EVA
+             * @description Scenario: solar event during the EVA
              * @default false
              */
             solar_event: boolean;
@@ -533,17 +533,17 @@ export interface components {
             mode: components["schemas"]["WalkMode"];
             /**
              * Path
-             * @description Ruta de ida; el regreso va por el mismo camino
+             * @description Outbound route; the return uses the same path
              */
             path: components["schemas"]["PathPoint"][];
             /**
              * Distance Km
-             * @description Distancia de la EVA completa, ida y vuelta
+             * @description Distance of the whole EVA, out and back
              */
             distance_km: number;
             /**
              * Duration H
-             * @description Duración de la EVA completa, ida y vuelta
+             * @description Duration of the whole EVA, out and back
              */
             duration_h: number;
             /** Duration Sols */
@@ -556,49 +556,49 @@ export interface components {
             return_h: number;
             /**
              * Usable Autonomy H
-             * @description Autonomía del traje menos la reserva
+             * @description Suit autonomy minus the reserve
              */
             usable_autonomy_h: number;
             /**
              * Margin H
-             * @description Autonomía utilizable menos duración; negativo si no alcanza
+             * @description Usable autonomy minus duration; negative if it is not enough
              */
             margin_h: number;
             /**
              * O2 Estimate Kg
-             * @description Referencia: O₂ por tiempo (duración × tasa), sin efecto de la pendiente. La cifra oficial es o2_interval_kg; esta no se muestra en la interfaz
+             * @description Reference: O₂ by time (duration × rate), without the slope effect. The official figure is o2_interval_kg; this one is not shown in the interface
              */
             o2_estimate_kg: number;
             /**
              * O2 Crew Kg
-             * @description O₂ de la EVA para toda la pareja
+             * @description EVA O₂ for the whole pair
              */
             o2_crew_kg: number;
-            /** @description Cifra oficial de O₂ de la EVA por astronauta: caminata según la pendiente de cada tramo (Minetti) más el trabajo fijo a la tasa por hora */
+            /** @description Official EVA O₂ per astronaut: walking by the slope of each segment (Minetti) plus the fixed task at the hourly rate */
             o2_interval_kg: components["schemas"]["O2Interval"];
             /**
              * Radiation Msv
-             * @description Dosis equivalente de fondo durante la EVA
+             * @description Background dose equivalent during the EVA
              */
             radiation_msv: number;
             /**
              * Solar Event Mgy
-             * @description Dosis absorbida del escenario de evento solar; no se suma a radiation_msv
+             * @description Absorbed dose of the solar event scenario; not added to radiation_msv
              */
             solar_event_mgy: number | null;
             /**
              * Science Km
-             * @description Kilómetros de la ida sobre terreno de interés científico
+             * @description Outbound kilometers over terrain of scientific interest
              */
             science_km: number;
             /**
              * Point Of No Return
-             * @description Índice del primer punto de la ida desde donde el regreso a pie ya no cabe en la autonomía planeable (la autonomía menos la reserva más estricta)
+             * @description Index of the first outbound point from which the walk back no longer fits the plannable autonomy (the autonomy minus the stricter reserve)
              */
             point_of_no_return: number | null;
             /**
              * Point Of No Return Km
-             * @description Kilómetros de la ida hasta el punto de no retorno
+             * @description Outbound kilometers up to the point of no return
              */
             point_of_no_return_km: number | null;
             /** Stops */
@@ -607,22 +607,22 @@ export interface components {
             alerts: components["schemas"]["Alert"][];
             /**
              * Feasible
-             * @description Falso si alguna alerta crítica rompe un límite
+             * @description False if a critical alert breaks a limit
              */
             feasible: boolean;
             cost_breakdown: components["schemas"]["CostBreakdown"];
-            /** @description Diferencia contra la ruta Segura */
+            /** @description Difference against the Safe route */
             vs_safe?: components["schemas"]["RouteDelta"] | null;
-            /** @description Diferencia contra la línea base de mínima distancia */
+            /** @description Difference against the minimum-distance baseline */
             vs_baseline?: components["schemas"]["RouteDelta"] | null;
             /**
              * Synthetic Data
-             * @description Verdadero si la región usa datos de prueba
+             * @description True if the region uses test data
              */
             synthetic_data: boolean;
             /**
              * Provenance
-             * @description Etiqueta de cada cifra de la respuesta
+             * @description Label of each figure in the response
              */
             provenance: {
                 [key: string]: components["schemas"]["Provenance"];
@@ -639,12 +639,12 @@ export interface components {
             ascent_m: number;
             /**
              * Distance Ratio
-             * @description Distancia de la ruta dividida entre la del rover
+             * @description Route distance divided by the rover's
              */
             distance_ratio: number;
             /**
              * Mean Separation M
-             * @description Separación media de la ruta al recorrido real
+             * @description Mean separation of the route from the traverse
              */
             mean_separation_m: number;
             /** Max Separation M */
@@ -702,12 +702,12 @@ export interface components {
             odometry_km?: number | null;
             /**
              * Distance To Base Km
-             * @description Distancia en línea recta a la base de la región pedida
+             * @description Straight-line distance to the base of the requested region
              */
             distance_to_base_km?: number | null;
             /**
              * In Region
-             * @description Si cae dentro del bbox de la región pedida
+             * @description Whether it is inside the region's bbox
              */
             in_region?: boolean | null;
         };
@@ -715,7 +715,7 @@ export interface components {
         SafeReturnRequest: {
             /** Region */
             region: string;
-            /** @description Nodo base; si falta, se usa la base de la región */
+            /** @description Base node; if missing, the region's base is used */
             base?: components["schemas"]["LatLon"] | null;
             /**
              * @default {
@@ -729,7 +729,7 @@ export interface components {
         };
         /**
          * SafeReturnResponse
-         * @description Tiempo de regreso a pie a la base desde cada celda de la región.
+         * @description Walk-back time to base from each cell of the region.
          */
         SafeReturnResponse: {
             /** Region */
@@ -737,7 +737,7 @@ export interface components {
             base: components["schemas"]["LatLon"];
             /**
              * Shape
-             * @description (filas, columnas) de la grilla, como el manifest
+             * @description (rows, columns) of the grid, as in the manifest
              */
             shape: [
                 number,
@@ -752,42 +752,42 @@ export interface components {
             ];
             /**
              * Return Minutes
-             * @description Minutos de regreso por celda: uint16 little-endian en base64, fila por fila, empezando por la fila norte (lat_max), igual que las grillas de la región
+             * @description Return minutes per cell: little-endian uint16 in base64, row by row, starting at the north row (lat_max), like the region grids
              */
             return_minutes: string;
             /**
              * No Return Value
-             * @description Valor de las celdas sin regreso posible
+             * @description Value of cells with no possible return
              */
             no_return_value: number;
             /**
              * Planned Limit Min
-             * @description Regreso máximo para que ida, trabajo fijo y regreso quepan en la autonomía planeable (autonomía menos la reserva más estricta: 20 % o 30 min)
+             * @description Maximum return so that out, fixed task and return fit the plannable autonomy (autonomy minus the stricter reserve: 20 % or 30 min)
              */
             planned_limit_min: number;
             /**
              * Total Limit Min
-             * @description Regreso máximo gastando toda la autonomía, reserva incluida. Entre este límite y el planeable solo se vuelve consumiendo la reserva
+             * @description Maximum return using the whole autonomy, reserve included. Between this limit and the plannable one, you only get back by using the reserve
              */
             total_limit_min: number;
             /**
              * Planned Area Fraction
-             * @description Fracción de la región dentro del límite
+             * @description Fraction of the region inside the limit
              */
             planned_area_fraction: number;
             /**
              * Total Area Fraction
-             * @description Fracción dentro del límite total
+             * @description Fraction inside the total limit
              */
             total_area_fraction: number;
             /**
              * Unreachable Fraction
-             * @description Fracción sin camino de regreso
+             * @description Fraction with no path back
              */
             unreachable_fraction: number;
             /**
              * Max Eva Dose Msv
-             * @description Dosis de fondo de una EVA que usa toda la autonomía planeable
+             * @description Background dose of an EVA that uses the whole plannable autonomy
              */
             max_eva_dose_msv: number;
             /** Synthetic Data */
@@ -814,25 +814,25 @@ export interface components {
             name: string;
             /**
              * Url
-             * @description Página pública de la fuente, para citarla
+             * @description Public page of the source, to cite it
              */
             url: string;
             /**
              * Status
-             * @description live: consultada a NASA mientras corre la API; snapshot: copia guardada
+             * @description live: queried from NASA while the API runs; snapshot: saved copy
              * @enum {string}
              */
             status: "live" | "snapshot";
             /**
              * Fetched At
              * Format: date-time
-             * @description Cuándo se obtuvo de NASA (UTC)
+             * @description When it was obtained from NASA (UTC)
              */
             fetched_at: string;
             provenance: components["schemas"]["Provenance"];
             /**
              * Error
-             * @description Por qué no se pudo consultar en vivo
+             * @description Why it could not be queried live
              */
             error?: string | null;
         };
@@ -841,19 +841,19 @@ export interface components {
             source: components["schemas"]["SourceInfo"];
             /**
              * Arrivals
-             * @description Llegadas previstas a Marte, la más reciente primero
+             * @description Forecast arrivals at Mars, most recent first
              */
             arrivals: components["schemas"]["CmeArrival"][];
-            /** @description Llegada dentro de la ventana de alerta alrededor de la hora actual */
+            /** @description Arrival inside the alert window around the current time */
             alert?: components["schemas"]["CmeArrival"] | null;
             /**
              * Alert Before H
-             * @description La alerta empieza estas horas antes de la llegada
+             * @description The alert starts this many hours before arrival
              */
             alert_before_h: number;
             /**
              * Alert After H
-             * @description La alerta sigue estas horas después de la llegada
+             * @description The alert lasts this many hours after arrival
              */
             alert_after_h: number;
         };
@@ -869,7 +869,7 @@ export interface components {
             reason: string;
             /**
              * Value
-             * @description Índice de minerales o de hielo en la parada (0-1)
+             * @description Mineral or ice index at the stop (0-1)
              */
             value: number;
         };
@@ -877,31 +877,31 @@ export interface components {
         SuitLimits: {
             /**
              * Autonomy H
-             * @description Autonomía del traje en horas
+             * @description Suit autonomy in hours
              * @default 8
              */
             autonomy_h: number;
             /**
              * Max Slope Deg
-             * @description Pendiente máxima caminable
+             * @description Maximum walkable slope
              * @default 20
              */
             max_slope_deg: number;
             /**
              * Max Dist Km
-             * @description Distancia máxima a la base
+             * @description Maximum distance to base
              * @default 10
              */
             max_dist_km: number;
             /**
              * Task H
-             * @description Horas de trabajo fijo de la EVA, sin caminar (paradas, muestreo); se suman en el destino. Sin valor por defecto con fuente: 0 hasta que el equipo lo fije
+             * @description Hours of fixed EVA work without walking (stops, sampling); added at the destination. No sourced default: 0 until the team sets it
              * @default 0
              */
             task_h: number;
             /**
              * Max Dose Msv
-             * @description Límite de dosis por EVA en mSv; sin valor, solo se reporta la dosis
+             * @description Per-EVA dose limit in mSv; without a value, the dose is only reported
              */
             max_dose_msv?: number | null;
         };
@@ -952,12 +952,12 @@ export interface components {
             rover: string;
             /**
              * Synthetic Data
-             * @description Verdadero si el recorrido o el terreno son de prueba
+             * @description True if the traverse or the terrain are test data
              */
             synthetic_data: boolean;
             /**
              * Points Outside
-             * @description Puntos del recorrido que quedan fuera de la región
+             * @description Traverse points that fall outside the region
              */
             points_outside: number;
             traverse: components["schemas"]["TrackMetrics"];

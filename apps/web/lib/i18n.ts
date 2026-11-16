@@ -1,10 +1,10 @@
-// Idioma de la interfaz (español / inglés).
+// Interface language (English / Spanish). English is the default.
 //
-// - Cada texto vive una sola vez aquí, con su versión en los dos idiomas. TypeScript obliga a que
-//   `en` tenga las mismas claves que `es`: si falta una traducción, `npm run typecheck` falla.
-// - Los componentes leen los textos con `useT()`. Cambiar de idioma no vuelve a pedir nada a la
-//   API: las alertas y las paradas llegan con `code`/`values`, y aquí se arma el texto.
-// - El idioma elegido se recuerda en el navegador (localStorage), si el navegador lo permite.
+// - Each text lives here only once, with its version in both languages. TypeScript forces
+//   `en` to have the same keys as `es`: if a translation is missing, `npm run typecheck` fails.
+// - Components read the texts with `useT()`. Switching language requests nothing again from the
+//   API: alerts and stops arrive with `code`/`values`, and the text is built here.
+// - The chosen language is remembered in the browser (localStorage), if the browser allows it.
 
 import { create } from "zustand";
 
@@ -238,8 +238,9 @@ const en: Strings = {
 export const STRINGS: Record<Lang, Strings> = { es, en };
 
 /**
- * Nombres que vienen en los datos de la región (pipeline/config/regions.yaml y la tabla de NOAH-H):
- * regiones, etiquetas del mapa y clases de terreno. Un nombre que no esté aquí se muestra tal cual.
+ * Names that come in the region data (pipeline/config/regions.yaml and the NOAH-H table): regions,
+ * map labels and terrain classes. Older data has them in Spanish and newer data in English, so the
+ * table works in both directions. A name that is not listed here is shown as is.
  */
 const DATA_NAMES_EN: Record<string, string> = {
   "Cráter Jezero": "Jezero Crater",
@@ -258,21 +259,45 @@ const DATA_NAMES_EN: Record<string, string> = {
   Nodata: "No data",
 };
 
-/** Traduce un nombre que viene en los datos; "Perseverance · sol 120" no cambia. */
-export const dataName = (name: string, lang: Lang) => (lang === "en" ? (DATA_NAMES_EN[name] ?? name) : name);
+const DATA_NAMES_ES: Record<string, string> = Object.fromEntries(
+  Object.entries(DATA_NAMES_EN)
+    .filter(([es]) => es !== "Nodata")
+    .map(([es, en]) => [en, es]),
+);
 
-/** "3.2 h (0.13 soles)" en el idioma pedido. */
+/** Translates a name that comes in the data; "Perseverance · sol 120" stays the same. */
+export const dataName = (name: string, lang: Lang) =>
+  lang === "en" ? (DATA_NAMES_EN[name] ?? name) : (DATA_NAMES_ES[name] ?? name);
+
+/** "3.2 h (0.13 sols)" in the requested language. */
 export const hoursWithSols = (h: number, lang: Lang) =>
   `${h.toFixed(1)} h (${(h / SOL_HOURS).toFixed(2)} ${STRINGS[lang].sols})`;
 
 /**
- * Texto de una alerta. En español se usa el de la API; en inglés se arma con `code` y `values`.
- * Una alerta con un `code` desconocido (API más nueva que la web) se muestra en español.
+ * Text of an alert, built from `code` and `values` in each language. An alert with an unknown
+ * `code` (an API newer than the web) shows the API message, which is in English.
  */
 export function alertText(a: Alert, lang: Lang): string {
-  if (lang === "es") return a.message;
   const v = a.values;
-  const h = (x: number) => hoursWithSols(x, "en");
+  const h = (x: number) => hoursWithSols(x, lang);
+  if (lang === "es") {
+    switch (a.code) {
+      case "steep_segment":
+        return `Tramo empinado: ${v.slope_deg.toFixed(0)}°`;
+      case "autonomy_over_suit":
+        return `La EVA de ida y vuelta (${h(v.total_h)}) supera la autonomía del traje (${h(v.autonomy_h)})`;
+      case "autonomy_reserve":
+        return `La EVA de ida y vuelta (${h(v.total_h)}) consume la reserva (${h(v.reserve_h)}): el límite planeable es ${h(v.usable_h)}`;
+      case "too_far":
+        return `Más de ${v.max_dist_km} km de la base`;
+      case "dose_over_limit":
+        return `Dosis estimada de ${v.dose_msv.toFixed(2)} mSv, sobre el límite de ${v.limit_msv} mSv`;
+      case "solar_event":
+        return `Escenario de evento solar: hasta ${v.dose_mgy} mGy de dosis absorbida (mayo de 2024, el mayor medido por RAD hasta esa fecha). Desde el destino, el regreso a la base toma ${h(v.return_h)}`;
+      default:
+        return a.message;
+    }
+  }
   switch (a.code) {
     case "steep_segment":
       return `Steep segment: ${v.slope_deg.toFixed(0)}°`;
@@ -291,27 +316,27 @@ export function alertText(a: Alert, lang: Lang): string {
   }
 }
 
-/** Idioma guardado en el navegador, o español si no hay ninguno. */
+/** Language saved in the browser, or English if there is none. */
 function savedLang(): Lang {
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved === "es" || saved === "en") return saved;
   } catch {
-    // Sin localStorage (modo privado, servidor): se queda en español.
+    // No localStorage (private mode, server): it stays in English.
   }
-  return "es";
+  return "en";
 }
 
 interface LangState {
   lang: Lang;
   setLang: (lang: Lang) => void;
-  /** Aplica el idioma guardado. Se llama al montar la página, no al crear el store: el servidor
-   * siempre pinta en español y React exige que el primer render del navegador sea igual. */
+  /** Applies the saved language. It is called when the page mounts, not when the store is created:
+   * the server always renders in English and React requires the browser's first render to match. */
   restore: () => void;
 }
 
 export const useLang = create<LangState>((set) => ({
-  lang: "es",
+  lang: "en",
   restore: () => {
     const lang = savedLang();
     document.documentElement.lang = lang;
@@ -321,14 +346,14 @@ export const useLang = create<LangState>((set) => ({
     try {
       window.localStorage.setItem(STORAGE_KEY, lang);
     } catch {
-      // Si no se puede guardar, el cambio vale solo para esta visita.
+      // If it cannot be saved, the change only lasts for this visit.
     }
     document.documentElement.lang = lang;
     set({ lang });
   },
 }));
 
-/** Textos del idioma activo: `const t = useT(); t.planTitle`. */
+/** Texts of the active language: `const t = useT(); t.planTitle`. */
 export function useT(): Strings {
   return STRINGS[useLang((s) => s.lang)];
 }

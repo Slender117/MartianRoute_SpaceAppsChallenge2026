@@ -3,15 +3,15 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Martian Route",
-  description: "Mapa por capas y planificador de caminatas para los primeros exploradores de Marte",
+  description: "Layered map and walk planner for the first explorers of Mars",
   openGraph: {
     title: "Martian Route",
-    description: "Planea una caminata en Marte y compara rutas por pendiente, obstáculos, oxígeno y regreso seguro.",
+    description: "Plan a walk on Mars and compare routes by slope, obstacles, oxygen and safe return.",
     type: "website",
   },
 };
 
-// Color de la barra del navegador en el celular: el mismo fondo de la página.
+// Browser bar color on phones: the same background as the page.
 export const viewport: Viewport = {
   themeColor: "#0b0605",
   colorScheme: "dark",
@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="en">
       <body>{children}</body>
     </html>
   );

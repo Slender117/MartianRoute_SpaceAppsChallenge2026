@@ -1,9 +1,9 @@
-"""Mapa de regreso seguro: cuánto se tarda en volver caminando a la base desde cada celda.
+"""Safe-return map: how long it takes to walk back to base from each cell.
 
-Un solo Dijkstra desde la base (`MCP_Geometric.find_costs`) da el tiempo de regreso a todas las
-celdas a la vez. El costo de cada celda es el tiempo por metro, que hace la grilla simétrica:
-se toma la más lenta entre subir y bajar esa pendiente, así el tiempo es una cota pesimista y vale
-en los dos sentidos (plan B del equipo para el costo asimétrico).
+A single Dijkstra from the base (`MCP_Geometric.find_costs`) gives the return time to every cell
+at once. Each cell's cost is the time per meter, which makes the grid symmetric: the slower of
+climbing or descending that slope is used, so the time is a pessimistic bound valid in both
+directions (the team's plan B for the asymmetric cost).
 """
 
 import base64
@@ -21,25 +21,25 @@ from app.schemas.route import LatLon, SuitLimits
 from app.schemas.safe_return import SafeReturnResponse
 from app.storage import RegionGrids, memoized
 
-# Valor de "sin regreso posible" en la grilla de minutos (máximo de uint16).
+# "No possible return" value in the minutes grid (uint16 maximum).
 NO_RETURN = np.iinfo(np.uint16).max
 
 
 def time_per_meter_h(slope_deg: np.ndarray, max_slope_deg: float) -> np.ndarray:
-    """Horas por metro horizontal en cada celda; infinito donde la pendiente es intransitable."""
+    """Hours per horizontal meter in each cell; infinite where the slope is impassable."""
     slope_rad = np.radians(slope_deg)
     grade = np.tan(slope_rad)
     slower_kmh = np.minimum(walking_speed_kmh(grade), walking_speed_kmh(-grade))
-    # 1/cos: el metro horizontal es más largo sobre la pendiente.
+    # 1/cos: the horizontal meter is longer on a slope.
     hours = 1.0 / (slower_kmh * 1000.0 * np.cos(slope_rad))
     return np.where(slope_deg > max_slope_deg, np.inf, hours)
 
 
 def return_hours(grids: RegionGrids, base: LatLon, max_slope_deg: float) -> np.ndarray:
-    """Horas de regreso a la base desde cada celda (infinito si no hay camino).
+    """Hours to return to base from each cell (infinite if there is no path).
 
-    Solo depende de la base y la pendiente máxima: se guarda por región (solo lectura), así que
-    mover la autonomía del traje no repite el Dijkstra.
+    It only depends on the base and the maximum slope: it is cached per region (read-only), so
+    moving the suit autonomy does not repeat the Dijkstra.
     """
     m = grids.manifest
     cell = latlon_to_cell(m, base.lat, base.lon)
@@ -55,7 +55,7 @@ def return_hours(grids: RegionGrids, base: LatLon, max_slope_deg: float) -> np.n
 
 
 def encode_minutes(hours: np.ndarray) -> str:
-    """Minutos como uint16 little-endian en base64; NO_RETURN marca las celdas sin regreso."""
+    """Minutes as little-endian uint16 in base64; NO_RETURN marks cells with no return."""
     minutes = np.where(np.isfinite(hours), np.round(hours * 60), NO_RETURN)
     minutes = np.clip(minutes, 0, NO_RETURN).astype("<u2")
     return base64.b64encode(minutes.tobytes()).decode("ascii")
@@ -68,8 +68,8 @@ def build_safe_return(
     node = base or m.base
     hours = return_hours(grids, node, suit.max_slope_deg)
 
-    # Una celda es visitable si caben la ida, el trabajo fijo y el regreso. La ida tarda, como
-    # mucho, lo mismo que el regreso (la grilla es simétrica y pesimista).
+    # A cell can be visited if the way out, the fixed task and the return fit. The way out takes
+    # at most as long as the return (the grid is symmetric and pessimistic).
     planned_h = max(usable_autonomy_h(suit.autonomy_h) - suit.task_h, 0.0) / 2
     total_h = max(suit.autonomy_h - suit.task_h, 0.0) / 2
     reachable = np.isfinite(hours)

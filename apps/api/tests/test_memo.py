@@ -1,4 +1,4 @@
-"""Caché de resultados por región: mismos números, sin repetir el cálculo."""
+"""Per-region result cache: same numbers, without repeating the computation."""
 
 import dataclasses
 
@@ -22,7 +22,7 @@ def test_memo_keeps_the_most_recent_results():
 
     for key in ("a", "b", "a", "c", "a", "b"):
         memo.get(key, lambda k=key: compute(k))
-    # "b" salió al entrar "c" (era la menos usada) y se volvió a calcular al final.
+    # "b" left when "c" came in (it was the least used) and was recomputed at the end.
     assert calls == ["a", "b", "c", "b"]
 
 
@@ -37,7 +37,7 @@ def test_loaded_regions_reuse_the_cost_terms(assets_dir):
     penalty, _ = mode_free_terms(grids, 25)
     assert mode_free_terms(grids, 25)[0] is penalty
     assert mode_free_terms(grids, 30)[0] is not penalty
-    # Lo guardado es de solo lectura: nadie puede alterarlo para la siguiente petición.
+    # What is stored is read-only: nobody can alter it for the next request.
     with pytest.raises(ValueError):
         penalty[0, 0] = 1.0
 
@@ -46,7 +46,7 @@ def test_cached_cost_matches_a_fresh_one(assets_dir):
     grids = load_region("test")
     fresh = dataclasses.replace(grids, memo=None)
     for mode in WalkMode:
-        build_cost(grids, mode, 25)  # llena la caché
+        build_cost(grids, mode, 25)  # fills the cache
         np.testing.assert_array_equal(build_cost(grids, mode, 25), build_cost(fresh, mode, 25))
 
 

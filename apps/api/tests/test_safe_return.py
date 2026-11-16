@@ -1,4 +1,4 @@
-"""Mapa de regreso seguro."""
+"""Safe-return map."""
 
 import base64
 
@@ -38,7 +38,7 @@ def test_return_time_is_zero_at_the_base_and_grows_with_distance(flat_grids):
 def test_wall_cells_have_no_return(flat_grids):
     body = build_safe_return(flat_grids, None, SuitLimits())
     minutes = _decode(body)
-    assert minutes[0, 30] == NO_RETURN  # el muro de 45° es intransitable
+    assert minutes[0, 30] == NO_RETURN  # the 45° wall is impassable
     assert 0 < body.unreachable_fraction < 1
 
 

@@ -5,7 +5,7 @@ import type { LatLon, RegionManifest } from "./types";
 export const MARS_RADIUS_M = 3_389_500;
 const METERS_PER_DEGREE = (Math.PI * MARS_RADIUS_M) / 180;
 
-/** Punto sobre el globo de radio `r` (este positivo, norte = +Y). */
+/** Point on the globe of radius `r` (east positive, north = +Y). */
 export function latLonToSphere({ lat, lon }: LatLon, r = 1): Vector3 {
   const phi = (lat * Math.PI) / 180;
   const theta = (lon * Math.PI) / 180;
@@ -17,12 +17,12 @@ export function bboxCenter(bbox: [number, number, number, number]): LatLon {
   return { lat: (latMin + latMax) / 2, lon: (lonMin + lonMax) / 2 };
 }
 
-/** Tamaño del terreno de una región en unidades de escena (eje X). */
+/** Size of a region's terrain in scene units (X axis). */
 export const TERRAIN_SIZE = 10;
 
 /**
- * Conversión entre lat/lon/elevación y coordenadas de la escena de una región.
- * El terreno es un plano TERRAIN_SIZE × TERRAIN_SIZE centrado en el origen, norte hacia −Z.
+ * Conversion between lat/lon/elevation and a region's scene coordinates.
+ * The terrain is a TERRAIN_SIZE × TERRAIN_SIZE plane centered on the origin, north toward −Z.
  */
 export function regionFrame(m: RegionManifest, exaggeration = 2) {
   const [lonMin, latMin, lonMax, latMax] = m.bbox;

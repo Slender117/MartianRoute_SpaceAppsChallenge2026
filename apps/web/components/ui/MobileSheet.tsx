@@ -12,8 +12,8 @@ type Tab = "route" | "layers" | "info";
 const TABS: Tab[] = ["route", "layers", "info"];
 
 /**
- * Paneles en celular: una hoja abajo con pestañas (Ruta, Capas, Supuestos) que se puede ocultar
- * para ver el terreno completo. En pantallas anchas los mismos paneles van en las esquinas.
+ * Panels on phones: a bottom sheet with tabs (Route, Layers, Assumptions) that can be hidden
+ * to see the whole terrain. On wide screens the same panels go in the corners.
  */
 export function MobileSheet() {
   const [tab, setTab] = useState<Tab>("route");

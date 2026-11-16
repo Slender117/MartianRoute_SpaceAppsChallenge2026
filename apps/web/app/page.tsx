@@ -9,14 +9,14 @@ import { useLang, type Lang } from "@/lib/i18n";
 import { LANDING, REPO_URL } from "@/lib/landing";
 import plannerShot from "@/public/img/planificador.webp";
 
-// three.js necesita el navegador: el planeta no se renderiza en el servidor.
+// three.js needs the browser: the planet is not rendered on the server.
 const MarsHero = dynamic(() => import("@/components/landing/MarsHero"), { ssr: false });
 
 const LANGS: Lang[] = ["es", "en"];
 const SECTIONS = ["about", "project", "data", "team"] as const;
 type Section = (typeof SECTIONS)[number];
 
-/** Sección que ocupa la mitad de la pantalla, para resaltarla en el menú. */
+/** Section that covers the middle of the screen, to highlight it in the menu. */
 function useActiveSection(): Section | null {
   const [active, setActive] = useState<Section | null>(null);
   useEffect(() => {
@@ -24,7 +24,7 @@ function useActiveSection(): Section | null {
       (entries) => {
         for (const e of entries) if (e.isIntersecting) setActive(e.target.id as Section);
       },
-      // Una franja delgada a media pantalla: solo una sección la cruza a la vez.
+      // A thin band at mid-screen: only one section crosses it at a time.
       { rootMargin: "-45% 0px -50% 0px" },
     );
     for (const id of [...SECTIONS, "top", "repo"]) {
@@ -36,7 +36,7 @@ function useActiveSection(): Section | null {
   return active;
 }
 
-/** Portada: Marte girando, secciones al hacer scroll y el botón Start fijo que abre el planificador. */
+/** Landing: spinning Mars, sections on scroll and the fixed Start button that opens the planner. */
 export default function Landing() {
   const lang = useLang((s) => s.lang);
   const setLang = useLang((s) => s.setLang);

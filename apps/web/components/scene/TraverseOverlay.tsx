@@ -8,12 +8,12 @@ import { useMapStore } from "@/lib/store";
 
 import { heightAt, useRegionExtras, useRegionHeights } from "./regionAssets";
 
-const LIFT = 0.015; // apenas sobre el suelo, para que la línea no se hunda entre celdas
+const LIFT = 0.015; // just above the ground, so the line does not sink between cells
 
 /**
- * Recorrido real del rover, pegado al terreno, para comparar con las rutas propuestas.
- * La altura sale del mismo heightmap que la malla; si la región no lo tiene, de la tercera
- * coordenada del GeoJSON, y si tampoco, se dibuja a la altura máxima como una "sombra" en el aire.
+ * The rover's real traverse, laid on the terrain, to compare with the proposed routes.
+ * Its height comes from the same heightmap as the mesh; if the region has none, from the third
+ * GeoJSON coordinate, and if that is missing too, it is drawn at maximum height as a "shadow" in the air.
  */
 export function TraverseOverlay({ exaggeration }: { exaggeration: number }) {
   const manifest = useMapStore((s) => s.manifest)!;

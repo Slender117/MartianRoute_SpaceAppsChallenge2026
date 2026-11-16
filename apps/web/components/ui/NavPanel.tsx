@@ -4,7 +4,7 @@ import { signed } from "@/lib/format";
 import { alertText, useLang, useT } from "@/lib/i18n";
 import { useMapStore } from "@/lib/store";
 
-/** Detalle de la ruta activa: dosis, diferencia contra la Segura, punto de no retorno, paradas y alertas. */
+/** Detail of the active route: dose, difference against Safe, point of no return, stops and alerts. */
 export function NavPanel() {
   const route = useMapStore((s) => s.routes[s.mode]);
   const lang = useLang((s) => s.lang);

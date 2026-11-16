@@ -1,4 +1,4 @@
-"""Build de una región real con rásteres pequeños escritos en la prueba (sin descargas)."""
+"""Build of a real region with small rasters written in the test (no downloads)."""
 
 import json
 import math
@@ -30,11 +30,11 @@ from marsdata.process.visual import (
 )
 from marsdata.region import MARS_RADIUS_M, Region
 
-R = 3_396_190.0  # esfera de los mosaicos de USGS y NOAH-H
+R = 3_396_190.0  # sphere of the USGS and NOAH-H mosaics
 EQC = f"+proj=eqc +lat_ts=0 +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +R={R} +units=m +no_defs"
 BBOX = (77.30, 18.30, 77.40, 18.40)
-WEST, NORTH = 77.28, 18.42  # los rásteres de prueba cubren el bbox con margen
-SIZE = 21  # celdas por lado: medio paso de 0.0025°
+WEST, NORTH = 77.28, 18.42  # the test rasters cover the bbox with a margin
+SIZE = 21  # cells per side: half a step of 0.0025°
 
 
 def _m(deg: float) -> float:
@@ -59,8 +59,8 @@ def _lon_lat(shape, res):
 
 
 def _noahh(path):
-    """Mitad oeste roca madre (2, riesgo 0), mitad este ondulaciones grandes (5, riesgo 1) y una
-    franja norte sin clase (127, nodata)."""
+    """West half bedrock (2, risk 0), east half large ripples (5, risk 1) and a
+    northern strip with no class (127, nodata)."""
     shape = (900, 900)
     lon, lat = _lon_lat(shape, 10.0)
     data = np.where(lon < 77.35, 2, 5).astype(np.uint8)
@@ -118,12 +118,12 @@ def test_validate_elevation_rejects_images_and_impossible_heights(tmp_path):
     with pytest.raises(ElevationError, match="uint8"):
         validate_elevation(_write(tmp_path / "img.tif", image, 20.0), image.astype(np.float32))
     tall = np.full((4, 4), 30_000, dtype=np.float32)
-    with pytest.raises(ElevationError, match="fuera del rango"):
+    with pytest.raises(ElevationError, match="outside the Mars range"):
         validate_elevation(_write(tmp_path / "alto.tif", tall, 20.0), tall)
 
 
 def test_slope_uses_the_real_side_of_the_cell_in_each_direction():
-    dem = np.tile(np.arange(10, dtype=np.float64), (10, 1))  # sube 1 m por columna
+    dem = np.tile(np.arange(10, dtype=np.float64), (10, 1))  # rises 1 m per column
     assert slope_degrees(dem, dy_m=20.0, dx_m=10.0)[5, 5] == pytest.approx(
         math.degrees(math.atan(0.1))
     )
@@ -148,14 +148,14 @@ def test_count_classes_gives_risk_fraction_and_dominant_class(region, risk_table
     hazard = grid.mean({c.code: c.risk for c in info})
     impassable = grid.fraction([5])
     south = SIZE - 2
-    assert hazard[south, 2] == pytest.approx(0.0)  # oeste: roca madre
-    assert hazard[south, SIZE - 3] == pytest.approx(1.0)  # este: ondulaciones grandes
-    assert 0.3 < hazard[south, SIZE // 2] < 0.7  # la celda central cae sobre el límite
+    assert hazard[south, 2] == pytest.approx(0.0)  # west: bedrock
+    assert hazard[south, SIZE - 3] == pytest.approx(1.0)  # east: large ripples
+    assert 0.3 < hazard[south, SIZE // 2] < 0.7  # the central cell falls on the boundary
     assert impassable[south, SIZE - 3] == pytest.approx(1.0)
-    assert np.isnan(hazard[0, 5])  # franja norte sin clase
+    assert np.isnan(hazard[0, 5])  # northern strip with no class
     assert grid.dominant()[south, 2] == 2 and grid.dominant()[south, SIZE - 3] == 5
     assert grid.dominant()[0, 5] == 0
-    # La franja sin clase va de 18.38 al borde norte de la grilla (18.4025).
+    # The strip with no class goes from 18.38 to the northern edge of the grid (18.4025).
     lon0, lat0, lon1, lat1 = region.grid_bounds
     assert grid.valid.mean() == pytest.approx((18.38 - lat0) / (lat1 - lat0), abs=0.03)
 
@@ -164,7 +164,7 @@ def test_build_region_measures_coverage_before_filling(region, tmp_path):
     shape, res = (90, 90), 100.0
     lon, _ = _lon_lat(shape, res)
     dem = (-2500 + (lon - WEST) * 1000).astype(np.float32)
-    dem[40:44, 40:44] = -3.4e38  # hueco dentro de la región
+    dem[40:44, 40:44] = -3.4e38  # gap inside the region
     _write(tmp_path / "t" / "dem.tif", dem, res, nodata=-3.4e38)
     _noahh(tmp_path / "t" / "noahh.tif")
     ti = np.linspace(150, 450, 30 * 30, dtype=np.float32).reshape(30, 30)
@@ -202,18 +202,18 @@ def _mmgis(path, sols):
 
 
 def test_traverse_keeps_the_longest_continuous_run_with_dem_elevation(region, tmp_path):
-    step = math.degrees(10.0 / (MARS_RADIUS_M * math.cos(math.radians(18.35))))  # 10 m al este
+    step = math.degrees(10.0 / (MARS_RADIUS_M * math.cos(math.radians(18.35))))  # 10 m east
     long_run = [[77.32 + i * step, 18.35, -1.0] for i in range(60)]
     outside = [[77.45, 18.35, -1.0]]
     short_run = [[77.38 + i * step, 18.32, -1.0] for i in range(5)]
     path = _mmgis(tmp_path / "m20.json", [(2, outside + short_run), (1, long_run)])
 
     points = load_points(path)
-    assert [p[2] for p in points[:2]] == [1, 1]  # ordenado por sol
+    assert [p[2] for p in points[:2]] == [1, 1]  # sorted by sol
     assert len(continuous_runs(points, BBOX)) == 2
 
     region.traverse_files = {"perseverance": str(path)}
-    dem = np.tile(-2500 + np.arange(SIZE, dtype=np.float32), (SIZE, 1))  # +1 m por columna
+    dem = np.tile(-2500 + np.arange(SIZE, dtype=np.float32), (SIZE, 1))  # +1 m per column
     coords, props = build_traverse(region, dem, "perseverance")
     assert len(coords) == 60
     assert props["sol_min"] == props["sol_max"] == 1
@@ -223,9 +223,9 @@ def test_traverse_keeps_the_longest_continuous_run_with_dem_elevation(region, tm
 
 
 def test_traverse_gap_can_be_set_per_region(region, tmp_path):
-    step = math.degrees(10.0 / (MARS_RADIUS_M * math.cos(math.radians(18.35))))  # 10 m al este
+    step = math.degrees(10.0 / (MARS_RADIUS_M * math.cos(math.radians(18.35))))  # 10 m east
     first = [[77.32 + i * step, 18.35, -1.0] for i in range(20)]
-    # 50 m después del último punto: un vértice ralo, como los del archivo de Curiosity.
+    # 50 m after the last point: a sparse vertex, like those in the Curiosity file.
     second = [[77.32 + (24 + i) * step, 18.35, -1.0] for i in range(20)]
     region.traverse_files = {"curiosity": str(_mmgis(tmp_path / "msl.json", [(1, first + second)]))}
     dem = np.full((SIZE, SIZE), -4000.0, np.float32)
@@ -262,7 +262,7 @@ def test_export_writes_elevation_and_coverage(region, tmp_path):
     assert geojson["properties"] == {"rover": "perseverance", "sol_min": 1}
 
 
-# --- Archivos para la vista 3D ---
+# --- Files for the 3D view ---
 
 
 def test_heightmap_bin_is_float32_little_endian_with_row_0_north(region, tmp_path):
@@ -272,7 +272,7 @@ def test_heightmap_bin_is_float32_little_endian_with_row_0_north(region, tmp_pat
 
     raw = np.fromfile(out / "heightmap.bin", dtype="<f4")
     assert raw.size == SIZE * SIZE
-    assert np.array_equal(raw.reshape(SIZE, SIZE), dem)  # la primera fila es la del norte
+    assert np.array_equal(raw.reshape(SIZE, SIZE), dem)  # the first row is the northern one
     manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["assets"]["heightmap"] == {
         "path": "heightmap.bin",
@@ -282,7 +282,7 @@ def test_heightmap_bin_is_float32_little_endian_with_row_0_north(region, tmp_pat
         "row0": "north",
     }
     assert "heightmap.bin" in manifest["checksums"]
-    assert manifest["cell_size_m"][0] > manifest["cell_size_m"][1]  # el lado este-oeste es menor
+    assert manifest["cell_size_m"][0] > manifest["cell_size_m"][1]  # the east-west side is shorter
 
 
 def test_class_texture_blends_colors_and_hides_cells_without_class():
@@ -296,7 +296,7 @@ def test_class_texture_blends_colors_and_hides_cells_without_class():
     assert rgba.shape == (1, 3, 4)
     assert rgba[0, 0].tolist() == [0, 0, 255, round(CLASS_ALPHA * 255)]  # todo clase 2
     assert rgba[0, 1].tolist() == [128, 0, 128, round(CLASS_ALPHA * 255)]  # mitad y mitad
-    assert rgba[0, 2, 3] == 0  # sin clase: transparente
+    assert rgba[0, 2, 3] == 0  # no class: transparent
     info = [ClassInfo(1, "Uno", 0.0), ClassInfo(2, "Dos", 1.0)]
     shares = {item["code"]: item["share"] for item in legend(info, colors, counts)}
     assert shares == {1: pytest.approx(0.25), 2: pytest.approx(0.75)}
@@ -305,15 +305,15 @@ def test_class_texture_blends_colors_and_hides_cells_without_class():
 def test_ortho_texture_covers_the_bbox_north_up_with_stretched_contrast(region, tmp_path):
     shape, res = (300, 300), 30.0
     _, lat = _lon_lat(shape, res)
-    gray = np.clip((lat - 18.28) / 0.14 * 200 + 20, 0, 255).astype(np.uint8)  # más claro al norte
-    gray[140:160, 140:160] = 0  # hueco del mosaico en el centro
+    gray = np.clip((lat - 18.28) / 0.14 * 200 + 20, 0, 255).astype(np.uint8)  # lighter to the north
+    gray[140:160, 140:160] = 0  # mosaic gap in the center
     region.sources["ortho"] = "ortho.tif"
     tex = ortho_texture(_write(tmp_path / "t" / "ortho.tif", gray, res, nodata=0), region)
     n = SIZE * ORTHO_PX_PER_CELL
     assert tex.shape == (n, n)
     assert tex[0].mean() > tex[-1].mean()  # norte arriba
     assert tex.min() <= 5 and tex.max() >= 250  # contraste estirado
-    assert tex[n // 2, n // 2] > 60  # el hueco toma el gris vecino, no negro
+    assert tex[n // 2, n // 2] > 60  # the gap takes the neighboring gray, not black
 
 
 def test_build_and_export_write_the_3d_files(region, tmp_path):
@@ -327,7 +327,7 @@ def test_build_and_export_write_the_3d_files(region, tmp_path):
     region.sources["ortho"] = "ortho.tif"
     region.labels = [
         {"name": "Base", "lat": 18.35, "lon": 77.35, "source": "base"},
-        {"name": "Solo sintética", "lat": 18.36, "lon": 77.36, "only": "synthetic"},
+        {"name": "Synthetic only", "lat": 18.36, "lon": 77.36, "only": "synthetic"},
         {"name": "Solo real", "lat": 18.37, "lon": 77.37, "only": "real"},
     ]
     region.demo = {"start": {"lat": 18.35, "lon": 77.35}, "end": {"lat": 18.36, "lon": 77.36}}
@@ -358,13 +358,13 @@ def test_build_and_export_write_the_3d_files(region, tmp_path):
     assert names == ["No roca madre", "Roca madre", "Campos de rocas", "Ondulaciones pequeñas",
                      "Ondulaciones grandes"]  # fmt: skip
     labels = {item["name"]: item for item in manifest["labels"]}
-    # La región real lleva sus etiquetas y su escenario de demo, no los de la sintética.
+    # The real region carries its own labels and demo scenario, not the synthetic ones.
     assert set(labels) == {"Base", "Solo real", "Perseverance · sol 3", "Perseverance · sol 9"}
     assert "only" not in labels["Solo real"]
     assert manifest["demo"]["end"] == {"lat": 18.37, "lon": 77.37}
     assert labels["Perseverance · sol 9"]["kind"] == "traverse"
     assert "kind" not in labels["Base"]
-    # La elevación de cada nombre sale del DEM: +10 m por cada 0.01° hacia el este.
+    # Each name's elevation comes from the DEM: +10 m per 0.01° to the east.
     assert labels["Base"]["elev"] == pytest.approx(-2500 + (77.35 - WEST) * 1000, abs=1.5)
     assert manifest["layer_meta"]["terrain_class"]["kind"] == "categorical"
 
@@ -379,21 +379,21 @@ def test_synthetic_region_keeps_its_own_demo_and_labels(tmp_path):
 
     assert manifest["demo"] == jezero.demo
     names = {item["name"] for item in manifest["labels"]}
-    assert "Destino de la demo" in names
-    assert "Ahorro de O₂ por pendiente" not in names
+    assert "Demo destination" in names
+    assert "O₂ savings on slopes" not in names
 
 
 def test_local_relief_ignores_even_slopes_and_measures_bumps():
     rows, cols = np.mgrid[0:80, 0:80]
-    plane = (0.3 * cols + 0.1 * rows).astype(np.float32)  # pendiente pareja: sin relieve local
+    plane = (0.3 * cols + 0.1 * rows).astype(np.float32)  # even slope: no local relief
     assert np.abs(local_relief(plane, pixel_m=5.0)[10:-10, 10:-10]).max() < 1e-3
 
     bumps = plane.copy()
-    checker = np.where((rows + cols) % 2 == 0, 1.0, -1.0)  # ±1 m cada 5 m
+    checker = np.where((rows + cols) % 2 == 0, 1.0, -1.0)  # ±1 m every 5 m
     bumps[40:60, 40:60] += checker[40:60, 40:60]
     relief = local_relief(bumps, pixel_m=5.0)
     assert np.sqrt(np.mean(relief[45:55, 45:55] ** 2)) > 0.5
-    # Lejos de los bordes y de los bultos (la gaussiana llega a 4 σ = 8 píxeles), sigue en cero.
+    # Far from the edges and the bumps (the Gaussian reaches 4 σ = 8 pixels), it stays at zero.
     assert np.abs(relief[10:30, 10:30]).max() < 1e-3
 
 
@@ -405,7 +405,7 @@ def test_build_region_derives_hazard_from_roughness_without_terrain_classes(regi
     lon, _ = _lon_lat(shape, res)
     rows, cols = np.mgrid[0 : shape[0], 0 : shape[1]]
     dem = (-2500 + (lon - WEST) * 1000).astype(np.float32)
-    rough = lon > 77.35  # mitad este con relieve de ±2 m entre píxeles vecinos
+    rough = lon > 77.35  # east half with ±2 m relief between neighboring pixels
     dem[rough] += np.where((rows + cols) % 2 == 0, 2.0, -2.0)[rough]
     _write(tmp_path / "t" / "dem.tif", dem, res)
 

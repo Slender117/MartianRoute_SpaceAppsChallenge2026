@@ -1,4 +1,4 @@
-"""Descarga y recorte de fuentes, sin red: el recorte corre sobre un GeoTIFF local."""
+"""Source download and cropping, without network: the crop runs on a local GeoTIFF."""
 
 import math
 
@@ -35,7 +35,7 @@ def region() -> Region:
 
 @pytest.fixture
 def mosaic(tmp_path):
-    """Mosaico de 100 m que cubre de 77 a 78 E y de 18 a 19 N; cada píxel vale su número de fila."""
+    """100 m mosaic covering 77 to 78 E and 18 to 19 N; each pixel holds its row number."""
     res = 100.0
     width, height = int((_m(78) - _m(77)) / res), int((_m(19) - _m(18)) / res)
     path = tmp_path / "mosaic.tif"
@@ -54,11 +54,11 @@ def test_crop_window_covers_bbox_with_margin(region, mosaic, tmp_path):
         left, bottom, right, top = crop.bounds
         assert crop.crs.to_dict()["R"] == R
         assert crop.nodata == -1.0
-        # El recorte cubre el bbox más el margen, redondeado a píxeles de 100 m.
+        # The crop covers the bbox plus the margin, rounded to 100 m pixels.
         assert left <= _m(77.25) + 100 and right >= _m(77.65) - 100
         assert bottom <= _m(18.25) + 100 and top >= _m(18.65) - 100
         assert right - left < _m(0.42) and top - bottom < _m(0.42)
-        # Los valores son los del mosaico: la primera fila del recorte es la fila del borde norte.
+        # The values are the mosaic's: the first row of the crop is the northern edge row.
         first_row = crop.read(1)[0, 0]
         assert first_row == pytest.approx(round((_m(19) - top) / 100), abs=1)
 
@@ -79,11 +79,11 @@ def test_crop_window_decimates_by_averaging_blocks(region, mosaic, tmp_path):
     small = crop_window(str(mosaic), region, tmp_path / "small.tif", margin_deg=0.05, decimate=4)
     with rasterio.open(full) as a, rasterio.open(small) as b:
         assert b.width == math.ceil(a.width / 4) and b.height == math.ceil(a.height / 4)
-        # Cubre lo mismo que el recorte completo: si el ancho no es múltiplo de 4, el píxel
-        # reducido queda un poco menor que 4 píxeles originales.
+        # It covers the same as the full crop: if the width is not a multiple of 4, the
+        # reduced pixel ends up a bit smaller than 4 original pixels.
         assert tuple(b.bounds) == pytest.approx(tuple(a.bounds))
         assert 3.9 < b.res[0] / a.res[0] <= 4
-        # Cada píxel promedia un bloque de ~4 × 4: la primera fila reducida es la media de 4 filas.
+        # Each pixel averages a ~4 × 4 block: the first reduced row is the mean of 4 rows.
         assert b.read(1)[0, 0] == pytest.approx(a.read(1)[:4, 0].mean(), abs=0.1)
 
 
@@ -122,13 +122,13 @@ def _line(*points) -> dict:
     return {"type": "LineString", "coordinates": [[lon, lat, -4000.0] for lon, lat in points]}
 
 
-# Puntos separados 0.001° (~59 m) sobre la misma latitud.
+# Points 0.001° (~59 m) apart on the same latitude.
 A, B, C, D, E, G = ((137.400 + 0.001 * i, -4.80) for i in range(6))
 
 
 @pytest.fixture
 def legs() -> tuple[dict, dict]:
-    """Recorrido estilo MMGIS de Curiosity (sin sol) y sus waypoints."""
+    """Curiosity-style MMGIS traverse (no sol) and its waypoints."""
     multi = {
         "type": "MultiLineString",
         "coordinates": [_line(A, B)["coordinates"], _line(B, C)["coordinates"]],
@@ -137,8 +137,8 @@ def legs() -> tuple[dict, dict]:
         "features": [
             {"properties": {"Length": 118.0}, "geometry": multi},
             {"properties": {"Length": 59.0}, "geometry": _line(C, D)},
-            {"properties": {"Length": 59.0}, "geometry": _line(D, E)},  # waypoint de sol menor
-            {"properties": {"Length": 59.0}, "geometry": _line(E, G)},  # sin waypoint
+            {"properties": {"Length": 59.0}, "geometry": _line(D, E)},  # waypoint with a lower sol
+            {"properties": {"Length": 59.0}, "geometry": _line(E, G)},  # no waypoint
         ]
     }
     return traverse, {"features": [_wp(*C, 10), _wp(*D, 12), _wp(*E, 11)]}
@@ -147,7 +147,7 @@ def legs() -> tuple[dict, dict]:
 def test_traverse_with_sols_takes_the_sol_of_the_waypoint_where_each_leg_ends(legs):
     fc = traverse_with_sols(*legs)
 
-    # El sol nunca baja, y un tramo sin waypoint hereda el del anterior.
+    # The sol never decreases, and a segment with no waypoint inherits the previous one.
     assert [f["properties"]["sol"] for f in fc["features"]] == [10, 12, 12, 12]
     assert {f["geometry"]["type"] for f in fc["features"]} == {"LineString"}
     first = fc["features"][0]

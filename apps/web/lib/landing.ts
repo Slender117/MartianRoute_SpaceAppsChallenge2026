@@ -1,4 +1,4 @@
-// Textos de la portada (/) en español e inglés. TypeScript obliga a que `en` tenga las mismas claves.
+// Landing (/) texts in Spanish and English. TypeScript forces `en` to have the same keys.
 
 import type { Lang } from "./i18n";
 

@@ -1,7 +1,7 @@
-"""Conversión entre coordenadas geográficas y celdas de la grilla de una región.
+"""Conversion between geographic coordinates and a region's grid cells.
 
-Las grillas están en proyección equirectangular sobre el bbox de la región:
-fila 0 = lat_max, columna 0 = lon_min.
+The grids use an equirectangular projection over the region's bbox:
+row 0 = lat_max, column 0 = lon_min.
 """
 
 import math
@@ -21,7 +21,7 @@ class OutOfRegionError(ValueError):
 def latlon_to_fractional(
     m: RegionManifest, lats: np.ndarray, lons: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Fila y columna con decimales, para recorridos que no caen en el centro de una celda."""
+    """Row and column with decimals, for traverses that do not fall on a cell center."""
     lon_min, lat_min, lon_max, lat_max = m.bbox
     h, w = m.shape
     rows = (lat_max - lats) / (lat_max - lat_min) * (h - 1)
@@ -33,7 +33,7 @@ def latlon_to_cell(m: RegionManifest, lat: float, lon: float) -> tuple[int, int]
     rows, cols = latlon_to_fractional(m, np.array(lat), np.array(lon))
     row, col = round(float(rows)), round(float(cols))
     if not (0 <= row < m.shape[0] and 0 <= col < m.shape[1]):
-        raise OutOfRegionError(f"({lat}, {lon}) está fuera de la región {m.id}")
+        raise OutOfRegionError(f"({lat}, {lon}) is outside region {m.id}")
     return row, col
 
 
@@ -46,7 +46,7 @@ def cell_to_latlon(m: RegionManifest, row: int, col: int) -> tuple[float, float]
 
 
 def cell_size_m(m: RegionManifest) -> tuple[float, float]:
-    """(alto, ancho) de una celda: resolution_m es el lado norte-sur y el este-oeste se acorta."""
+    """(height, width) of a cell: resolution_m is the north-south side; east-west is shorter."""
     lon_min, lat_min, lon_max, lat_max = m.bbox
     h, w = m.shape
     deg_per_row = (lat_max - lat_min) / (h - 1)

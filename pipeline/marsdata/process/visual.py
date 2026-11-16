@@ -1,7 +1,7 @@
-"""Productos solo visuales para la vista 3D: ortofoto como textura y capa de clases coloreada.
+"""Visual-only products for the 3D view: orthophoto as a texture and a colored class layer.
 
-Nada de esto entra al ruteo: la API usa las grillas .npy. Las texturas se estiran de borde a borde
-de la malla, así que cubren el bbox (no la grilla de la API, que sobresale media celda).
+None of this enters routing: the API uses the .npy grids. Textures stretch from edge to edge
+of the mesh, so they cover the bbox (not the API grid, which sticks out half a cell).
 """
 
 from pathlib import Path
@@ -13,17 +13,17 @@ from marsdata.process.classes import ClassCounts, ClassInfo
 from marsdata.process.reproject import fill_nearest, warp_to_region
 from marsdata.region import Region
 
-# Píxeles de la ortofoto por celda de la grilla (600 celdas -> 2400 px).
+# Orthophoto pixels per grid cell (600 cells -> 2400 px).
 ORTHO_PX_PER_CELL = 4
-# Opacidad de la capa de clases: deja ver el relieve y la ortofoto debajo.
+# Opacity of the class layer: it lets the relief and the orthophoto show through.
 CLASS_ALPHA = 0.6
-# Paleta de Okabe e Ito (distinguible con daltonismo), por código de grupo de NOAH-H.
+# Okabe and Ito palette (distinguishable with color blindness), per NOAH-H group code.
 NOAHH_COLORS = {
-    1: "#F0E442",  # no roca madre: amarillo
-    2: "#009E73",  # roca madre: verde azulado
-    3: "#E69F00",  # campos de rocas: naranja
-    4: "#56B4E9",  # ondulaciones pequeñas: azul cielo
-    5: "#CC79A7",  # ondulaciones grandes: púrpura rojizo
+    1: "#F0E442",  # not bedrock: yellow
+    2: "#009E73",  # bedrock: bluish green
+    3: "#E69F00",  # boulder fields: orange
+    4: "#56B4E9",  # small ripples: sky blue
+    5: "#CC79A7",  # large ripples: reddish purple
 }
 FALLBACK_COLORS = ["#0072B2", "#D55E00", "#999999", "#F5C710", "#61D04F"]
 
@@ -34,16 +34,16 @@ def _rgb(hex_color: str) -> tuple[int, int, int]:
 
 
 def ortho_texture(path: Path, region: Region) -> np.ndarray:
-    """Ortofoto en escala de grises (uint8) sobre el bbox, con contraste estirado al 1-99 %.
+    """Grayscale orthophoto (uint8) over the bbox, with contrast stretched to 1-99 %.
 
-    Los huecos del mosaico toman el píxel con dato más cercano: una franja negra en el suelo se
-    leería como una sombra o un barranco.
+    Gaps in the mosaic take the nearest pixel with data: a black strip on the ground would
+    read as a shadow or a ravine.
     """
     n = region.size * ORTHO_PX_PER_CELL
     img = warp_to_region(path, region, Resampling.average, shape=(n, n), bounds=region.bbox)
     valid = np.isfinite(img)
     if not valid.any():
-        raise ValueError(f"{path.name} no cubre la región")
+        raise ValueError(f"{path.name} does not cover the region")
     lo, hi = np.percentile(img[valid], [1, 99])
     out = np.clip((fill_nearest(img) - lo) / max(hi - lo, 1e-6) * 255, 0, 255)
     return out.astype(np.uint8)
@@ -57,10 +57,10 @@ def class_colors(info: list[ClassInfo]) -> dict[int, str]:
 
 
 def class_texture(counts: ClassCounts, colors: dict[int, str]) -> np.ndarray:
-    """RGBA: cada texel mezcla los colores según la fracción de cada clase; transparente sin dato.
+    """RGBA: each texel mixes the colors by the fraction of each class; transparent with no data.
 
-    La mezcla suaviza los bordes entre clases, y la opacidad baja donde parte del texel no tiene
-    clase (borde del mosaico).
+    The mix smooths the edges between classes, and the opacity drops where part of the texel has
+    no class (mosaic edge).
     """
     n = counts.classified
     frac = np.where(n > 0, counts.counts / np.maximum(n, 1), 0.0)  # (K, H, W)
@@ -71,7 +71,7 @@ def class_texture(counts: ClassCounts, colors: dict[int, str]) -> np.ndarray:
 
 
 def legend(info: list[ClassInfo], colors: dict[int, str], counts: ClassCounts) -> list[dict]:
-    """Leyenda de la capa de clases, con la fracción del área con dato que ocupa cada una."""
+    """Legend of the class layer, with the fraction of the area with data that each one covers."""
     total = counts.classified.sum()
     shares = counts.counts.sum(axis=(1, 2)) / total if total else np.zeros(len(info))
     by_code = dict(zip(counts.codes, shares, strict=True))

@@ -13,17 +13,17 @@ export const MODE_COLORS: Record<WalkMode, string> = {
   safe: "#4fd1a5",
   fast: "#ffc94d",
   science: "#6aa8ff",
-  baseline: "#9aa0a6", // gris: referencia, no un modo
+  baseline: "#9aa0a6", // gray: a reference, not a mode
 };
 
-const LIFT = 0.04; // separa la línea del terreno para que no parpadee
+const LIFT = 0.04; // lifts the line off the terrain so it does not flicker
 const START_COLOR = "#ffffff";
 const END_COLOR = "#ff7a45";
 
 /**
- * Ruta del modo activo (resaltada), las otras en tenue, marcadores de inicio y destino, y paradas.
- * El detalle de cada parada se lee en NavPanel. Los puntos en la escena se calculan una vez por
- * juego de rutas: cambiar de modo solo cambia el grosor y la opacidad.
+ * Route of the active mode (highlighted), the others faded, start and destination markers, and stops.
+ * Each stop's detail is in NavPanel. The scene points are computed once per set of
+ * routes: changing the mode only changes thickness and opacity.
  */
 export function RoutePath({ exaggeration }: { exaggeration: number }) {
   const manifest = useMapStore((s) => s.manifest)!;
@@ -43,7 +43,7 @@ export function RoutePath({ exaggeration }: { exaggeration: number }) {
     [routes, frame],
   );
 
-  // Cada parada, a la altura del punto de la ruta más cercano.
+  // Each stop, at the height of the nearest route point.
   const active = routes[mode];
   const stops = useMemo(
     () =>
@@ -59,7 +59,7 @@ export function RoutePath({ exaggeration }: { exaggeration: number }) {
     [active, frame],
   );
 
-  // Los extremos se apoyan en el terreno; sin heightmap.bin, a la altura base.
+  // The endpoints rest on the terrain; without heightmap.bin, at the base height.
   const markerAt = (p: LatLon) =>
     frame.toScene(
       p.lat,

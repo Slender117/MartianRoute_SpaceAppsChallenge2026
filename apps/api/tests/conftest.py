@@ -28,7 +28,7 @@ def _manifest() -> RegionManifest:
 
 @pytest.fixture
 def flat_grids() -> RegionGrids:
-    """Terreno plano con un muro empinado en la columna central y un hueco abajo."""
+    """Flat terrain with a steep wall in the central column and a gap at the bottom."""
     zeros = np.zeros((SIZE, SIZE), dtype=np.float32)
     slope = zeros.copy()
     slope[: SIZE - 8, SIZE // 2] = 45.0
@@ -45,7 +45,7 @@ def flat_grids() -> RegionGrids:
 
 @pytest.fixture
 def assets_dir(tmp_path, monkeypatch, flat_grids):
-    """Escribe la región de prueba a disco y apunta la API hacia ella."""
+    """Writes the test region to disk and points the API at it."""
     region = tmp_path / "test"
     (region / "layers").mkdir(parents=True)
     (region / "traverses").mkdir()

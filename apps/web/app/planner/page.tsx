@@ -14,10 +14,10 @@ import { SitePanel } from "@/components/ui/SitePanel";
 import { useMapStore } from "@/lib/store";
 import { useMediaQuery } from "@/lib/useMediaQuery";
 
-// three.js necesita el navegador: la escena no se renderiza en el servidor.
+// three.js needs the browser: the scene is not rendered on the server.
 const Scene = dynamic(() => import("@/components/scene/Scene"), { ssr: false });
 
-// En pantallas angostas los paneles no caben en las esquinas: van en una hoja inferior con pestañas.
+// On narrow screens the panels do not fit in the corners: they go in a bottom sheet with tabs.
 const NARROW = "(max-width: 720px)";
 
 export default function Planner() {
@@ -27,7 +27,7 @@ export default function Planner() {
   const regionId = useMapStore((s) => s.regionId);
   const narrow = useMediaQuery(NARROW);
 
-  // Arranca en la vista de ruta de la primera región; con ?globe arranca en el globo.
+  // It starts in the route view of the first region; with ?globe it starts on the globe.
   useEffect(() => {
     loadRegions().then(() => {
       const first = useMapStore.getState().regions[0];

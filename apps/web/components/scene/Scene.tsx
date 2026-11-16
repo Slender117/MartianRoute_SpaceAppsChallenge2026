@@ -15,14 +15,14 @@ import { RoutePath } from "./RoutePath";
 import { LabelAnchors, LabelOverlay, usePlacedLabels } from "./SceneLabels";
 import { TraverseOverlay } from "./TraverseOverlay";
 
-// Panel de ajustes (Leva) solo en desarrollo: en producción la condición es constante y el
-// paquete ni siquiera entra en la descarga.
+// Settings panel (Leva) only in development: in production the condition is constant and the
+// package does not even enter the download.
 const DebugControls =
   process.env.NODE_ENV === "production"
     ? null
     : dynamic(() => import("@/components/debug/DebugControls"), { ssr: false });
 
-/** Una sola escena para todo el recorrido: el zoom es una transición de cámara. */
+/** A single scene for the whole journey: the zoom is a camera transition. */
 export default function Scene() {
   const view = useMapStore((s) => s.view);
   const { sunIntensity, exaggeration, layerOpacity, bloom } = useSceneSettings();
@@ -35,8 +35,8 @@ export default function Scene() {
       <Canvas
         camera={{ position: [0, 0, 3.2], fov: 45, near: 0.01, far: 200 }}
         dpr={[1, 2]}
-        // En la región nada se mueve solo: se dibuja un cuadro solo cuando algo cambia (cámara,
-        // capas, rutas). El globo gira y el zoom es una animación, así que ahí se dibuja siempre.
+        // In the region nothing moves by itself: a frame is drawn only when something changes (camera,
+        // layers, routes). The globe spins and the zoom is an animation, so there it always draws.
         frameloop={view === "region" ? "demand" : "always"}
       >
         <color attach="background" args={["#0b0605"]} />

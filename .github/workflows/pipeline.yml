@@ -1,14 +1,14 @@
 name: pipeline
 
-# Se corre a mano antes del evento: genera la región y la sube a R2.
+# Run by hand before the event: it generates the region and uploads it to R2.
 on:
   workflow_dispatch:
     inputs:
       region:
-        description: Región de config/regions.yaml
+        description: Region from config/regions.yaml
         default: jezero
       command:
-        description: "synthetic (datos de prueba) o build (datos reales en data/raw)"
+        description: "synthetic (test data) or build (real data in data/raw)"
         default: synthetic
         type: choice
         options: [synthetic, build]

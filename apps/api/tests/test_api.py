@@ -70,9 +70,9 @@ def test_unknown_rover_is_404(client):
 @pytest.mark.parametrize(
     "change, detail",
     [
-        ({"end": {"lat": 5.0, "lon": 0.9}}, "fuera de la región"),
-        ({"end": {"lat": 0.5, "lon": 0.51}}, "no es caminable"),
-        ({"end": BODY["start"]}, "misma celda"),
+        ({"end": {"lat": 5.0, "lon": 0.9}}, "outside region"),
+        ({"end": {"lat": 0.5, "lon": 0.51}}, "is not walkable"),
+        ({"end": BODY["start"]}, "same cell"),
     ],
 )
 def test_impossible_route_is_422_with_a_reason(client, change, detail):
@@ -86,7 +86,7 @@ def test_no_route_is_422(assets_dir, flat_grids):
     np.save(assets_dir / "test" / "slope.npy", flat_grids.slope)
     r = TestClient(create_app()).post("/routes", json=BODY)
     assert r.status_code == 422
-    assert "No existe una ruta" in r.json()["detail"]
+    assert "no walkable route" in r.json()["detail"]
 
 
 @pytest.mark.parametrize("lon", [181.0, 257.45, -181.0])
@@ -124,7 +124,7 @@ def test_grid_with_wrong_shape_is_503(client, assets_dir):
     _rewrite_manifest(assets_dir, shape=[10, 10])
     r = client.post("/routes", json=BODY)
     assert r.status_code == 503
-    assert "mide" in r.json()["detail"]
+    assert "the manifest of" in r.json()["detail"]
 
 
 def test_missing_index_is_503(client, assets_dir):
