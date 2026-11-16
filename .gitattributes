@@ -1,3 +1,7 @@
 # Rásteres de data/raw: binarios, sin conversión de fin de línea ni diff de texto.
 *.tif binary
 *.clr -text
+
+# Docker los lee en Linux: sin CRLF aunque se clonen en Windows.
+Dockerfile text eol=lf
+.dockerignore text eol=lf
