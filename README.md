@@ -210,6 +210,26 @@ cd apps/api && .venv/Scripts/pytest -q
 npm run lint:web && npm run typecheck:web
 ```
 
+## Despliegue
+
+**API (Render o cualquier servicio con Docker).** `apps/api/Dockerfile` construye `jezero`, `jezero_walk` y `gale`
+con los crudos de `data/raw/` y deja la API sirviéndolas en `/assets`, así que no hace falta R2. Se construye desde
+la raíz del repositorio:
+
+```bash
+docker build -f apps/api/Dockerfile -t martian-route-api .
+docker run -p 8000:8000 -e CORS_ORIGINS=http://localhost:3000 martian-route-api
+```
+
+En Render: *Web Service* con runtime Docker, *Root Directory* vacío, *Dockerfile Path* `./apps/api/Dockerfile`,
+*Docker Build Context Directory* `.` y *Health Check Path* `/health`. Variables: `CORS_ORIGINS` con el dominio de
+Vercel y `NASA_API_KEY`. El plan gratuito se duerme tras un rato sin uso: abre `/health` unos minutos antes de una
+demo.
+
+**Web (Vercel).** *Root Directory* `apps/web` y preset Next.js. Variables: `NEXT_PUBLIC_API_URL` con la URL de la
+API y `NEXT_PUBLIC_ASSETS_URL` con esa misma URL más `/assets`. Next.js las fija al construir: si cambian, hay que
+volver a desplegar.
+
 ## Roles → carpetas
 
 | Rol | Dónde trabaja |
