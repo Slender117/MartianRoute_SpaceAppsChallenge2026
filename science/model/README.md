@@ -1,49 +1,51 @@
-# Modelo predictivo de costo de EVA (costo por celda + A*)
+# Predictive EVA cost model (cost per cell + least-cost search)
 
-Prototipo de Edgar (Ciencia y validación), 2026-11-12. Código: [eva_cost.py](eva_cost.py). Prueba: [test_eva_cost.py](test_eva_cost.py).
-Necesita `numpy`, `scipy` y `scikit-image`, que el motor del equipo ya usa, y `pytest` para las pruebas:
+Prototype by Edgar (Science and validation), 2026-11-12. Code: [eva_cost.py](eva_cost.py). Test:
+[test_eva_cost.py](test_eva_cost.py). It needs `numpy`, `scipy` and `scikit-image`, which the team's engine
+already uses, and `pytest` for the tests:
 
 ```bash
 cd science/model && python -m pytest -q
 ```
 
-## Qué hace
+## What it does
 
-Predice cuánto O₂ cuesta cada metro de una EVA que vuelve por el mismo camino. Esa curva se vuelve la
-penalización por pendiente de la grilla que recorre el A*, y también un intervalo de O₂ por ruta. Tiene dos partes:
+It predicts how much O₂ each meter of an EVA that returns along the same path costs. That curve becomes the
+slope penalty of the grid the route search walks, and also an O₂ interval per route. It has two parts:
 
-| Parte | Qué es | Se entrena |
+| Part | What it is | Is it trained |
 | --- | --- | --- |
-| Pendiente y gravedad | Curva de Minetti et al. (2002), escalada con una cota inferior y una superior de gravedad | No: es física con intervalo |
-| Riesgo e inestabilidad | Pesos de `hazard` y `1 − inercia térmica` | Sí, contra el recorrido real, con tramos reservados para medir |
+| Slope and gravity | Curve of Minetti et al. (2002), scaled with a lower and an upper gravity bound | No: it is physics with an interval |
+| Hazard and instability | Weights of `hazard` and `1 − thermal inertia` | Yes, against the real traverse, with segments held out for measuring |
 
-La salida de una ruta es un **intervalo** de O₂ (`o2_interval_kg`), no una cifra. El valor central no existe
-porque no hay fuente para cómo cambia el costo en plano con 0.38 g.
+A route's output is an O₂ **interval** (`o2_interval_kg`), not a single figure. The central value does not
+exist because there is no source for how the flat-ground cost changes at 0.38 g.
 
-## Qué entra
+## What goes in
 
-| Dato | De dónde | Dueño |
+| Data | From | Owner |
 | --- | --- | --- |
-| `dem.npy`, `slope.npy` | `data/regions/jezero/` | Datos |
-| `layers/hazard.npy`, `layers/thermal_inertia.npy` | `data/regions/jezero/layers/` | Datos |
-| Recorrido de Perseverance | `M20_traverse_2026-11-12.json` (559 tramos por sol, sol 14 a 2022, CRS84) y `M20_waypoints_2026-11-12.json`. `science/convert_traverse.py` lo convierte a una sola LineString; quedan 4,688 puntos de los sols 1698 a 2022 al oeste del bbox de `regions.yaml` (lon < 77.25): ampliar el bbox o recortar | Ciencia con Datos |
-| `o2_flat_kg_per_m` | `o2_rate / base_speed` de `docs/supuestos.md`: 0.07 kg/h ÷ 2000 m/h = 3.5e-5 kg/m (escenario Luna; ver «Escenario Marte del O₂» en `docs/supuestos.md`) | Backend |
-| Gravedad | 0.38 g en este prototipo; el motor de la API usa 3.728 m/s² (GM / R² con Konopliv et al., 2020) | Ciencia |
+| `dem.npy`, `slope.npy` | `data/regions/jezero/` | Data |
+| `layers/hazard.npy`, `layers/thermal_inertia.npy` | `data/regions/jezero/layers/` | Data |
+| Perseverance traverse | `M20_traverse_2026-11-12.json` (559 segments per sol, sol 14 to 2022, CRS84) and `M20_waypoints_2026-11-12.json`. `science/convert_traverse.py` turns it into a single LineString; 4,688 points from sols 1698 to 2022 fall west of the `regions.yaml` bbox (lon < 77.25): widen the bbox or crop | Science with Data |
+| `o2_flat_kg_per_m` | `o2_rate / base_speed` from `docs/supuestos.md`: 0.07 kg/h ÷ 2000 m/h = 3.5e-5 kg/m (lunar scenario; see "Mars O₂ scenario" in `docs/supuestos.md`) | Backend |
+| Gravity | 0.38 g in this prototype; the API engine uses 3.728 m/s² (GM / R² with Konopliv et al., 2020) | Science |
 
-## Qué sale y cómo se entrega
+## What comes out and how it is delivered
 
-1. **Función `slope_penalty`** que sustituye el término de pendiente de `engine/cost.py`
-   (el parche `integracion_motor.patch` no va en este PR). Se entrega por PR, acordando antes la interfaz
-   con Backend: el código del motor es suyo. `cell_cost` queda como variante en unidades físicas, que no recomiendo.
-2. **Dos pesos calibrados** (`w_hazard`, `w_instability`) con su etiqueta `modeled` y la leyenda «calibrado con el
-   recorrido de Perseverance», para `docs/supuestos.md`.
-3. **`o2_interval_kg`** para el panel de la EVA, con el intervalo en lugar de la cifra única.
-4. **Nota de métricas** con la separación en tramos no vistos, para H3.
+1. **A `slope_penalty` function** that replaces the slope term of `engine/cost.py` (the
+   `integracion_motor.patch` patch does not go in this PR). It is delivered by PR, agreeing on the interface
+   with Backend first: the engine code is theirs. `cell_cost` stays as a variant in physical units, which I do
+   not recommend.
+2. **Two calibrated weights** (`w_hazard`, `w_instability`) with their `modeled` label and the caption
+   "calibrated with Perseverance's traverse", for `docs/supuestos.md`.
+3. **`o2_interval_kg`** for the EVA panel, with the interval instead of the single figure.
+4. **A metrics note** with the separation on unseen segments, for H3.
 
-## Encaje en `engine/cost.py` (probado en una copia local, sin tocar `apps/`)
+## Fit into `engine/cost.py` (tested on a local copy, without touching `apps/`)
 
-El cambio son dos líneas y un import en `cost.py`, más copiar `eva_cost.py` a `engine/`. Lo probé sobre una
-copia limpia de `main` del 12 de noviembre. El parche no se incluye en este PR hasta acordarlo con Backend.
+The change is two lines and an import in `cost.py`, plus copying `eva_cost.py` into `engine/`. I tested it on
+a clean copy of `main` from 12 November. The patch is not included in this PR until it is agreed with Backend.
 
 ```diff
 -    slope_n = np.clip(grids.slope / max_slope_deg, 0, 1)
@@ -53,60 +55,62 @@ copia limpia de `main` del 12 de noviembre. El parche no se incluye en este PR h
 +        + w["slope"] * slope_n
 ```
 
-Conserva la estructura y los pesos por modo del equipo; solo cambia la forma de la penalización por pendiente.
+It keeps the team's structure and per-mode weights; it only changes the shape of the slope penalty.
 
-- Las **51 pruebas del equipo pasan** antes y después (con la región sintética de `marsdata synthetic`).
-- **Demo sintético:** las rutas cambian de celdas, pero la distancia y la duración cambian 1 % o menos.
+- **The team's 51 tests pass** before and after (with the synthetic region from `marsdata synthetic`).
+- **Synthetic demo:** the routes change cells, but distance and duration change by 1 % or less.
 
-| Modo | Ida (km) antes → después | Pendiente máxima | Riesgo máximo |
+| Mode | Outbound (km) before → after | Maximum slope | Maximum hazard |
 | --- | --- | --- | --- |
-| Segura | 6.74 → 6.80 | 7.6° → 5.6° | 0.06 → 0.06 |
-| Rápida | 5.87 → 5.87 | 24.9° → 24.9° | 0.87 → 0.89 |
-| Científica | 7.50 → 7.50 | 10.2° → 7.6° | 0.00 → 0.00 |
+| Safe | 6.74 → 6.80 | 7.6° → 5.6° | 0.06 → 0.06 |
+| Fast | 5.87 → 5.87 | 24.9° → 24.9° | 0.87 → 0.89 |
+| Science | 7.50 → 7.50 | 10.2° → 7.6° | 0.00 → 0.00 |
 
-- **Variante en unidades físicas (`cell_cost`):** también pasa las 51 pruebas, pero la Rápida deja de cruzar
-  pendientes (máxima de 24.9° a 4.7°) porque todos los modos comparten la misma penalización. Pierde lo que
-  distingue a los modos, así que no la recomiendo para el motor actual.
-- **Lo que las pruebas no protegen:** no fijan cifras de costo ni de ruta, por eso pasan con tres cálculos
-  distintos. Un error de escala en la pendiente también pasaría. Las 6 pruebas propias cubren la curva.
-- **O₂:** `test_consumables_cover_the_pair` fija `o2_estimate_kg = duración × 0.07`, y el parche no la toca.
-  Mostrar el intervalo exige campos nuevos en `RouteResponse`, su etiqueta de procedencia (la exige
-  `test_every_figure_has_a_provenance_label`), regenerar `packages/contracts` y la interfaz. Es trabajo de Backend
-  y Frontend, y va aparte.
-- **Documentos:** la fórmula de `docs/arquitectura.md` y de `CLAUDE.md` debe cambiar `(pendiente/máx)²` por la
-  penalización de O₂. Si se agregan parámetros a `/assumptions`, `test_every_assumption_is_documented` los exige
-  en `docs/supuestos.md`; el parche no agrega ninguno.
-- **Alcance del parche:** lleva solo lo físico (`slope_penalty`, `o2_*`). La calibración (`route`, `separation_m`,
-  `fit_weights`) queda en [calibrate.py](calibrate.py), un script offline que no va al motor.
-- **La gravedad no llega a la ruta.** `slope_penalty` se normaliza contra la pendiente máxima y la escala `s` se
-  cancela, así que cambiar de 0.38 g a 0.16 g no cambia el camino del A*; solo cambia el O₂ que se reporta
-  (`o2_interval_kg`). Es coherente con no tener fuente para el efecto de la gravedad sobre la preferencia de ruta,
-  pero limita la reutilización: cambiar de planeta cambia la cifra de O₂, no la ruta.
-- **Cambia la forma, y eso es lo que Backend va a preguntar.** La penalización es casi lineal en vez de
-  cuadrática, porque la curva de Minetti subiendo se interpola entre solo dos nudos. A la mitad de la pendiente
-  máxima pasa de 0.25 a 0.45:
+- **Variant in physical units (`cell_cost`):** it also passes the 51 tests, but Fast stops crossing slopes
+  (maximum from 24.9° to 4.7°) because all modes share the same penalty. It loses what tells the modes apart,
+  so I do not recommend it for the current engine.
+- **What the tests do not protect:** they do not pin cost or route figures, which is why they pass with three
+  different calculations. A scale error in the slope would also pass. The 6 tests of this folder cover the
+  curve.
+- **O₂:** `test_consumables_cover_the_pair` pins `o2_estimate_kg = duration × 0.07`, and the patch does not
+  touch it. Showing the interval requires new fields in `RouteResponse`, its provenance label (required by
+  `test_every_figure_has_a_provenance_label`), regenerating `packages/contracts` and the interface. That is
+  Backend and Frontend work, and it goes separately.
+- **Documents:** the formula in `docs/arquitectura.md` and in `CLAUDE.md` must change `(slope/max)²` to the O₂
+  penalty. If parameters are added to `/assumptions`, `test_every_assumption_is_documented` requires them in
+  `docs/supuestos.md`; the patch adds none.
+- **Patch scope:** it only carries the physics (`slope_penalty`, `o2_*`). The calibration (`route`,
+  `separation_m`, `fit_weights`) stays in [calibrate.py](calibrate.py), an offline script that does not go into
+  the engine.
+- **Gravity does not reach the route.** `slope_penalty` is normalized against the maximum slope and the scale
+  `s` cancels, so changing from 0.38 g to 0.16 g does not change the search's path; it only changes the
+  reported O₂ (`o2_interval_kg`). It is consistent with having no source for the effect of gravity on route
+  preference, but it limits reuse: changing planet changes the O₂ figure, not the route.
+- **The shape changes, and that is what Backend will ask about.** The penalty is almost linear instead of
+  quadratic, because the uphill Minetti curve is interpolated between only two knots. At half the maximum
+  slope it goes from 0.25 to 0.45:
 
-| Pendiente | 5° | 10° | 12.5° | 20° | 25° |
+| Slope | 5° | 10° | 12.5° | 20° | 25° |
 | --- | --- | --- | --- | --- | --- |
-| Antes, (pendiente/máx)² | 0.04 | 0.16 | 0.25 | 0.64 | 1.00 |
-| Ahora | 0.13 | 0.34 | 0.45 | 0.79 | 1.00 |
+| Before, (slope/max)² | 0.04 | 0.16 | 0.25 | 0.64 | 1.00 |
+| Now | 0.13 | 0.34 | 0.45 | 0.79 | 1.00 |
 
-  Por eso la Segura baja su pendiente máxima de 7.6° a 5.6°: las pendientes moderadas cuestan casi el doble
-  frente a las empinadas. Con más nudos de la curva el tramo subiendo ganaría curvatura.
-- El terreno del demo casi no tiene pendiente (media de 1° a 3°): ahí el O₂ por tiempo del equipo queda 2 a 4 % por
-  debajo de la cota inferior de Minetti. Con el Jezero real el efecto puede ser mayor; no lo medí.
+  That is why Safe lowers its maximum slope from 7.6° to 5.6°: moderate slopes cost almost twice as much
+  relative to the steep ones. With more knots of the curve the uphill segment would gain curvature.
+- The demo terrain has almost no slope (mean of 1° to 3°): there the team's time-based O₂ falls 2 to 4 % below
+  Minetti's lower bound. With the real Jezero the effect may be larger; I did not measure it.
 
-## Lo que verifiqué y lo que no
+## What I checked and what I did not
 
-- Las 6 pruebas pasan: la curva reproduce los cuatro puntos del resumen de Minetti, la penalización vale 0 en
-  plano y 1 en el límite y no depende de la gravedad, el intervalo está ordenado y es exacto en plano, y el
-  ajuste mejora la ruta en tramos no vistos.
-- **Prueba sintética:** con pesos conocidos (3.0 y 1.0) el ajuste devolvió 4.64 y 1.00. En tramos no vistos la
-  separación fue de 7.0 m, contra 25.6 m con pesos por defecto. Los datos salen de la misma familia de modelo, así
-  que esto prueba la mecánica y no la ciencia.
-- **Contra el modelo por tiempo del equipo** (O₂ por metro relativo al plano, ida y vuelta):
+- The 6 tests pass: the curve reproduces the four points of Minetti's abstract, the penalty is 0 on flat
+  ground and 1 at the limit and does not depend on gravity, the interval is ordered and exact on flat ground,
+  and the fit improves the route on unseen segments.
+- **Synthetic test:** with known weights (3.0 and 1.0) the fit returned 4.64 and 1.00. On unseen segments the
+  separation was 7.0 m, against 25.6 m with default weights. The data comes from the same model family, so this
+  tests the mechanics, not the science.
+- **Against the team's time-based model** (O₂ per meter relative to flat ground, out and back):
 
-| Pendiente | Equipo | Minetti, cota inferior | Minetti, cota superior |
+| Slope | Team | Minetti, lower bound | Minetti, upper bound |
 | --- | --- | --- | --- |
 | 5 % | 1.02 | 1.15 | 1.40 |
 | 10 % | 1.21 | 1.31 | 1.81 |
@@ -114,31 +118,32 @@ Conserva la estructura y los pesos por modo del equipo; solo cambia la forma de 
 | 30 % | 2.44 | 2.29 | 4.40 |
 | 45 % | 4.12 | 3.03 | 6.34 |
 
-  El modelo del equipo queda unos 5 a 10 % por debajo de la cota inferior entre 5 y 20 %, y dentro del intervalo
-  desde 30 %. No lo desmiente: lo pone dentro de un rango con fuente.
-- Nada de esto se probó con datos reales de Jezero todavía.
+  The team's model is about 5 to 10 % below the lower bound between 5 and 20 %, and inside the interval from
+  30 %. It does not contradict it: it places it inside a sourced range.
+- None of this was tested with real Jezero data yet (that came later with HE3, in `science/validation/`).
 
-## Límites
+## Limits
 
-- La curva es de 10 corredores en caminadora, a 1 g y sin traje. Solo sirve para la forma; los nudos son los
-  cuatro del resumen y no el polinomio del texto completo, al que no pude acceder.
-- Falta la fuente para escalar a 0.38 g y para el factor de traje. El traje queda dentro de `o2_flat_kg_per_m`.
-- `slope.npy` es magnitud sin dirección: seguir una curva de nivel se penaliza como subir. Corregirlo exige costos
-  por arista con el DEM, que implica otro Dijkstra y es de Backend.
-- Perseverance maneja con objetivos científicos y navegación autónoma. Los pesos calibrados son de un rover, no
-  de una persona, y la validación (H3) debe medirse en tramos que no se usaron para calibrar.
-- Los modos Segura, Rápida y Científica quedan como están: este modelo no los reemplaza.
+- The curve comes from 10 runners on a treadmill, at 1 g and without a suit. It only serves for the shape;
+  the knots are the four from the abstract and not the full text's polynomial, which I could not access.
+- The source for scaling to 0.38 g and for the suit factor is missing. The suit is inside `o2_flat_kg_per_m`.
+  NASA's suited data at 3/8 g (the Mars O₂ scenario in `docs/supuestos.md`) came later.
+- `slope.npy` is a magnitude without direction: following a contour line is penalized like climbing. Fixing it
+  requires per-edge costs with the DEM, which means another Dijkstra and is Backend's.
+- Perseverance drives with science goals and autonomous navigation. The calibrated weights are a rover's, not
+  a person's, and the validation (H3) must be measured on segments not used for calibration.
+- The Safe, Fast and Science modes stay as they are: this model does not replace them.
 
-## Fuentes (DOI resuelve en doi.org; solo resúmenes leídos)
+## Sources (DOIs resolve at doi.org; abstracts only)
 
 - Minetti, A. E., Moia, C., Roi, G. S., Susta, D., & Ferretti, G. (2002). Energy cost of walking and running at
   extreme uphill and downhill slopes. *Journal of Applied Physiology*. https://doi.org/10.1152/japplphysiol.01177.2001
 - Richter, C., Braunstein, B., Winnard, A., Nasser, M., & Weber, T. (2017). Human biomechanical and cardiopulmonary
   responses to partial gravity: A systematic review. *Frontiers in Physiology*. https://doi.org/10.3389/fphys.2017.00583
-  (leído en texto completo: recoge que Shavelson (1968) halló bajada de la tasa metabólica con la gravedad en 4 de
-  5 estudios, salvo con alto trabajo mecánico; no da un factor para 0.38 g, así que no lo uso como número).
+  (read in full text: it reports that Shavelson (1968) found a drop in metabolic rate with gravity in 4 of
+  5 studies, except with high mechanical work; it gives no factor for 0.38 g, so I do not use it as a number).
 
-## Uso de IA
+## AI use
 
-Escrito con ayuda de Claude Code. Las pruebas y la comparación con el motor del equipo se ejecutaron en una copia
-local de `main`; los DOI se resolvieron en doi.org.
+Written with the help of Claude Code. The tests and the comparison with the team's engine were run on a local
+copy of `main`; the DOIs were resolved at doi.org.

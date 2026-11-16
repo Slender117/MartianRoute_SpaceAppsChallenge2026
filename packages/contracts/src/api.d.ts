@@ -236,7 +236,7 @@ export interface components {
             label: string;
             /**
              * Value
-             * @description Sin valor mientras falte una fuente
+             * @description No value while a source is missing
              */
             value: number | string | null;
             /** Unit */
@@ -244,7 +244,7 @@ export interface components {
             provenance: components["schemas"]["Provenance"];
             /**
              * Source
-             * @description Referencia, o el marcador [__] si la fuente sigue pendiente
+             * @description Reference, or the [__] marker if the source is still pending
              */
             source: string;
             /** Note */

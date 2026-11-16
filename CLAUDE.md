@@ -1,255 +1,260 @@
-# Martian Route: contexto del proyecto
+# Martian Route: project context
 
-Mapa interactivo por capas y planificador de caminatas (EVA) para astronautas en Marte.
-Proyecto para NASA Space Apps Challenge 2026, reto "Interplanetary Survival Guide: Martian Map".
-Hackatón: 14 y 15 de noviembre de 2026. Nombre: Martian Route desde el 14 de noviembre (antes WazeMars,
-provisional, y "Ruta Roja" en el deck). Los nombres internos conservan el anterior: paquetes `@wazemars/*`,
-bucket `wazemars-assets`, proyecto de Theatre y la clave `wazemars.lang`.
+Interactive layered map and walk (EVA) planner for astronauts on Mars.
+Project for the NASA Space Apps Challenge 2026, "Interplanetary Survival Guide: Martian Map" challenge.
+Hackathon: 14 and 15 November 2026. Name: Martian Route since 14 November (before that WazeMars,
+provisional, and "Ruta Roja" in the deck). Internal names keep the old one: `@wazemars/*` packages,
+the `wazemars-assets` bucket, the Theatre project and the `wazemars.lang` key.
 
-La interfaz y la documentación van en español. El código (identificadores, commits) puede ir en inglés.
+The code, comments, API texts and documentation are in English. The interface opens in English and keeps
+a Spanish version (ES / EN buttons, `apps/web/lib/i18n.ts`). Identifiers, JSON keys and file names do not
+change with the language (`docs/supuestos.md`, `docs/creditos.md` and the `science/validation/` files keep
+their Spanish names because code and tests point to them).
 
-## Qué pide el reto (resumen del statement)
+## What the challenge asks (summary of the statement)
 
-Crear una vista integrada y por capas de un lugar o ruta en Marte, con datos de varias misiones
-científicas de NASA, que ayude a un astronauta a planear y ejecutar una Marswalk segura mientras hace
-ciencia. Puntos que el statement menciona explícitamente y que el proyecto debe cubrir:
+Create an integrated, layered view of a place or route on Mars, with data from several NASA science
+missions, that helps an astronaut plan and carry out a safe Marswalk while doing science. Points the
+statement mentions explicitly and the project must cover:
 
-- Al menos tres tipos de datos (óptico, térmico, espectral, topográfico, atmosférico, radiación...).
-- Seguridad primero: radiación y clima espacial, movilidad con traje y carga, evitar obstáculos grandes.
-- Ruta que muestre por dónde caminar para cumplir objetivos científicos.
-- Escala hiperlocal: Mars Trek ya resuelve lo regional y global; el valor está en la zona de una caminata.
-- Sugerido: imágenes desde el suelo (fotos de rovers) para que el astronauta sepa qué verá al llegar.
-- Sugerido: partir de un objetivo científico concreto y un lugar con muchos datos.
+- At least three data types (optical, thermal, spectral, topographic, atmospheric, radiation...).
+- Safety first: radiation and space weather, mobility with a suit and load, avoiding large obstacles.
+- A route that shows where to walk to meet science goals.
+- Hyperlocal scale: Mars Trek already covers the regional and global; the value is in the area of one walk.
+- Suggested: ground images (rover photos) so the astronaut knows what they will see on arrival.
+- Suggested: start from a concrete science goal and a data-rich place.
 
-## Decisiones tomadas (no reabrir sin preguntar al equipo)
+## Decisions made (do not reopen without asking the team)
 
-- **Pregunta central:** qué ruta de EVA a pie maximiza el valor científico sin romper límites de
-  pendiente, autonomía del traje, dosis de radiación y regreso a la base. Problema multiobjetivo.
-  Los modos Segura, Rápida y Científica son pesos distintos sobre la misma función de costo.
-- **Región de demo:** cráter Jezero (18.4° N, 77.5° E). Gale como segunda región en `regions.yaml`.
-  La arquitectura es genérica por región.
-- **Escenario:** EVA a pie, ida y vuelta, en pareja, desde un nodo base fijo (hábitat o rover
-  presurizado estacionado). Modo con rover de apoyo: opcional.
-- **Objetivo científico de la demo:** carbonatos del delta de Jezero y búsqueda de biofirmas, con
-  puntos de interés con nombre.
-- **Resolución:** región con DTM de CTX (~20 m). Zona de caminata con DTM de HiRISE reducido a 2 a 4 m
-  por celda. No hay datos orbitales de 10 cm; ese nivel lo dan las fotos de los rovers.
+- **Central question:** which walking EVA route maximizes science value without breaking the limits of
+  slope, suit autonomy, radiation dose and return to base. A multi-objective problem. The Safe, Fast and
+  Science modes are different weights on the same cost function.
+- **Demo region:** Jezero Crater (18.4° N, 77.5° E). Gale as the second region in `regions.yaml`. The
+  architecture is generic per region.
+- **Scenario:** walking EVA, out and back, in pairs, from a fixed base node (habitat or parked pressurized
+  rover). Mode with a support rover: optional.
+- **Demo science goal:** carbonates of the Jezero delta and the search for biosignatures, with named points
+  of interest.
+- **Resolution:** region with the CTX DTM (~20 m). Walking zone with the HiRISE DTM reduced to 2 to 4 m per
+  cell. There is no 10 cm orbital data; that level comes from rover photos.
 - **Stack:** Next.js + React Three Fiber (frontend), FastAPI + NumPy + scikit-image (API),
-  Python + Rasterio/GDAL (pipeline offline). Despliegue: Vercel, Render o Railway, Cloudflare R2.
-  Sin Unity y sin modelado 3D manual.
-- **Todo lo pesado se precalcula** en el pipeline. La API no hace procesamiento geoespacial: solo
-  combina grillas normalizadas y corre el ruteo. La imagen de la API no necesita GDAL.
-- **El costo se combina en la API**, no en el pipeline, para cambiar modos y pesos sin reprocesar.
-- **Algoritmo:** A*/Dijkstra sobre grilla con `skimage.graph.MCP_Geometric` (8 vecinos, diagonales con
-  costo geométrico). No migrar a H3, grafos, Contraction Hierarchies ni D* Lite salvo que el recálculo
-  se vuelva lento.
-- **Ruta y tiempo van separados:** la ruta sale del costo; el tiempo y los consumibles, del modelo de
-  caminata (Tobler escalado con traje).
+  Python + Rasterio/GDAL (offline pipeline). Deployment: Vercel, Render or Railway, Cloudflare R2.
+  No Unity and no manual 3D modeling.
+- **Everything heavy is precomputed** in the pipeline. The API does no geospatial processing: it only
+  combines normalized grids and runs the routing. The API image does not need GDAL.
+- **The cost is combined in the API**, not in the pipeline, to change modes and weights without reprocessing.
+- **Algorithm:** least-cost path search (Dijkstra) on the grid with `skimage.graph.MCP_Geometric`
+  (8 neighbors, diagonals with geometric cost). Do not migrate to H3, graphs, Contraction Hierarchies or
+  D* Lite unless recomputing becomes slow.
+- **Route and time are separate:** the route comes from the cost; time and consumables from the walking
+  model (Tobler scaled for the suit).
 
-## Arquitectura
+## Architecture
 
 ```
-Navegador -> apps/web (Next.js + R3F, Vercel) --REST--> apps/api (FastAPI, Render/Railway)
+Browser -> apps/web (Next.js + R3F, Vercel) --REST--> apps/api (FastAPI, Render/Railway)
                  |                                           |
-                 +-- texturas y heightmap --> Cloudflare R2 <-- grillas .npy
+                 +-- textures and heightmap --> Cloudflare R2 <-- .npy grids
                                                   ^
-                     pipeline (Python + Rasterio/GDAL, offline, antes del evento)
+                     pipeline (Python + Rasterio/GDAL, offline, before the event)
                                                   ^
-                                Datos de NASA: PDS, Mars Trek, USGS, SWIM, MMGIS
+                                NASA data: PDS, Mars Trek, USGS, SWIM, MMGIS
 ```
 
-En desarrollo, la API lee `ASSETS_DIR` (disco) y sirve `data/regions` en `/assets`.
-En producción, lee `ASSETS_URL` (R2).
+In development, the API reads `ASSETS_DIR` (disk) and serves `data/regions` at `/assets`.
+In production, it reads `ASSETS_URL` (R2).
 
-## Estructura del repo
+## Repo structure
 
 ```
 apps/api/app/engine/     cost, pathfind, consumables, science, constraints, planner
 apps/api/app/routers/    health, regions, routes
-apps/api/app/schemas/    modelos Pydantic (contrato de la API)
-apps/api/app/storage/    lectura de regiones desde disco o R2, con caché
+apps/api/app/schemas/    Pydantic models (the API contract)
+apps/api/app/storage/    reading regions from disk or R2, with a cache
 apps/api/tests/          conftest, test_engine, test_api
 apps/web/components/scene/  Scene, Globe, CameraRig, RegionTerrain, RoutePath, TraverseOverlay
 apps/web/components/ui/     SitePanel, LayerPanel, RoutePanel, NavPanel
-apps/web/components/debug/  controles Leva
+apps/web/components/debug/  Leva controls
 apps/web/lib/            api, geo, store (Zustand), types, theatre
 pipeline/config/regions.yaml
 pipeline/marsdata/       fetch, process, export, synthetic, publish, run (CLI)
-packages/contracts/      tipos TS generados desde el OpenAPI
-data/raw/                crudos de cada región (sí se versionan: se construye sin descargar)
-data/regions/            salida del pipeline (no se versiona)
-docs/                    arquitectura, reportes, capturas
+packages/contracts/      TS types generated from the OpenAPI
+data/raw/                raw files of each region (versioned: building needs no download)
+data/regions/            pipeline output (not versioned)
+docs/                    architecture, reports, screenshots
 ```
 
 ## Endpoints
 
-| Método | Ruta | Función |
+| Method | Path | Function |
 | --- | --- | --- |
-| GET | `/health` | Estado del servicio (también sirve para despertar el servidor) |
-| GET | `/regions` | Lista de regiones |
-| GET | `/regions/{id}` | Manifest completo de una región |
-| GET | `/regions/{id}/traverse/{rover}` | Recorrido real del rover en GeoJSON |
-| POST | `/routes` | Una ruta en el modo pedido |
-| POST | `/routes/compare` | Las tres rutas y la línea base a la vez |
-| POST | `/routes/safe-return` | Mapa de regreso seguro: minutos de regreso a la base por celda |
+| GET | `/health` | Service status (also used to wake the server) |
+| GET | `/regions` | List of regions |
+| GET | `/regions/{id}` | Full manifest of a region |
+| GET | `/regions/{id}/traverse/{rover}` | The rover's real traverse as GeoJSON |
+| POST | `/routes` | One route in the requested mode |
+| POST | `/routes/compare` | The three routes and the baseline at once |
+| POST | `/routes/safe-return` | Safe-return map: minutes to return to base per cell |
 
-Errores: 404 región inexistente; 422 punto fuera de la región, en pendiente intransitable o sin ruta.
+Errors: 404 nonexistent region; 422 point outside the region, on an impassable slope or no route.
 
-## Modelo de costo y consumibles
+## Cost and consumables model
 
-Costo por celda (`engine/cost.py`):
+Cost per cell (`engine/cost.py`):
 
 ```
-costo = 1 + w_pendiente*penalización_O2(pendiente) + w_riesgo*hazard + w_inestabilidad*(1 - inercia_térmica)
-costo *= (1 - w_ciencia*minerales)      # mínimo 0.1 por celda
-pendiente > máx del traje -> infinito (intransitable)
+cost = 1 + w_slope*O2_penalty(slope) + w_hazard*hazard + w_instability*(1 - thermal_inertia)
+cost *= (1 - w_science*minerals)      # minimum 0.1 per cell
+slope > suit maximum -> infinite (impassable)
 ```
 
-`penalización_O2` (`engine/o2_model.py`, modelo de Edgar) es el O₂ extra de ida y vuelta respecto al
-plano según la curva de Minetti et al. (2002), normalizado a 0 en plano y 1 en la pendiente máxima.
-Sustituyó a `(pendiente/máx)²`: es casi lineal, así que castiga más las pendientes moderadas.
+`O2_penalty` (`engine/o2_model.py`, Edgar's model) is the extra round-trip O₂ relative to flat ground from
+the curve of Minetti et al. (2002), normalized to 0 on flat ground and 1 at the maximum slope. It replaced
+`(slope/max)²`: it is almost linear, so it penalizes moderate slopes more.
 
-| Modo | Pendiente | Riesgo | Inestabilidad | Ciencia |
+| Mode | Slope | Hazard | Instability | Science |
 | --- | --- | --- | --- | --- |
-| Segura | 4.0 | 4.0 | 2.0 | 0 |
-| Rápida | 0.5 | 1.0 | 0.3 | 0 |
-| Científica | 1.5 | 2.0 | 1.0 | 0.8 |
-| Línea base | 0 | 0 | 0 | 0 |
+| Safe | 4.0 | 4.0 | 2.0 | 0 |
+| Fast | 0.5 | 1.0 | 0.3 | 0 |
+| Science | 1.5 | 2.0 | 1.0 | 0.8 |
+| Baseline | 0 | 0 | 0 | 0 |
 
-La línea base (`baseline`) es la ruta de mínima distancia que respeta la pendiente máxima. No es un
-modo para el astronauta: es la referencia de HE2 y HE3 (`vs_baseline` en cada ruta).
+The baseline (`baseline`) is the minimum-distance route that respects the maximum slope. It is not a mode
+for the astronaut: it is the reference for HE2 and HE3 (`vs_baseline` on each route).
 
-Consumibles (`engine/consumables.py`): Tobler escalado a 2 km/h en plano con traje, distancia 3D por
-segmento, duración en horas y soles (1 sol = 24.66 h), O₂ de referencia 0.07 kg/h. Autonomía
-planeable: la autonomía menos la reserva más estricta entre 20 % y 30 min. Trabajo fijo `suit.task_h`
-(0 por defecto) sumado a la duración. Punto de no retorno: primer punto donde lo gastado más el regreso
-supera la autonomía planeable menos el trabajo fijo. O₂ oficial (`o2_interval_kg`): intervalo por
-astronauta con la curva de Minetti entre dos cotas de gravedad, más el trabajo fijo; no cambia la ruta. Paradas: celdas con minerales o hielo > 0.6,
-separadas al menos 15 puntos. Alertas: tramos con más del 80 % de la pendiente máxima, exceso de
-autonomía y distancia a la base mayor que la permitida.
+Consumables (`engine/consumables.py`): Tobler scaled to 2 km/h on flat ground with a suit, 3D distance per
+segment, duration in hours and sols (1 sol = 24.66 h), reference O₂ 0.07 kg/h (lunar scenario; the Mars
+scenario is in `docs/supuestos.md`). Plannable autonomy: the autonomy minus the stricter reserve between
+20 % and 30 min. Fixed work `suit.task_h` (0 by default) added to the duration. Point of no return: first
+point where what was spent plus the return exceeds the plannable autonomy minus the fixed work. Official O₂
+(`o2_interval_kg`): an interval per astronaut with the Minetti curve between two gravity bounds, plus the
+fixed work; it does not change the route. Stops: cells with minerals or ice > 0.6, at least 15 points apart.
+Alerts: segments above 80 % of the maximum slope, exceeded autonomy and distance to base larger than allowed.
 
-## Convenciones obligatorias
+## Mandatory conventions
 
-- **Coordenadas:** planetocéntricas, longitud este, rango -180 a 180 en toda la app. Convertir al
-  ingerir cada producto. Radio de Marte 3,389.5 km. Verificar siempre que el marcador de Jezero caiga
-  sobre el cráter en la textura del globo.
-- **CRS en archivos:** GeoTIFF con el sistema de referencia de Marte de la IAU (PROJ, por ejemplo
-  `IAU_2015:49900`; verificar el código). GeoJSON se usa por convención aunque el estándar asume WGS84:
-  documentar el CRS en el manifest.
-- **Unidades:** metros, grados, horas, kg. Mostrar soles junto a horas.
-- **Procedencia:** toda capa y toda cifra mostrada lleva etiqueta `observed`, `derived` o `modeled`.
-  Todo parámetro numérico del modelo (pendiente máxima, consumo de O₂, tasa de radiación) se documenta
-  con su fuente en `docs/` y en el panel de supuestos de la app.
-- **Manifest de región:** versión semántica del dataset, ID de cada producto de origen, commit del
-  pipeline y checksum por archivo.
-- **Créditos:** cada dato descargado se registra en el archivo de créditos en formato APA 7
-  (`Autor. (Año). Título (ID) [Data set]. Editor. DOI o URL`).
-- **Texto en Windows:** siempre `encoding="utf-8"` al leer o escribir texto. Usar `StrEnum` (Python 3.11+).
+- **Coordinates:** planetocentric, east longitude, range -180 to 180 across the app. Convert when ingesting
+  each product. Mars radius 3,389.5 km. Always check that the Jezero marker falls on the crater in the globe
+  texture.
+- **CRS in files:** GeoTIFF with the IAU Mars reference system (PROJ, for example `IAU_2015:49900`; check the
+  code). GeoJSON is used by convention even though the standard assumes WGS84: document the CRS in the
+  manifest.
+- **Units:** meters, degrees, hours, kg. Show sols next to hours.
+- **Provenance:** every displayed layer and figure carries an `observed`, `derived` or `modeled` label. Every
+  numeric model parameter (maximum slope, O₂ use, radiation rate) is documented with its source in `docs/`
+  and in the app's assumptions panel.
+- **Region manifest:** semantic dataset version, ID of each source product, pipeline commit and checksum per
+  file.
+- **Credits:** every downloaded dataset is recorded in the credits file in APA 7 format
+  (`Author. (Year). Title (ID) [Data set]. Publisher. DOI or URL`).
+- **Language:** new code, comments, API texts and docs in English. Interface texts go in both languages in
+  `apps/web/lib/i18n.ts`; alerts carry `code` and `values` so the web can translate them.
+- **Text on Windows:** always `encoding="utf-8"` when reading or writing text. Use `StrEnum` (Python 3.11+).
 
-## Reglas de trabajo
+## Working rules
 
-- No inventar cifras científicas. Si falta un valor, usar un marcador `[__]`, dejarlo como supuesto
-  explícito y avisar.
-- No agregar procesamiento geoespacial a la API: va al pipeline.
-- Cualquier cambio en pesos o en `synthetic.py` debe mantener la prueba de que los tres modos dan rutas
-  distintas en el escenario de demo.
-- No usar el logo de NASA en la app ni sugerir aval de NASA.
-- `@theatre/studio` es AGPL 3.0: solo en desarrollo, nunca en el build público. `@theatre/core` es Apache 2.0.
-- Leva se oculta por defecto; aparece solo con `?debug` en la URL.
-- Antes de dar por terminado: `pytest`, `ruff check` y `ruff format --check` (API y pipeline);
-  `eslint`, `tsc --noEmit` y `next build` (web).
-- En Git Bash de Windows, evitar scripts largos con heredocs: escribir cada archivo por separado.
+- Do not invent scientific figures. If a value is missing, use a `[__]` marker, leave it as an explicit
+  assumption and say so.
+- Do not add geospatial processing to the API: it goes in the pipeline.
+- Any change to weights or to `synthetic.py` must keep the test that the three modes give different routes in
+  the demo scenario.
+- Do not use the NASA logo in the app or suggest NASA endorsement.
+- `@theatre/studio` is AGPL 3.0: development only, never in the public build. `@theatre/core` is Apache 2.0.
+- Leva is hidden by default; it only shows with `?debug` in the URL.
+- Before calling something done: `pytest`, `ruff check` and `ruff format --check` (API and pipeline);
+  `eslint`, `tsc --noEmit` and `next build` (web).
+- In Git Bash on Windows, avoid long heredoc scripts: write each file separately.
 
-## Problemas ya conocidos (no repetir)
+## Known problems (do not repeat)
 
-- `<Html>` de drei falla con React 19 ("synchronously unmount a root"). Las etiquetas van en paneles
-  HTML fuera del `<Canvas>`.
-- `MeshBasicMaterial` no soporta `displacementMap`: usar `MeshLambertMaterial` para las capas.
-- `OrbitControls` guarda su propio estado: registrarlo con `makeDefault` y sincronizar su objetivo en
-  cada cambio de vista.
-- El navegador lee el heightmap de 16 bits como 8 bits. Con relieve real se ven escalones: pasar a
-  `Float32Array` (`.bin` crudo) o malla glTF.
-- Render y Railway duermen en el plan gratuito: hacer `GET /health` al cargar la página y un ping
-  programado el día del evento.
+- drei's `<Html>` fails with React 19 ("synchronously unmount a root"). Labels go in HTML panels outside the
+  `<Canvas>`.
+- `MeshBasicMaterial` does not support `displacementMap`: use `MeshLambertMaterial` for the layers.
+- `OrbitControls` keeps its own state: register it with `makeDefault` and sync its target on every view
+  change.
+- The browser reads the 16-bit heightmap as 8-bit. With real relief, steps show up: move to a `Float32Array`
+  (raw `.bin`) or a glTF mesh.
+- Render and Railway sleep on the free plan: call `GET /health` when the page loads and schedule a ping on
+  event day.
 
-## Prioridades (en orden)
+## Priorities (in order)
 
-Imprescindible para cumplir el statement:
+Essential to meet the statement:
 
-1. Fijar la convención de coordenadas y validar el marcador de Jezero.
-2. DEM real de Jezero (mosaicos de navegación de Mars 2020 de USGS: DTM de CTX y ortomosaico de HiRISE,
-   ya alineados) e implementar `fetch/sources.py` con productos exactos.
-3. Recorrido real de Perseverance (MMGIS de JPL) a GeoJSON, con elevación muestreada del DEM.
-4. Que los tres modos difieran en la región de demo: puntos de demo fijos, las tres líneas visibles a
-   la vez y la diferencia contra la ruta segura en la tabla.
-5. Dosis de radiación (referencia de Curiosity RAD, ~0.67 mSv/día; verificar) por duración de la EVA,
-   escenario de evento solar y margen de reserva del 20 % en la autonomía.
-6. Etiquetas de procedencia y panel "Supuestos y límites".
-7. Métricas de validación contra Perseverance: distancia, desnivel acumulado, separación media.
+1. Fix the coordinate convention and validate the Jezero marker.
+2. Real Jezero DEM (USGS Mars 2020 navigation mosaics: CTX DTM and HiRISE orthomosaic, already aligned) and
+   implement `fetch/sources.py` with exact products.
+3. Perseverance's real traverse (JPL MMGIS) to GeoJSON, with elevation sampled from the DEM.
+4. Make the three modes differ in the demo region: fixed demo points, the three lines visible at once and
+   the difference against the safe route in the table.
+5. Radiation dose (Curiosity RAD reference, ~0.67 mSv/day; check) by EVA duration, a solar event scenario
+   and a 20 % autonomy reserve.
+6. Provenance labels and an "Assumptions and limits" panel.
+7. Validation metrics against Perseverance: distance, cumulative ascent, mean separation.
 
-Diferenciadores si da tiempo:
+Differentiators if there is time:
 
-8. Zona de caminata con HiRISE (tercer nivel de zoom en la misma escena).
-9. Línea de vista con la base (viewshed desde el DEM) y alerta de comunicación.
-10. Fotos de Navcam o Mastcam-Z de Perseverance por parada (guardar URLs en el manifest, no imágenes).
-11. Bloque `mission` en `regions.yaml`: objetivo, puntos de interés con nombre, tabla de relevancia por
-    mineral. Valor científico = relevancia × novedad × confianza.
-12. Hora de salida: alertas de clima con valores típicos de MEDA por hora local y sombras con el DEM.
-13. Botón "reportar obstáculo": bloquear celdas y recalcular.
-14. Textura MOLA del globo (equirectangular 4096 × 2048, USGS Astropedia) como `map` y `bumpMap`.
-15. Punto de aproximación por objetivo científico: la celda caminable más cercana con pendiente aceptable.
+8. Walking zone with HiRISE (third zoom level in the same scene).
+9. Line of sight to the base (viewshed from the DEM) and a communication alert.
+10. Perseverance Navcam or Mastcam-Z photos per stop (store URLs in the manifest, not images).
+11. A `mission` block in `regions.yaml`: goal, named points of interest, relevance table per mineral.
+    Science value = relevance × novelty × confidence.
+12. Departure time: weather alerts with typical MEDA values per local hour and shadows from the DEM.
+13. A "report obstacle" button: block cells and recompute.
+14. MOLA globe texture (equirectangular 4096 × 2048, USGS Astropedia) as `map` and `bumpMap`.
+15. Approach point per science goal: the nearest walkable cell with an acceptable slope.
 
-Fuera de alcance del hackatón: localización sin GPS, D* Lite, MDP, simulación estocástica,
-exportación a Unreal, Gazebo o ROS, revisión sistemática de literatura.
+Out of scope for the hackathon: GPS-free localization, D* Lite, MDP, stochastic simulation, export to
+Unreal, Gazebo or ROS.
 
-## Datos y fuentes
+## Data and sources
 
-| Capa | Misión e instrumento | Fuente |
+| Layer | Mission and instrument | Source |
 | --- | --- | --- |
-| Elevación global | MGS MOLA | USGS Astropedia, PDS |
-| Elevación local | MRO CTX y HiRISE (DTM) | Productos de Mars 2020 en USGS, PDS, HiRISE |
-| Imagen óptica | MRO HiRISE, CTX | Mars Trek (WMTS), PDS |
-| Inercia térmica | Mars Odyssey THEMIS | Mosaico global |
-| Minerales | MRO CRISM | PDS; si se complica, mapa mineral publicado de Jezero con cita |
-| Hielo subsuperficial | SWIM | Cubre latitudes medias del norte: verificar cobertura en Jezero |
-| Clima | Perseverance MEDA, Curiosity REMS | PDS Atmospheres |
-| Radiación | Curiosity RAD | Hassler et al., 2014 |
-| Recorridos | Perseverance, Curiosity | MMGIS de JPL |
-| Nombres | IAU/USGS | Gazetteer of Planetary Nomenclature |
-| Hora marciana | NASA GISS Mars24 | Algoritmo |
+| Global elevation | MGS MOLA | USGS Astropedia, PDS |
+| Local elevation | MRO CTX and HiRISE (DTM) | Mars 2020 products at USGS, PDS, HiRISE |
+| Optical image | MRO HiRISE, CTX | Mars Trek (WMTS), PDS |
+| Thermal inertia | Mars Odyssey THEMIS | Global mosaic |
+| Minerals | MRO CRISM | PDS; if it gets complicated, a published Jezero mineral map with a citation |
+| Subsurface ice | SWIM | Covers northern mid-latitudes: check coverage in Jezero |
+| Weather | Perseverance MEDA, Curiosity REMS | PDS Atmospheres |
+| Radiation | Curiosity RAD | Hassler et al., 2014 |
+| Traverses | Perseverance, Curiosity | JPL MMGIS |
+| Names | IAU/USGS | Gazetteer of Planetary Nomenclature |
+| Martian time | NASA GISS Mars24 | Algorithm |
 
-## Comandos
+## Commands
 
-Requisitos: Node 22+, Python 3.11+. En Windows `.venv/Scripts/`; en macOS y Linux `.venv/bin/`.
+Requirements: Node 22+, Python 3.11+. On Windows `.venv/Scripts/`; on macOS and Linux `.venv/bin/`.
 
 ```bash
-# Datos de prueba
+# Test data
 cd pipeline && python -m venv .venv && .venv/Scripts/pip install -e ".[dev]" && .venv/Scripts/marsdata synthetic
 
-# API en http://localhost:8000 (docs en /docs)
+# API at http://localhost:8000 (docs at /docs)
 cd apps/api && python -m venv .venv && .venv/Scripts/pip install -e ".[dev]"
 cp .env.example .env && .venv/Scripts/uvicorn app.main:app --reload
 
-# Web en http://localhost:3000
+# Web at http://localhost:3000
 npm install && cp apps/web/.env.example apps/web/.env.local && npm run dev:web
 ```
 
-Comandos del pipeline: `marsdata synthetic | fetch | build | publish`.
+Pipeline commands: `marsdata synthetic | fetch | build | publish`.
 
-## Glosario
+## Glossary
 
-- **EVA / Marswalk:** actividad extravehicular a pie sobre la superficie.
-- **Walkback:** regla de Apollo: no alejarse más de lo que se puede regresar a pie si falla el vehículo.
-  Aquí equivale a la distancia máxima a la base y al punto de no retorno.
-- **Sol:** día marciano, 24.66 h.
-- **DTM/DEM:** modelo digital de elevación.
-- **Grilla de costo:** raster con el costo de cruzar cada celda, insumo del ruteo.
-- **Tau:** opacidad atmosférica por polvo.
+- **EVA / Marswalk:** extravehicular activity on foot on the surface.
+- **Walkback:** Apollo rule: do not go farther than you can walk back if the vehicle fails. Here it equals the
+  maximum distance to base and the point of no return.
+- **Sol:** Martian day, 24.66 h.
+- **DTM/DEM:** digital elevation model.
+- **Cost grid:** raster with the cost of crossing each cell, the input to routing.
+- **Tau:** atmospheric opacity due to dust.
 
-## Preguntas abiertas
+## Open questions
 
-- Valores reales de autonomía del traje, pendiente máxima caminable y consumo de O₂ (fuentes abiertas).
-- Código exacto del CRS de Marte en PROJ que usará el pipeline.
-- Cobertura de SWIM en Jezero.
-- Criterios de evaluación y requisitos de entrega (guías publicadas el 13 de noviembre), incluida la
-  declaración de uso de IA.
+- Real values of suit autonomy, maximum walkable slope and O₂ use (open sources).
+- Exact Mars CRS code in PROJ that the pipeline will use.
+- SWIM coverage in Jezero.
+- Judging criteria and submission requirements (guidelines published on 13 November), including the AI use
+  statement.

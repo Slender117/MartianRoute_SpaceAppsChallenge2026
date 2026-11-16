@@ -1,10 +1,12 @@
 # @wazemars/contracts
 
-Tipos TypeScript generados desde el OpenAPI de FastAPI (fuente de verdad: los esquemas Pydantic en `apps/api/app/schemas`).
+TypeScript types generated from FastAPI's OpenAPI (source of truth: the Pydantic schemas in `apps/api/app/schemas`).
 
 ```bash
-# con la API corriendo en :8000
+# with the API running on :8000
 npm run contracts
 ```
 
-Mientras no se genere `src/api.d.ts`, la web usa los tipos escritos a mano en `apps/web/lib/types.ts`; reemplázalos por los generados cuando estén listos.
+Without a running API, the OpenAPI can also be written from Python (`create_app().openapi()` in
+`apps/api`) and passed to `openapi-typescript` as a file. Until the web switches to `src/api.d.ts`, it uses the
+hand-written types in `apps/web/lib/types.ts`; replace them with the generated ones when they are ready.

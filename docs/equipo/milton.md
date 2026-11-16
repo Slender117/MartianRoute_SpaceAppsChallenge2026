@@ -1,44 +1,43 @@
-# Milton · Componentes de interfaz
+# Milton · Interface components
 
-**Objetivo:** apoya OE4.
-**Hitos:** participa en H3. **Respaldo:** Miguel, que guía y revisa cada componente.
+**Objective:** supports OE4.
+**Milestones:** takes part in H3. **Backup:** Miguel, who guides and reviews each component.
 
-## Alcance
+## Scope
 
-Construir los componentes de la interfaz que muestran qué ruta conviene, cuánto O₂ gasta y de dónde
-sale cada número. Cada componente entra por PR revisado por Miguel.
+Build the interface components that show which route is best, how much O₂ it uses and where each number
+comes from. Each component comes in through a PR reviewed by Miguel.
 
-## Carpetas
+## Folders
 
-- `apps/web/components/ui/` (`RoutePanel`, `LayerPanel`, `NavPanel`, `SitePanel`, y los nuevos)
+- `apps/web/components/ui/` (`RoutePanel`, `LayerPanel`, `NavPanel`, `SitePanel`, and the new ones)
 
-## Tareas
+## Tasks
 
-- [ ] Componente de la tabla comparativa: O₂ como intervalo, tiempo, riesgo y diferencia contra la
-      línea base (H3)
-- [ ] Componente del panel "Supuestos y límites" con etiquetas de procedencia (H3)
-- [ ] Interruptor y leyenda del mapa de regreso seguro (H3)
-- [ ] Puntos de demo precargados en la interfaz (H4)
-- [ ] Aplicar con Williams la prueba de HE4 (H4)
+- [ ] Comparison table component: O₂ as an interval, time, risk and difference against the baseline (H3)
+- [ ] "Assumptions and limits" panel component with provenance labels (H3)
+- [ ] Safe-return map toggle and legend (H3)
+- [ ] Demo points preloaded in the interface (H4)
+- [ ] Run the HE4 test with Williams (H4)
 
-## Por día
+## Per day
 
-| 13 nov | 14 nov | 15 nov |
+| 13 Nov | 14 Nov | 15 Nov |
 | --- | --- | --- |
-| Componentes de tabla y panel con datos simulados | Conectar los componentes a la API real y cargar los puntos de demo | Pulir textos y estados de carga |
+| Table and panel components with mock data | Connect the components to the real API and load the demo points | Polish texts and loading states |
 
-## Recibe y entrega
+## Receives and delivers
 
-- **Recibe** de Miguel: contrato de la API (`schemas/` y `packages/contracts`) y revisión de PR. De
-  Miguel y Edgar: los puntos de demo.
-- **Entrega** a Miguel: componentes listos para integrar.
+- **Receives** from Miguel: the API contract (`schemas/` and `packages/contracts`) and PR review. From Miguel
+  and Edgar: the demo points.
+- **Delivers** to Miguel: components ready to integrate.
 
-## Reglas de la interfaz
+## Interface rules
 
-- Texto en español; unidades en metros, grados, horas (con soles) y kg.
-- Toda cifra con etiqueta `observed`, `derived` o `modeled`; los `[__]` se muestran como supuestos.
+- Texts in English and Spanish (`apps/web/lib/i18n.ts`); units in meters, degrees, hours (with sols) and kg.
+- Every figure with an `observed`, `derived` or `modeled` label; `[__]` values are shown as assumptions.
 
-## Fuera de alcance
+## Out of scope
 
-- Lógica de ruteo o de consumibles en el navegador: viene de la API.
-- Escena 3D (`components/scene/`), que es de Tulio.
+- Routing or consumables logic in the browser: it comes from the API.
+- The 3D scene (`components/scene/`), which is Tulio's.

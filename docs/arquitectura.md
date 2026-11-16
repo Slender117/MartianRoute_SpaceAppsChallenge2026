@@ -1,65 +1,66 @@
-# Arquitectura
+# Architecture
 
-## Flujo de una ruta
+## Flow of a route
 
-1. El explorador elige inicio, destino y modo en la web (clic sobre el terreno).
-2. Next.js manda `POST /routes/compare` a la API.
-3. FastAPI carga (y cachea) las grillas de la región desde disco o R2.
-4. `engine/cost.py` combina las capas con los pesos del modo; `engine/pathfind.py` corre A* (MCP de scikit-image).
-5. `engine/planner.py` calcula la EVA completa (ida, y regreso por el mismo camino): tiempo, O₂ (cifra por tiempo e
-   intervalo por pendiente), dosis, punto de no retorno, paradas, alertas, y la diferencia contra la ruta segura y
-   contra la línea base.
-6. La web dibuja las tres rutas y la línea base sobre el terreno, la tabla comparativa y el detalle de la activa.
+1. The explorer picks start, destination and mode on the web (click on the terrain).
+2. Next.js sends `POST /routes/compare` to the API.
+3. FastAPI loads (and caches) the region grids from disk or R2.
+4. `engine/cost.py` combines the layers with the mode weights; `engine/pathfind.py` runs a least-cost path
+   search (Dijkstra, scikit-image's `MCP_Geometric`).
+5. `engine/planner.py` computes the whole EVA (out, and back along the same path): time, O₂ (a figure by time
+   and an interval by slope), dose, point of no return, stops, alerts, and the difference against the safe
+   route and against the baseline.
+6. The web draws the three routes and the baseline on the terrain, the comparison table and the detail of
+   the active one.
 
-Todo lo pesado (reproyección, pendientes, normalización, texturas) se hace **offline** en el pipeline.
+Everything heavy (reprojection, slopes, normalization, textures) is done **offline** in the pipeline.
 
-## Formato de una región
+## Region format
 
 ```
-data/regions/                      (en producción: R2, prefijo regions/)
+data/regions/                      (in production: R2, prefix regions/)
 ├── index.json                     {"regions": ["jezero", ...]}
 └── jezero/
-    ├── manifest.json              ver abajo
-    ├── dem.npy                    float32, metros
-    ├── slope.npy                  float32, grados
+    ├── manifest.json              see below
+    ├── dem.npy                    float32, meters
+    ├── slope.npy                  float32, degrees
     ├── layers/{hazard,thermal_inertia,ice,minerals}.npy   float32 0–1
-    ├── heightmap.png              16 bits, DEM normalizado (terreno 3D)
-    ├── textures/<capa>.png        RGBA, overlays
-    └── traverses/<rover>.geojson  recorrido real
+    ├── heightmap.png              16-bit, normalized DEM (3D terrain)
+    ├── textures/<layer>.png       RGBA, overlays
+    └── traverses/<rover>.geojson  real traverse
 ```
 
-Convenciones: grilla equirectangular sobre el bbox, fila 0 = latitud máxima, columna 0 = longitud mínima,
-longitudes este-positivas de -180 a 180. Todas las capas comparten shape.
+Conventions: equirectangular grid over the bbox, row 0 = maximum latitude, column 0 = minimum longitude,
+east-positive longitudes from -180 to 180. All layers share the same shape.
 
-El manifest trae `bbox`, `shape`, `resolution_m`, `elevation_range`, `base`, `layers` y `traverses`, más:
+The manifest has `bbox`, `shape`, `resolution_m`, `elevation_range`, `base`, `layers` and `traverses`, plus:
 
-| Campo | Contenido |
+| Field | Content |
 |---|---|
-| `dataset_version` | versión semántica del dataset (`regions.yaml`) |
-| `pipeline_commit` | commit del pipeline; `null` si la carpeta no está en un repositorio |
-| `crs` | CRS de grillas y recorridos, como cadena PROJ |
-| `synthetic` | `true` si los datos son de prueba |
-| `layer_meta` | por capa, `provenance` (`observed`, `derived`, `modeled`) y `source` (ID del producto) |
-| `checksums` | SHA-256 por archivo; la API los comprueba al leer y responde 503 si no coinciden |
-| `demo` | puntos del escenario de demo, si la región tiene uno |
+| `dataset_version` | semantic version of the dataset (`regions.yaml`) |
+| `pipeline_commit` | pipeline commit; `null` if the folder is not in a repository |
+| `crs` | CRS of grids and traverses, as a PROJ string |
+| `synthetic` | `true` if the data is test data |
+| `layer_meta` | per layer, `provenance` (`observed`, `derived`, `modeled`) and `source` (product ID) |
+| `checksums` | SHA-256 per file; the API checks them on read and answers 503 if they do not match |
+| `demo` | demo scenario points, if the region has one |
 
-| Capa | Fuente | Significado de 1.0 |
+| Layer | Source | Meaning of 1.0 |
 |---|---|---|
-| hazard | HiRISE / CTX | muchos obstáculos |
-| thermal_inertia | THEMIS | roca firme (0 = arena suelta) |
-| ice | SWIM | hielo somero probable |
-| minerals | CRISM | alto valor científico |
+| hazard | HiRISE / CTX | many obstacles |
+| thermal_inertia | THEMIS | firm rock (0 = loose sand) |
+| ice | SWIM | probable shallow ice |
+| minerals | CRISM | high science value |
 
-## Contrato propuesto para los datos reales (pendiente de acordar)
+## Proposed contract for the real data (to be agreed)
 
-Propuesta de Tulio (pipeline) para Miguel (esquemas) y la escena 3D, del 13 de noviembre. Todo es
-**aditivo y opcional**: cada campo nuevo tiene un valor por defecto, así que la API y la web actuales siguen
-funcionando mientras cada uno lo adopta. Los valores de los ejemplos son ilustrativos; `[__]` marca lo que
-falta definir.
+Proposal from Tulio (pipeline) to Miguel (schemas) and the 3D scene, from 13 November. Everything is
+**additive and optional**: each new field has a default value, so the current API and web keep working while
+each one adopts it. The example values are illustrative; `[__]` marks what is still to be defined.
 
-### Archivos del terreno 3D
+### 3D terrain files
 
-Bloque `assets` en el manifest:
+`assets` block in the manifest:
 
 ```json
 "assets": {
@@ -67,24 +68,24 @@ Bloque `assets` en el manifest:
                  "shape": [600, 600], "row0": "north" },
   "normal_map": { "path": "textures/normal.png", "space": "object", "exaggeration": "[__]" },
   "ortho": { "path": "textures/ortho.jpg", "size": [2400, 2400],
-             "provenance": "observed", "source": "[__] ID del ortomosaico de CTX" }
+             "provenance": "observed", "source": "[__] CTX orthomosaic ID" }
 }
 ```
 
-- `heightmap.bin`: alturas en metros sin normalizar; el rango está en `elevation_range`.
-- `exaggeration`: la exageración vertical con la que se calculó el normal map. La escena la usa como valor
-  predeterminado, porque si no coincide con la malla la luz sale mal. La fija la escena 3D.
-- `heightmap.png` se queda hasta que la escena cargue el `.bin`; después se elimina.
+- `heightmap.bin`: heights in meters, not normalized; the range is in `elevation_range`.
+- `exaggeration`: the vertical exaggeration the normal map was computed with. The scene uses it as the
+  default, because if it does not match the mesh the lighting comes out wrong. The 3D scene sets it.
+- `heightmap.png` stays until the scene loads the `.bin`; then it is removed.
 
-### Calidad por capa (HE1)
+### Quality per layer (HE1)
 
-Tres campos nuevos en cada entrada de `layer_meta`:
+Three new fields in each `layer_meta` entry:
 
-| Campo | Contenido |
+| Field | Content |
 |---|---|
-| `coverage` | fracción de celdas con dato antes de rellenar huecos (0 a 1) |
-| `registration_cells` | desplazamiento medido contra la ortofoto, en celdas; `null` si no se midió |
-| `native_resolution_m` | resolución del producto de origen, en metros |
+| `coverage` | fraction of cells with data before filling gaps (0 to 1) |
+| `registration_cells` | offset measured against the orthophoto, in cells; `null` if not measured |
+| `native_resolution_m` | resolution of the source product, in meters |
 
 ```json
 "hazard": { "provenance": "modeled",
@@ -92,170 +93,187 @@ Tres campos nuevos en cada entrada de `layer_meta`:
             "coverage": 0.97, "registration_cells": 0.6, "native_resolution_m": "[__]" }
 ```
 
-Con esto, el reporte de HE1 (corregistro de 1 celda o menos y al menos 95 % con dato) sale del manifest.
+With this, the HE1 report (registration of 1 cell or less and at least 95 % with data) comes from the
+manifest.
 
-### Huecos del DEM
+### DEM gaps
 
-`"masks": { "no_data": "layers/no_data.npy" }`: `uint8` con la forma de la grilla, 1 donde el DEM original
-no tenía dato. El DEM se rellena por interpolación solo para que la malla sea continua, y la API trata esas
-celdas como intransitables, igual que la pendiente excesiva. Así no se mezcla "sin dato" con "peligroso".
+`"masks": { "no_data": "layers/no_data.npy" }`: `uint8` with the grid shape, 1 where the original DEM had no
+data. The DEM is filled by interpolation only so the mesh is continuous, and the API treats those cells as
+impassable, like an excessive slope. That way "no data" is not mixed with "dangerous".
 
-### Fracción intransitable
+### Impassable fraction
 
-`layers/impassable_fraction.npy`, float32 de 0 a 1: la parte de cada celda cubierta por ondulaciones grandes
-de NOAH-H, que Barrett et al. (2022) consideran nunca transitables. `hazard` es un promedio por celda y no
-basta: una celda con 40 % de ondulaciones grandes quedaría caminable. La API bloquea la celda si supera un
-umbral (`[__]`, sin fuente todavía). Hay que agregarla a `OPTIONAL_LAYERS`; si falta, vale 0 y no bloquea nada.
+`layers/impassable_fraction.npy`, float32 from 0 to 1: the part of each cell covered by NOAH-H large ripples,
+which Barrett et al. (2022) consider never traversable. `hazard` is a per-cell average and is not enough: a
+cell with 40 % large ripples would stay walkable. The API blocks the cell if it exceeds a threshold (`[__]`,
+no source yet). It has to be added to `OPTIONAL_LAYERS`; if it is missing, it is 0 and blocks nothing.
 
-### Pendiente
+### Slope
 
-`slope.npy` cambia de significado: pasa a ser el percentil 90 de la pendiente calculada sobre el DEM de
-20 m dentro de cada celda, en vez de la pendiente del DEM ya reducido, que la suaviza y hace permisivo el
-límite de 20°. Se documenta con `"slope_method": "p90_native_20m"`. Con datos reales se espera que más
-celdas queden bloqueadas.
+`slope.npy` changes meaning: it becomes the 90th percentile of the slope computed on the 20 m DEM inside each
+cell, instead of the slope of the already reduced DEM, which smooths it and makes the 20° limit permissive.
+It is documented with `"slope_method": "p90_native_20m"`. With real data more cells are expected to be
+blocked.
 
-### Tamaño de celda
+### Cell size
 
-`"cell_size_m": [norte_sur, este_oeste]`, por ejemplo `[28.6, 26.7]` en Jezero. La API ya corrige el lado
-este-oeste por su cuenta; esto es para el normal map y las proporciones de la escena.
+`"cell_size_m": [north_south, east_west]`, for example `[28.6, 26.7]` in Jezero. The API already corrects the
+east-west side on its own; this is for the normal map and the scene proportions.
 
-### Recorridos
+### Traverses
 
-- `traverses/<rover>.geojson` sigue siendo un `LineString`, con coordenadas `[lon, lat, elev_m]` (elevación
-  de `dem.npy`) y, en `properties`, `sol_range: [min, max]` y `elevation_source: "dem.npy"`. La API ya lee
-  solo los dos primeros valores; en la web, `types.ts` pasa a `[number, number, number?][]` y
-  `TraverseOverlay` usa la elevación en vez de dibujar a la altura máxima.
-- `traverses/<rover>_sols.geojson`: `FeatureCollection` con un tramo por sol (`properties.sol`), para la
-  validación de Edgar. No entra al endpoint.
+- `traverses/<rover>.geojson` is still a `LineString`, with `[lon, lat, elev_m]` coordinates (elevation from
+  `dem.npy`) and, in `properties`, `sol_range: [min, max]` and `elevation_source: "dem.npy"`. The API already
+  reads only the first two values; on the web, `types.ts` becomes `[number, number, number?][]` and
+  `TraverseOverlay` uses the elevation instead of drawing at the maximum height.
+- `traverses/<rover>_sols.geojson`: a `FeatureCollection` with one segment per sol (`properties.sol`), for
+  Edgar's validation. It does not go to the endpoint.
 
-### Créditos
+### Credits
 
-`"credits": ["Autor. (Año). Título (ID) [Data set]. Editor. DOI o URL"]`: la lista en APA 7 de los productos
-de la región, para que el panel de supuestos la muestre.
+`"credits": ["Author. (Year). Title (ID) [Data set]. Publisher. DOI or URL"]`: the APA 7 list of the region's
+products, so the assumptions panel can show it.
 
-### Decisiones abiertas
+### Open decisions
 
-| Tema | Propuesta | Alternativa | Deciden |
+| Topic | Proposal | Alternative | Who decides |
 |---|---|---|---|
-| Huecos del DEM | máscara `no_data` | rellenar y marcar `hazard = 1` | Miguel y Tulio |
-| Umbral de `impassable_fraction` | constante en la API con `[__]` | parámetro en `SuitLimits` | Miguel y Edgar |
-| `slope_method` | percentil 90 | máximo (más estricto, puede cerrar pasos estrechos) | Miguel y Edgar |
-| Retiro de `heightmap.png` | cuando la escena cargue el `.bin` | | Tulio |
-| `exaggeration` y sombreado | normal map con valor fijo | sombreado plano | Tulio |
+| DEM gaps | `no_data` mask | fill and mark `hazard = 1` | Miguel and Tulio |
+| `impassable_fraction` threshold | constant in the API with `[__]` | parameter in `SuitLimits` | Miguel and Edgar |
+| `slope_method` | 90th percentile | maximum (stricter, may close narrow passes) | Miguel and Edgar |
+| Removing `heightmap.png` | when the scene loads the `.bin` | | Tulio |
+| `exaggeration` and shading | normal map with a fixed value | flat shading | Tulio |
 
-Orden: Miguel agrega los campos opcionales a `schemas/region.py`, `lib/types.ts` y `OPTIONAL_LAYERS`; el
-pipeline los genera primero en `marsdata synthetic` para que la web los pruebe, y después con datos reales
-en `marsdata build`.
+Order: Miguel adds the optional fields to `schemas/region.py`, `lib/types.ts` and `OPTIONAL_LAYERS`; the
+pipeline generates them first in `marsdata synthetic` so the web can test them, and then with real data in
+`marsdata build`.
 
 ## API
 
-| Método | Ruta | Descripción |
+| Method | Path | Description |
 |---|---|---|
-| GET | `/health` | estado |
-| GET | `/regions` | lista resumida |
+| GET | `/health` | status |
+| GET | `/regions` | summary list |
 | GET | `/regions/{id}` | manifest |
-| GET | `/regions/{id}/traverse/{rover}` | recorrido real (GeoJSON) |
-| POST | `/routes` | una ruta (`mode`: safe, fast, science o baseline) |
-| POST | `/routes/compare` | los tres modos y la línea base; cada uno con `vs_safe` y `vs_baseline` |
-| POST | `/routes/validate` | métricas de los tres modos y la línea base contra el recorrido de un rover |
-| POST | `/routes/safe-return` | mapa de regreso seguro: minutos de regreso a la base desde cada celda |
-| GET | `/assumptions` | parámetros del modelo con su fuente, y límites conocidos |
-| GET | `/live?region=` | Marte hoy: llegadas de eyecciones solares a Marte (DONKI), posición de Perseverance (MMGIS) y sus últimas imágenes |
-| GET | `/assets/...` | solo en desarrollo: sirve `data/regions` |
+| GET | `/regions/{id}/traverse/{rover}` | real traverse (GeoJSON) |
+| POST | `/routes` | one route (`mode`: safe, fast, science or baseline) |
+| POST | `/routes/compare` | the three modes and the baseline; each with `vs_safe` and `vs_baseline` |
+| POST | `/routes/validate` | metrics of the three modes and the baseline against a rover's traverse |
+| POST | `/routes/safe-return` | safe-return map: minutes to walk back to base from each cell |
+| GET | `/assumptions` | model parameters with their source, and known limits (English by default, `?lang=es` for Spanish) |
+| GET | `/live?region=` | Mars today: solar ejection arrivals at Mars (DONKI), Perseverance's position (MMGIS) and its latest images |
+| GET | `/assets/...` | development only: serves `data/regions` |
 
-Errores, siempre con el motivo en `detail`:
+Errors, always with the reason in `detail` (in English):
 
-| Código | Cuándo |
+| Code | When |
 |---|---|
-| 404 | región o recorrido inexistente |
-| 422 | punto fuera de la región o de la convención de longitud, pendiente intransitable, inicio igual a destino, sin ruta |
-| 503 | datos ausentes o inconsistentes: falta un archivo, no coincide el checksum o el tamaño de la grilla, manifest inválido |
+| 404 | region or traverse does not exist |
+| 422 | point outside the region or the longitude convention, impassable slope, start equal to destination, no route |
+| 503 | missing or inconsistent data: a file is missing, the checksum or grid size does not match, invalid manifest |
 
-Esquemas: `apps/api/app/schemas/`. Con la API corriendo, `npm run contracts` genera los tipos TS.
+Schemas: `apps/api/app/schemas/`. With the API running, `npm run contracts` generates the TS types.
 
-## Datos en vivo de NASA (`/live`)
+## Language
 
-`apps/api/app/live/` consulta tres fuentes públicas de NASA mientras corre la API:
+The API texts are in English. Alerts also carry `code` and `values`, so the web builds their text in English or
+Spanish without asking the API again; `/assumptions` serves both languages. The web opens in English and the
+ES / EN buttons switch the language (`apps/web/lib/i18n.ts`). Data names that come from the regions (labels,
+terrain classes) are translated both ways by the web, so older Spanish data and newer English data both work.
 
-| Fuente | Qué da | Etiqueta |
+## Live NASA data (`/live`)
+
+`apps/api/app/live/` queries three public NASA sources while the API runs:
+
+| Source | What it gives | Label |
 |---|---|---|
-| DONKI del CCMC (`api.nasa.gov/DONKI/WSAEnlilSimulations`, últimos 30 días) | Llegadas previstas a Marte de eyecciones de masa coronal; de cada eyección queda la simulación más nueva | modeled |
-| MMGIS de JPL (`M20_waypoints.json`) | Último punto localizado de Perseverance: sol, site/drive, lat/lon, odometría | observed |
-| Imágenes crudas de Perseverance (`mars.nasa.gov/rss/api/?feed=raw_images`) | Últimas imágenes, una por cámara | observed |
+| CCMC's DONKI (`api.nasa.gov/DONKI/WSAEnlilSimulations`, last 30 days) | Forecast arrivals at Mars of coronal mass ejections; for each ejection the newest simulation is kept | modeled |
+| JPL's MMGIS (`M20_waypoints.json`) | Perseverance's last located point: sol, site/drive, lat/lon, odometry | observed |
+| Perseverance raw images (`mars.nasa.gov/rss/api/?feed=raw_images`) | Latest images, one per camera | observed |
 
-- Cada fuente se pide como mucho una vez cada 30 min. Si NASA no responde, se usa la última respuesta buena de
-  esa ejecución y, si no hay, la copia de `apps/api/app/live/snapshot.json`. Cada bloque trae `status` (`live` o
-  `snapshot`), `fetched_at` y `error`, para que la interfaz diga de cuándo es el dato.
-- `python -m app.live` (desde `apps/api`, con internet) actualiza la copia antes de una demo sin red.
-- `NASA_API_KEY` en `apps/api/.env`: llave gratuita de api.nasa.gov. `DEMO_KEY` sirve para probar, pero
-  se agota con pocas consultas por hora. `LIVE_DATA=false` usa solo la copia.
-- La alerta solar se enciende desde 72 h antes hasta 48 h después de una llegada prevista a Marte, y solo
-  propone activar el escenario de evento solar (`solar_event`). Las pruebas simulan a NASA y no salen a internet.
-- Se descartaron: el clima de Perseverance (`feed=weather&category=mars2020`) dejó de actualizarse en abril de
-  2024, el de Curiosity es de Gale y va meses atrasado, y la API Mars Rover Photos está retirada.
+- Each source is requested at most once every 30 min. If NASA does not answer, the last good response of that
+  run is used and, if there is none, the copy in `apps/api/app/live/snapshot.json`. Each block has `status`
+  (`live` or `snapshot`), `fetched_at` and `error`, so the interface says when the data is from.
+- `python -m app.live` (from `apps/api`, with internet) refreshes the copy before an offline demo.
+- `NASA_API_KEY` in `apps/api/.env`: free key from api.nasa.gov. `DEMO_KEY` works for testing, but runs out
+  after a few requests per hour. `LIVE_DATA=false` uses only the copy.
+- The solar alert turns on from 72 h before to 48 h after a forecast arrival at Mars, and only suggests turning
+  on the solar event scenario (`solar_event`). The tests simulate NASA and never go to the internet.
+- Discarded: Perseverance's weather (`feed=weather&category=mars2020`) stopped updating in April 2024,
+  Curiosity's is from Gale and months behind, and the Mars Rover Photos API is retired.
 
-## La EVA en la respuesta
+## The EVA in the response
 
-`POST /routes` y `/routes/compare` describen la EVA completa, en pareja, desde el nodo base y de regreso:
+`POST /routes` and `/routes/compare` describe the whole EVA, in pairs, from the base node and back:
 
-- `start` es el nodo base. Si falta, se usa la `base` de la región.
-- `path` es la ida. `distance_km` y `duration_h` cuentan ida y vuelta; `outbound_km`, `outbound_h` y `return_h`
-  dan el desglose. Subir de vuelta lo que se bajó de ida tarda más, así que ida y regreso no siempre duran igual.
-- `usable_autonomy_h` es la autonomía planeable: la autonomía menos la reserva más estricta entre 20 % y 30 min
-  (con 8 h manda el 20 %). `margin_h` es lo que sobra de esa autonomía.
-- `duration_h` suma el trabajo fijo `suit.task_h` (paradas y muestreo en el destino; 0 por defecto, sin fuente).
-- `point_of_no_return` es el primer punto de la ida donde el tiempo gastado más el regreso real supera la autonomía
-  planeable menos el trabajo fijo. `point_of_no_return_km` dice a qué kilómetro de la ida cae. En plano coincide con
-  la mitad de ese presupuesto.
-- `o2_interval_kg` es la cifra oficial de O₂: la caminata con la curva de Minetti, como intervalo `low_kg`–`high_kg`
-  por astronauta, más el trabajo fijo a la tasa por hora. `o2_estimate_kg` (tasa × duración) queda solo como
-  referencia y no se muestra en la interfaz.
-- `radiation_msv` es la dosis equivalente de fondo durante la EVA. Con `solar_event: true`, `solar_event_mgy` trae la
-  dosis absorbida del peor evento observado y aparece una alerta con el tiempo de regreso; los mGy no se suman a los mSv.
-- `feasible` es falso si alguna alerta tiene `severity: critical`: consumir la reserva, alejarse más de lo permitido o
-  pasar el límite de dosis (`max_dose_msv`, sin valor por defecto).
-- `provenance` etiqueta cada cifra y `synthetic_data` avisa si la región es de prueba.
+- `start` is the base node. If it is missing, the region's `base` is used.
+- `path` is the way out. `distance_km` and `duration_h` count out and back; `outbound_km`, `outbound_h` and
+  `return_h` give the breakdown. Climbing back up what was walked down takes longer, so out and back do not
+  always take the same time.
+- `usable_autonomy_h` is the plannable autonomy: the autonomy minus the stricter reserve between 20 % and
+  30 min (with 8 h the 20 % rules). `margin_h` is what is left of that autonomy.
+- `duration_h` adds the fixed work `suit.task_h` (stops and sampling at the destination; 0 by default, no
+  source).
+- `point_of_no_return` is the first outbound point where the time spent plus the real return exceeds the
+  plannable autonomy minus the fixed work. `point_of_no_return_km` says at which outbound kilometer it falls.
+  On flat ground it matches half of that budget.
+- `o2_interval_kg` is the official O₂ figure: the walk with the Minetti curve, as a `low_kg`–`high_kg`
+  interval per astronaut, plus the fixed work at the hourly rate. `o2_estimate_kg` (rate × duration) stays
+  only as a reference and is not shown in the interface.
+- `radiation_msv` is the background dose equivalent during the EVA. With `solar_event: true`,
+  `solar_event_mgy` carries the absorbed dose of the worst observed event and an alert appears with the return
+  time; mGy are not added to mSv.
+- `feasible` is false if any alert has `severity: critical`: using the reserve, going farther than allowed or
+  exceeding the dose limit (`max_dose_msv`, no default).
+- `provenance` labels each figure and `synthetic_data` warns if the region is test data.
 
-Los valores y sus fuentes están en [supuestos.md](supuestos.md).
+The values and their sources are in [supuestos.md](supuestos.md).
 
-## Validación contra el rover
+## Validation against the rover
 
-`POST /routes/validate` traza las tres rutas entre el primer y el último punto del recorrido real dentro de la región,
-y reporta distancia, desnivel acumulado, proporción de distancias y separación media y máxima. El rover y las rutas se
-miden igual, de celda en celda sobre el mismo DEM. Con `synthetic_data: true` el recorrido también es de prueba: esas
-cifras sirven para probar el cálculo y no validan nada.
+`POST /routes/validate` draws the three routes between the first and last point of the real traverse inside
+the region, and reports distance, cumulative ascent, distance ratio and mean and maximum separation. The rover
+and the routes are measured the same way, cell by cell on the same DEM. With `synthetic_data: true` the
+traverse is also test data: those figures test the calculation and validate nothing.
 
-## Modos
+The pre-registered HE3 test (`science/validation/he3.py`) uses the same engine on real Jezero; its result is
+in `science/validation/he3_resultados.md`.
 
-Costo por celda = `1 + w_slope·penalización_O2(pendiente) + w_hazard·hazard + w_inst·(1 − inercia)`, multiplicado
-por `(1 − w_sci·minerals)`. Las celdas con pendiente mayor a la máxima son intransitables. Los pesos están en
+## Modes
+
+Cost per cell = `1 + w_slope·O2_penalty(slope) + w_hazard·hazard + w_inst·(1 − inertia)`, multiplied by
+`(1 − w_sci·minerals)`. Cells with a slope above the maximum are impassable. The weights are in
 `apps/api/app/engine/cost.py`.
 
-`penalización_O2` sale de `apps/api/app/engine/o2_model.py` (modelo de Edgar, `science/model/eva_cost.py`): el O₂
-extra de ida y vuelta respecto al plano según Minetti et al. (2002), normalizado a 0 en plano y 1 en la pendiente
-máxima. La gravedad se cancela en esa normalización, así que solo cambia el O₂ reportado, no la ruta.
+`O2_penalty` comes from `apps/api/app/engine/o2_model.py` (Edgar's model, `science/model/eva_cost.py`): the
+extra round-trip O₂ relative to flat ground according to Minetti et al. (2002), normalized to 0 on flat ground
+and 1 at the maximum slope. Gravity cancels in that normalization, so it only changes the reported O₂, not the
+route.
 
-La **línea base** (`baseline`) usa todos los pesos en 0: es la ruta de mínima distancia que respeta la pendiente
-máxima. `POST /routes/compare` la devuelve junto a los tres modos, y cada ruta trae `vs_safe` y `vs_baseline`.
+The **baseline** (`baseline`) uses all weights at 0: it is the minimum-distance route that respects the
+maximum slope. `POST /routes/compare` returns it with the three modes, and each route has `vs_safe` and
+`vs_baseline`.
 
-Cada ruta trae `o2_interval_kg` (`low_kg`, `high_kg`): O₂ por astronauta de la EVA completa según la pendiente de
-cada tramo, entre la cota baja (el costo en plano no cambia con la gravedad) y la alta (cambia en proporción).
+Each route has `o2_interval_kg` (`low_kg`, `high_kg`): O₂ per astronaut for the whole EVA according to the
+slope of each segment, between the low bound (flat-ground cost does not change with gravity) and the high one
+(it changes in proportion).
 
-## Mapa de regreso seguro
+## Safe-return map
 
-`POST /routes/safe-return` corre un solo Dijkstra desde la base (`MCP_Geometric.find_costs`) sobre el tiempo por
-metro de cada celda y devuelve los minutos de regreso a pie desde todas las celdas (uint16 en base64, fila norte
-primero; 65535 = sin regreso). Para que el costo sea simétrico, cada celda usa la más lenta entre subir y bajar su
-pendiente: el tiempo es una cota pesimista. Trae dos umbrales para colorear el mapa: `planned_limit_min` (ida,
-trabajo fijo y regreso dentro de la autonomía planeable) y `total_limit_min` (lo mismo gastando toda la autonomía,
-reserva incluida), y la dosis de fondo de una EVA que usa toda la autonomía planeable. Las tres zonas del mapa son:
-regreso planeable, regreso solo consumiendo la reserva y sin regreso ni con la autonomía total.
+`POST /routes/safe-return` runs a single Dijkstra from the base (`MCP_Geometric.find_costs`) over the time per
+meter of each cell and returns the minutes to walk back from every cell (uint16 in base64, north row first;
+65535 = no return). To make the cost symmetric, each cell uses the slower of climbing and descending its
+slope: the time is a pessimistic bound. It has two thresholds to color the map: `planned_limit_min` (out,
+fixed work and return within the plannable autonomy) and `total_limit_min` (the same using the whole autonomy,
+reserve included), and the background dose of an EVA that uses the whole plannable autonomy. The three map
+zones are: plannable return, return only by using the reserve, and no return even with the full autonomy.
 
-## Pendientes conocidos
+## Known pending work
 
-- `pipeline/marsdata/fetch/sources.py`: descarga real de PDS / Mars Trek / SWIM (hoy solo datos sintéticos).
-- Conversión de recorridos reales de Curiosity y Perseverance a GeoJSON.
-- Textura MOLA del globo y secuencia de Theatre.js para la demo.
-- Alertas de clima (REMS / MEDA).
-- La pendiente del pipeline usa celdas cuadradas; al trabajar lejos del ecuador conviene reproyectar a una proyección
-  local equidistante. La API ya corrige el lado este-oeste de la celda al medir distancias y al trazar rutas.
+- Mineral (CRISM) and ice (SWIM) layers on the real regions.
+- Theatre.js sequence for the demo and the globe's MOLA texture.
+- Weather alerts (REMS / MEDA).
+- The pipeline slope uses square cells; far from the equator it is better to reproject to a local
+  equidistant projection. The API already corrects the east-west side of the cell when measuring distances
+  and drawing routes.
