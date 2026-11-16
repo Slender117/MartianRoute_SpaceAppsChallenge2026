@@ -52,7 +52,7 @@ El manifest trae `bbox`, `shape`, `resolution_m`, `elevation_range`, `base`, `la
 
 ## Contrato propuesto para los datos reales (pendiente de acordar)
 
-Propuesta de Tulio (pipeline) para Miguel (esquemas) y Jairo (escena), del 13 de noviembre. Todo es
+Propuesta de Tulio (pipeline) para Miguel (esquemas) y la escena 3D, del 13 de noviembre. Todo es
 **aditivo y opcional**: cada campo nuevo tiene un valor por defecto, así que la API y la web actuales siguen
 funcionando mientras cada uno lo adopta. Los valores de los ejemplos son ilustrativos; `[__]` marca lo que
 falta definir.
@@ -73,7 +73,7 @@ Bloque `assets` en el manifest:
 
 - `heightmap.bin`: alturas en metros sin normalizar; el rango está en `elevation_range`.
 - `exaggeration`: la exageración vertical con la que se calculó el normal map. La escena la usa como valor
-  predeterminado, porque si no coincide con la malla la luz sale mal. La define Jairo.
+  predeterminado, porque si no coincide con la malla la luz sale mal. La fija la escena 3D.
 - `heightmap.png` se queda hasta que la escena cargue el `.bin`; después se elimina.
 
 ### Calidad por capa (HE1)
@@ -140,8 +140,8 @@ de la región, para que el panel de supuestos la muestre.
 | Huecos del DEM | máscara `no_data` | rellenar y marcar `hazard = 1` | Miguel y Tulio |
 | Umbral de `impassable_fraction` | constante en la API con `[__]` | parámetro en `SuitLimits` | Miguel y Edgar |
 | `slope_method` | percentil 90 | máximo (más estricto, puede cerrar pasos estrechos) | Miguel y Edgar |
-| Retiro de `heightmap.png` | cuando la escena cargue el `.bin` | | Jairo |
-| `exaggeration` y sombreado | normal map con valor fijo | sombreado plano | Jairo |
+| Retiro de `heightmap.png` | cuando la escena cargue el `.bin` | | Tulio |
+| `exaggeration` y sombreado | normal map con valor fijo | sombreado plano | Tulio |
 
 Orden: Miguel agrega los campos opcionales a `schemas/region.py`, `lib/types.ts` y `OPTIONAL_LAYERS`; el
 pipeline los genera primero en `marsdata synthetic` para que la web los pruebe, y después con datos reales

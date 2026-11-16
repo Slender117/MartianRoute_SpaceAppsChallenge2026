@@ -41,4 +41,4 @@ sale cada número. Cada componente entra por PR revisado por Miguel.
 ## Fuera de alcance
 
 - Lógica de ruteo o de consumibles en el navegador: viene de la API.
-- Escena 3D (`components/scene/`), que es de Jairo.
+- Escena 3D (`components/scene/`), que es de Tulio.

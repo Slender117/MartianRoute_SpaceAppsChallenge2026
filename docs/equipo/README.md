@@ -6,8 +6,7 @@ encima, la prioridad sigue siendo una sola: **datos reales de Jezero y tres ruta
 
 | Integrante | Frente | Objetivo e hipótesis | Entrega clave | Hitos | Respaldo | Archivo |
 | --- | --- | --- | --- | --- | --- | --- |
-| Tulio | Pipeline de capas, datos de navegación e infraestructura (despliegue, servidor, demo congelada); apoyo en 3D; presenta | OE1 · HE1: corregistro de 1 celda o menos y al menos 95 % de la zona con dato | Región de Jezero real publicada; app desplegada y estable; demo congelada y entrega | H2, H4, H5 | Edgar | [tulio.md](tulio.md) |
-| Jairo | Visualización 3D, con apoyo de Tulio | OE4 · HE4: el visor | Terreno real con normal map, rutas y capas en 3D | H2, H3 | Tulio | [jairo.md](jairo.md) |
+| Tulio | Líder del equipo. Pipeline de capas, datos de navegación, visualización 3D e infraestructura (despliegue, servidor, demo congelada); presenta | OE1 · HE1: corregistro de 1 celda o menos y al menos 95 % de la zona con dato; apoya OE4 · HE4 con el visor 3D | Región de Jezero real publicada; terreno real, rutas y capas en 3D; app desplegada y estable; demo congelada y entrega | H2, H3, H4, H5 | Edgar | [tulio.md](tulio.md) |
 | Miguel | Backend FastAPI y dirección del frontend y la experiencia de uso | OE2 · HE2 y OE4 · HE4 | Tres modos y línea base sobre datos reales, punto de no retorno, regreso seguro; interfaz final integrada | H3 | Edgar | [miguel.md](miguel.md) |
 | Milton | Componentes de interfaz, con la guía de Miguel | Apoya OE4 | Tabla comparativa, panel de supuestos, puntos de demo en la interfaz | H3 | Miguel | [milton.md](milton.md) |
 | Edgar | Ciencia y validación: EVA, recorrido de Perseverance y clasificación de terreno; presenta | OE3 · HE3 y la hipótesis general | Parámetros con fuente, tabla clase a riesgo, métricas contra Perseverance | H1, H3 | Tulio | [edgar.md](edgar.md) |
@@ -15,13 +14,14 @@ encima, la prioridad sigue siendo una sola: **datos reales de Jezero y tres ruta
 
 Miguel dirige el frontend y la experiencia de uso; Milton construye componentes con su guía y cada
 uno entra por PR revisado por Miguel. Tulio integra y despliega, del pipeline a la demo congelada.
+Jairo aportó a la idea inicial del proyecto.
 
 ## Carpetas por dueño
 
 | Carpeta | Dueño |
 | --- | --- |
 | `pipeline/`, `data/regions/`, configuración de despliegue | Tulio |
-| `apps/web/components/scene/`, `apps/web/components/debug/` | Jairo |
+| `apps/web/components/scene/`, `apps/web/components/debug/` | Tulio |
 | `apps/api/`, `packages/contracts/`, `apps/web/lib/` | Miguel |
 | `apps/web/components/ui/` | Milton (PR revisado por Miguel) |
 | `science/`, `docs/supuestos.md` | Edgar |
@@ -50,7 +50,7 @@ sincronización diaria. H2 y H3 son el camino crítico.
 | Hito | Criterio | Responsable | Participan | Cuándo |
 | --- | --- | --- | --- | --- |
 | H1 · Acuerdos fijados | Contrato de API, coordenadas y escenario; parámetros del modelo con su fuente | Edgar | Todos | 13 nov |
-| H2 · Jezero real publicado | DEM validado, minerales y THEMIS; recorrido de Perseverance; terreno 3D | Tulio | Edgar, Jairo | 13 nov |
+| H2 · Jezero real publicado | DEM validado, minerales y THEMIS; recorrido de Perseverance; terreno 3D | Tulio | Edgar | 13 nov |
 | H3 · Motor de O₂ con datos reales | Costo en O₂ y tres modos distintos; mapa de regreso seguro y radiación | Miguel | Todos | 14 nov |
 | H4 · Demo congelada | Ensayo completo y video de respaldo; desde aquí solo se fusionan correcciones | Tulio | Todos | Cierre del 14 nov |
 | H5 · Entrega en el hackatón | Presentación el 15 de noviembre | Tulio | Todos | 15 nov |

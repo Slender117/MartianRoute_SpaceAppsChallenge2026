@@ -40,7 +40,7 @@ de la interfaz final integrada.
 
 - **Recibe** de Tulio: grillas y manifest de Jezero. De Edgar: modelo de O₂ y parámetros con fuente.
   De Milton: componentes por PR.
-- **Entrega** a Milton y Jairo: contrato de la API y respuestas con procedencia. Al pitch: los
+- **Entrega** a Milton y a Tulio (escena 3D): contrato de la API y respuestas con procedencia. Al pitch: los
   números del caso de demo.
 
 ## Plan B a su cargo

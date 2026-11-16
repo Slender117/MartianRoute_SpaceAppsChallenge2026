@@ -71,7 +71,7 @@ const es = {
   teamTitle: "Equipo",
   team: [
     ["Tulio", "Pipeline de capas, infraestructura y despliegue"],
-    ["Jairo", "Visualización 3D"],
+    ["Jairo", "Idea inicial del proyecto"],
     ["Miguel", "Backend y dirección del frontend"],
     ["Milton", "Componentes de interfaz"],
     ["Edgar", "Ciencia y validación"],
@@ -155,7 +155,7 @@ const en: LandingStrings = {
   teamTitle: "Team",
   team: [
     ["Tulio", "Layer pipeline, infrastructure and deployment"],
-    ["Jairo", "3D visualization"],
+    ["Jairo", "Initial project idea"],
     ["Miguel", "Backend and frontend lead"],
     ["Milton", "Interface components"],
     ["Edgar", "Science and validation"],

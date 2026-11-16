@@ -39,8 +39,8 @@ del 14 nov. Desde ese momento solo se agregan correcciones.
 
 ## Recibe y entrega
 
-- **Recibe** de Tulio: la URL de la app publicada y la versión congelada de la demo. De Jairo y
-  Milton: sus pantallas para probar.
+- **Recibe** de Tulio: la URL de la app publicada y la versión congelada de la demo. De Tulio y
+  Milton: la escena 3D y las pantallas para probar.
 - **Entrega** a cada dueño: los reportes de error de su parte. Al pitch: capturas, video y
   resultados de la prueba de uso.
 
