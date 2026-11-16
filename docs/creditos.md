@@ -1,164 +1,169 @@
-# Créditos de datos
+# Data credits
 
-Cada producto que descarga el pipeline se registra aquí en formato APA 7, con su archivo local y la
-ficha de donde salió. Cuando una ficha pide citar a los autores, también va la publicación que describe
-el producto.
+Every product the pipeline downloads is recorded here in APA 7 format, with its local file and the page it
+came from. When a page asks to cite the authors, the publication that describes the product is included too.
 
-Los archivos de cada región se versionan en `data/raw/<región>/` con el nombre que aparece aquí, para
-construir las regiones sin descargar nada. Se redistribuyen con su cita.
+The files of each region are versioned in `data/raw/<region>/` with the name shown here, so the regions can
+be built without downloading anything. They are redistributed with their citation.
 
 ## Jezero
 
-### Elevación: DTM de CTX a 20 m
+### Elevation: 20 m CTX DTM
 
-- Archivo: `JEZ_ctx_B_soc_008_DTM_MOLAtopography_DeltaGeoid_20m_Eqc_latTs0_lon0.tif`
-- Ficha: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_ctx_dtm_mosaic
-- Descarga: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/CTX/JEZ_ctx_B_soc_008_DTM_MOLAtopography_DeltaGeoid_20m_Eqc_latTs0_lon0.tif
-- Float32 en metros, equirectangular sobre esfera de 3,396,190 m, controlado a MOLA y alineado al DTM
-  de HRSC.
+- File: `JEZ_ctx_B_soc_008_DTM_MOLAtopography_DeltaGeoid_20m_Eqc_latTs0_lon0.tif`
+- Page: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_ctx_dtm_mosaic
+- Download: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/CTX/JEZ_ctx_B_soc_008_DTM_MOLAtopography_DeltaGeoid_20m_Eqc_latTs0_lon0.tif
+- Float32 in meters, equirectangular on a 3,396,190 m sphere, controlled to MOLA and aligned to the HRSC
+  DTM.
 
 USGS Astrogeology Science Center. (2020). *Mars 2020 Terrain Relative Navigation CTX DTM mosaic*
 (JEZ_ctx_B_soc_008_DTM_MOLAtopography_DeltaGeoid_20m_Eqc_latTs0_lon0) [Data set]. U.S. Geological
 Survey. https://doi.org/10.5066/P906QQT8
 
-### Imagen: ortomosaico de CTX a 6 m
+### Image: 6 m CTX orthomosaic
 
-- Archivo: `JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif`
-- Ficha: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_context_camera_orthorectified_image_mosaic
-- Descarga: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/CTX/JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif
-  (también disponible en NASA Mars Trek)
-- 8 bits en escala de grises. Es el mapa del sistema de visión del aterrizador (LVS) de Mars 2020,
-  ortorrectificado con el DTM anterior. Desplazamiento horizontal medio entre las imágenes CTX que lo
-  forman: 9.6 m.
+- File: `JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif`
+- Page: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_context_camera_orthorectified_image_mosaic
+- Download: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/CTX/JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif
+  (also available in NASA Mars Trek)
+- 8-bit grayscale. It is the map of the Mars 2020 lander vision system (LVS), orthorectified with the DTM
+  above. Mean horizontal offset between the CTX images that make it up: 9.6 m.
 
 USGS Astrogeology Science Center. (2020). *Mars 2020 Terrain Relative Navigation Context Camera
 orthorectified image mosaic* (JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0) [Data set]. U.S.
 Geological Survey. https://doi.org/10.5066/P9GV1ND3
 
-### Publicación de los dos productos anteriores
+### Publication of the two products above
 
 Fergason, R. L., Hare, T. M., Mayer, D. P., Galuszka, D. M., Redding, B. L., Smith, E. D., Shinaman,
 J. R., Cheng, Y., & Otero, R. E. (2020). *Mars 2020 Terrain Relative Navigation flight product
-generation: Digital terrain model and orthorectified image mosaics* [Resumen 2020]. 51st Lunar and
+generation: Digital terrain model and orthorectified image mosaics* [Abstract 2020]. 51st Lunar and
 Planetary Science Conference. https://www.hou.usra.edu/meetings/lpsc2020/pdf/2020.pdf
 
-### Inercia térmica: THEMIS cuantitativo a 100 m
+### Thermal inertia: quantitative THEMIS at 100 m
 
-- Archivo: `THEMIS_TI_Mosaic_Quant_00N060E_100mpp_jezero.tif`, recorte de Jezero (bbox de la región más
-  0.05° por lado) leído por ventana del cubo remoto, sin descargar el tile completo de 2.5 GB.
-- Ficha: https://astrogeology.usgs.gov/search/map/themis_thermal_inertia_mosaic_quantitative_00n060e_100mpp
-- Origen: https://asc-astropedia.s3.us-west-2.amazonaws.com/Mars/Odyssey/THEMIS-Global-Thermal-Inertia-Mosaic/Quantitative-32-Bit/THEMIS_TI_Mosaic_Quant_00N060E_100mpp.cub
-- Float32 en J m⁻² K⁻¹ s⁻½, equirectangular sobre esfera de 3,396,190 m. Precisión absoluta ~20 % y
-  relativa ~10 % dentro de una imagen (según la ficha). Sin DOI.
+- File: `THEMIS_TI_Mosaic_Quant_00N060E_100mpp_jezero.tif`, a Jezero crop (the region bbox plus 0.05° per
+  side) read by window from the remote cube, without downloading the full 2.5 GB tile.
+- Page: https://astrogeology.usgs.gov/search/map/themis_thermal_inertia_mosaic_quantitative_00n060e_100mpp
+- Origin: https://asc-astropedia.s3.us-west-2.amazonaws.com/Mars/Odyssey/THEMIS-Global-Thermal-Inertia-Mosaic/Quantitative-32-Bit/THEMIS_TI_Mosaic_Quant_00N060E_100mpp.cub
+- Float32 in J m⁻² K⁻¹ s⁻½, equirectangular on a 3,396,190 m sphere. Absolute accuracy ~20 % and relative
+  ~10 % within an image (according to the page). No DOI.
 
 USGS Astrogeology Science Center, Arizona State University Mars Space Flight Facility, & NASA Mars Data
 Analysis Program. (2014). *THEMIS thermal inertia mosaic quantitative 00N060E 100mpp* [Data set]. U.S.
 Geological Survey. https://astrogeology.usgs.gov/search/map/themis_thermal_inertia_mosaic_quantitative_00n060e_100mpp
 
-## Jezero, zona de caminata (`jezero_walk`)
+## Jezero, walking zone (`jezero_walk`)
 
-Recortes por ventana (bbox de la región más 0.003° por lado) leídos de los archivos remotos, sin bajar
-los mosaicos completos. La inercia térmica es el mismo producto THEMIS de arriba, recortado a esta zona.
+Window crops (the region bbox plus 0.003° per side) read from the remote files, without downloading the full
+mosaics. The thermal inertia is the same THEMIS product as above, cropped to this zone.
 
-### Elevación: DTM de HiRISE a 1 m
+### Elevation: 1 m HiRISE DTM
 
-- Archivo: `JEZ_hirise_soc_006_DTM_1m_jezero_walk.tif`
-- Ficha: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_hirise_dtm_mosaic
-- Origen: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/HiRISE/JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif
-  (1.8 GB completo)
+- File: `JEZ_hirise_soc_006_DTM_1m_jezero_walk.tif`
+- Page: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_hirise_dtm_mosaic
+- Origin: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/HiRISE/JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif
+  (1.8 GB in full)
 
 USGS Astrogeology Science Center. (2020). *Mars 2020 Terrain Relative Navigation HiRISE DTM mosaic*
 (JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40) [Data set]. U.S.
 Geological Survey. https://doi.org/10.5066/P9REJ9JN
 
-### Imagen: ortomosaico de HiRISE a 25 cm
+### Image: 25 cm HiRISE orthomosaic
 
-- Archivo: `JEZ_hirise_soc_006_orthoMosaic_25cm_jezero_walk.tif`
-- Ficha: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_hirise_orthorectified_image_mosaic
-- Origen: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/HiRISE/JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first.tif
-  (6.9 GB completo)
+- File: `JEZ_hirise_soc_006_orthoMosaic_25cm_jezero_walk.tif`
+- Page: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_hirise_orthorectified_image_mosaic
+- Origin: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/HiRISE/JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first.tif
+  (6.9 GB in full)
 
 USGS Astrogeology Science Center. (2020). *Mars 2020 Terrain Relative Navigation HiRISE orthorectified
 image mosaic* (JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first) [Data set]. U.S. Geological
 Survey. https://doi.org/10.5066/P9QJDP48
 
-## Riesgo de terreno: NOAH-H (regiones `jezero` y `jezero_walk`)
+## Terrain risk: NOAH-H (`jezero` and `jezero_walk` regions)
 
-- Archivo: `Jezero_NOAHH_mosaic_IG.tif` (cinco grupos interpretativos, nodata 127), extraído de
-  `NOAH-H_mosaics/Intrepretative_groups/` del .zip. Junto a él, `Jezero_NOAHH_readme.txt` y la tabla
-  de colores.
-- Ficha: https://ordo.open.ac.uk/articles/dataset/NOAH-H_terrain_classifications_of_Jezero_Crater_Mars_zip/17121482/2
-- Descarga: https://ordo.open.ac.uk/ndownloader/files/33917705 (.zip de 336 MB). El servidor bloquea
-  las descargas automáticas: se baja desde un navegador.
-- En el repo: el mismo mosaico recomprimido sin pérdida, de LZW a ZSTD nivel 9 con los mismos bloques
-  de 128 píxeles, porque el original pesa 125 MB y GitHub no acepta archivos de más de 100 MB. Los
-  píxeles, el CRS y la georreferencia son idénticos a los del original (comprobado píxel por píxel), y
-  `build` lo lee tan rápido como el original. ZSTD requiere GDAL con soporte ZSTD, que traen las
-  ruedas de rasterio del pipeline.
-- uint8 a 25 cm, Plate Carrée sobre esfera de 3,396,190 m. Según el readme, las imágenes HiRISE se
-  georreferenciaron al ortomosaico HiRISE de Mars 2020 (el mismo de `jezero_walk`). Licencia CC BY 4.0.
-- Riesgo por grupo: `science/validation/noahh_ig_risk.csv` (Edgar), basado en Barrett et al. (2022).
+- File: `Jezero_NOAHH_mosaic_IG.tif` (five interpretive groups, nodata 127), extracted from
+  `NOAH-H_mosaics/Intrepretative_groups/` in the .zip. Next to it, `Jezero_NOAHH_readme.txt` and the color
+  table.
+- Page: https://ordo.open.ac.uk/articles/dataset/NOAH-H_terrain_classifications_of_Jezero_Crater_Mars_zip/17121482/2
+- Download: https://ordo.open.ac.uk/ndownloader/files/33917705 (336 MB .zip). The server blocks automated
+  downloads: it is downloaded from a browser.
+- In the repo: the same mosaic losslessly recompressed, from LZW to ZSTD level 9 with the same 128-pixel
+  blocks, because the original weighs 125 MB and GitHub does not accept files over 100 MB. The pixels, the CRS
+  and the georeference are identical to the original (checked pixel by pixel), and `build` reads it as fast as
+  the original. ZSTD requires GDAL with ZSTD support, which the pipeline's rasterio wheels include.
+- uint8 at 25 cm, Plate Carrée on a 3,396,190 m sphere. According to the readme, the HiRISE images were
+  georeferenced to the Mars 2020 HiRISE orthomosaic (the same one as `jezero_walk`). CC BY 4.0 license.
+- Risk per group: `science/validation/noahh_ig_risk.csv` (Edgar), based on Barrett et al. (2022).
 
 Wright, J., Barrett, A., Fawdon, P., Favaro, E., Balme, M., Woods, M., Karachalios, S., & Gerdes, L.
 (2022). *NOAH-H terrain classifications of Jezero Crater, Mars* (Version 2) [Data set]. The Open
 University. https://doi.org/10.21954/ou.rd.17121482.v2
 
-## Gale (`gale`, alrededor de Curiosity)
+## Gale (`gale`, around Curiosity)
 
-Recortes por ventana (bbox de la región más 0.02° por lado) de los mosaicos remotos, sin bajarlos
-completos. El DEM y la ortofoto se guardan a 5 m: cada píxel promedia un bloque del original, leído de
-las vistas reducidas del mosaico. No hay clasificación NOAH-H de Gale: su capa de riesgo se deriva de
-la rugosidad del DEM, sin otra fuente (método en `docs/supuestos.md`).
+Window crops (the region bbox plus 0.02° per side) of the remote mosaics, without downloading them in full.
+The DEM and the orthophoto are stored at 5 m: each pixel averages a block of the original, read from the
+mosaic's overviews. There is no NOAH-H classification of Gale: its risk layer is derived from the DEM
+roughness, with no other source (method in `docs/supuestos.md`).
 
-### Elevación: DEM de HiRISE a 1 m, guardado a 5 m
+### Elevation: 1 m HiRISE DEM, stored at 5 m
 
-- Archivo: `MSL_Gale_DEM_Mosaic_5m_gale.tif`
-- Ficha: https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m
-- Origen: https://asc-pds-services.s3.us-west-2.amazonaws.com/mosaic/Mars/MSL/MSL_Gale_DEM_Mosaic_1m_v3.tif
-  (3.9 GB completo)
-- Float32 en metros. En la posición de Curiosity del sol 5073 vale −3472.16 m, y MMGIS reporta
-  −3472.09 m para el mismo punto.
-- La cita recomendada de la ficha repite el título del ortomosaico; abajo va el título de la ficha del DEM.
+- File: `MSL_Gale_DEM_Mosaic_5m_gale.tif`
+- Page: https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m
+- Origin: https://asc-pds-services.s3.us-west-2.amazonaws.com/mosaic/Mars/MSL/MSL_Gale_DEM_Mosaic_1m_v3.tif
+  (3.9 GB in full)
+- Float32 in meters. At Curiosity's position on sol 5073 it reads −3472.16 m, and MMGIS reports −3472.09 m
+  for the same point.
+- The page's recommended citation repeats the orthomosaic title; below is the title of the DEM page.
 
 Calef, F. J., III, & Parker, T. (2016). *MSL Gale merged DEM 1m* [Data set]. PDS Annex, U.S.
 Geological Survey. https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m
 
-### Imagen: ortomosaico de HiRISE a 25 cm, guardado a 5 m
+### Image: 25 cm HiRISE orthomosaic, stored at 5 m
 
-- Archivo: `MSL_Gale_Orthophoto_Mosaic_5m_gale.tif`
-- Ficha: https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_orthophoto_mosaic_25cm
-- Origen: https://asc-pds-services.s3.us-west-2.amazonaws.com/mosaic/Mars/MSL/MSL_Gale_Orthophoto_Mosaic_25cm_v3.tif
-  (24 GB completo)
+- File: `MSL_Gale_Orthophoto_Mosaic_5m_gale.tif`
+- Page: https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_orthophoto_mosaic_25cm
+- Origin: https://asc-pds-services.s3.us-west-2.amazonaws.com/mosaic/Mars/MSL/MSL_Gale_Orthophoto_Mosaic_25cm_v3.tif
+  (24 GB in full)
 
 Calef, F. J., III, & Parker, T. (2016). *MSL Gale merged orthophoto mosaic* [Data set]. PDS Annex,
 U.S. Geological Survey. https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_orthophoto_mosaic_25cm
 
-### Inercia térmica: THEMIS cuantitativo a 100 m
+### Thermal inertia: quantitative THEMIS at 100 m
 
-- Archivo: `THEMIS_TI_Mosaic_Quant_30S120E_100mpp_gale.tif`, del tile que cubre de 30° S a 0° y de
-  120° E a 180° E.
-- Ficha: https://astrogeology.usgs.gov/search/map/themis_thermal_inertia_mosaic_quantitative_30s120e_100mpp
-- Origen: https://asc-astropedia.s3.us-west-2.amazonaws.com/Mars/Odyssey/THEMIS-Global-Thermal-Inertia-Mosaic/Quantitative-32-Bit/THEMIS_TI_Mosaic_Quant_30S120E_100mpp.cub
+- File: `THEMIS_TI_Mosaic_Quant_30S120E_100mpp_gale.tif`, from the tile covering 30° S to 0° and 120° E to
+  180° E.
+- Page: https://astrogeology.usgs.gov/search/map/themis_thermal_inertia_mosaic_quantitative_30s120e_100mpp
+- Origin: https://asc-astropedia.s3.us-west-2.amazonaws.com/Mars/Odyssey/THEMIS-Global-Thermal-Inertia-Mosaic/Quantitative-32-Bit/THEMIS_TI_Mosaic_Quant_30S120E_100mpp.cub
 
 USGS Astrogeology Science Center, Arizona State University Mars Space Flight Facility, & NASA Mars Data
 Analysis Program. (2014). *THEMIS thermal inertia mosaic quantitative 30S120E 100mpp* [Data set]. U.S.
 Geological Survey. https://astrogeology.usgs.gov/search/map/themis_thermal_inertia_mosaic_quantitative_30s120e_100mpp
 
-### Recorrido de Curiosity
+### Curiosity traverse
 
-- Archivo: `MSL_traverse_2026-11-14.json` (raíz del repo). El recorrido de MMGIS no trae el sol de cada
-  tramo; se toma del waypoint donde termina cada uno (1316 de 1317 tramos terminan a menos de 1 m de su
-  waypoint). Se regenera con `python -m marsdata.fetch.mmgis MSL ../MSL_traverse_<fecha>.json` desde
-  `pipeline/`.
-- Origen: https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_traverse.json y
-  https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints.json, consultados el 14 de noviembre de
-  2026 (último sol: 5073).
+- File: `MSL_traverse_2026-11-14.json` (repo root). The MMGIS traverse does not carry the sol of each
+  segment; it is taken from the waypoint where each one ends (1316 of 1317 segments end less than 1 m from
+  their waypoint). It is regenerated with `python -m marsdata.fetch.mmgis MSL ../MSL_traverse_<date>.json`
+  from `pipeline/`.
+- Origin: https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_traverse.json and
+  https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints.json, queried on 14 November 2026 (last
+  sol: 5073).
 
 NASA/JPL-Caltech. (2026). *MSL traverse and waypoints* [Data set]. Multi-Mission Geographic Information
-System (MMGIS). Recuperado el 14 de noviembre de 2026 de https://mars.nasa.gov/mmgis-maps/MSL/
+System (MMGIS). Retrieved 14 November 2026 from https://mars.nasa.gov/mmgis-maps/MSL/
 
-## Pendientes de registrar
+## Live data (`GET /live`)
 
-- Método de la inercia térmica: Fergason, Christensen y Kieffer (2006), *Journal of Geophysical
-  Research*. La ficha pide citar a los autores; falta verificar la referencia completa y su DOI.
-- Recorrido de Perseverance: MMGIS de JPL (`M20_traverse_2026-11-12.json`).
+- Solar ejections: NASA's DONKI (CCMC), `api.nasa.gov/DONKI/WSAEnlilSimulations`.
+- Perseverance position: JPL MMGIS, `M20_waypoints.json`.
+- Perseverance raw images: `mars.nasa.gov/rss/api/?feed=raw_images`.
+
+The saved copy for offline use is `apps/api/app/live/snapshot.json`.
+
+## Still to record
+
+- Thermal inertia method: Fergason, Christensen and Kieffer (2006), *Journal of Geophysical Research*. The
+  page asks to cite the authors; the full reference and its DOI still have to be checked.
+- Perseverance traverse: JPL MMGIS (`M20_traverse_2026-11-12.json`).

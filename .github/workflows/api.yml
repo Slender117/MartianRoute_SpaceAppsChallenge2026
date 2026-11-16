@@ -1,6 +1,6 @@
 name: api
 
-# El pipeline cuenta porque la prueba del escenario de demo corre sobre su salida.
+# The pipeline counts because the demo scenario test runs on its output.
 on:
   push:
     branches: [main]

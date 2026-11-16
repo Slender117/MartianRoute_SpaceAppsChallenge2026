@@ -1,11 +1,11 @@
-"""Consulta las fuentes de NASA, guarda cada respuesta en memoria y cae a la copia guardada.
+"""Queries the NASA sources, keeps each response in memory and falls back to the saved copy.
 
-- Cada fuente se consulta como mucho una vez por `CACHE_TTL` mientras corre la API.
-- Si NASA no responde (sin internet, límite de la llave, cambio de formato), se usa la última
-  respuesta buena de esta ejecución; si no hay, la copia de `snapshot.json`. La respuesta dice
-  cuál se usó (`status`) y de cuándo es (`fetched_at`), para que la interfaz no la presente como
-  dato del momento.
-- `python -m app.live` vuelve a escribir `snapshot.json` con lo que dé NASA en ese momento.
+- Each source is queried at most once per `CACHE_TTL` while the API runs.
+- If NASA does not answer (no internet, key limit, format change), the last good response of
+  this run is used; if there is none, the copy in `snapshot.json`. The response says which one
+  was used (`status`) and when it is from (`fetched_at`), so the interface does not present it
+  as live data.
+- `python -m app.live` rewrites `snapshot.json` with whatever NASA returns at that moment.
 """
 
 import asyncio
@@ -56,7 +56,7 @@ SOURCES: dict[str, dict[str, Any]] = {
     },
 }
 
-# Última respuesta buena de cada fuente en esta ejecución: (cuándo, datos ya leídos).
+# Last good response of each source in this run: (when, already-parsed data).
 _cache: dict[str, tuple[datetime, Any]] = {}
 
 
@@ -111,9 +111,9 @@ FETCHERS: dict[str, Callable] = {
 
 
 def _client(transport: httpx.AsyncBaseTransport | None) -> httpx.AsyncClient:
-    # Certificados del sistema operativo (en Windows, su almacén) en vez del paquete certifi de
-    # httpx: así funciona en equipos con antivirus o proxy que inspeccionan HTTPS. Respeta
-    # SSL_CERT_FILE si está definido.
+    # Operating-system certificates (on Windows, its store) instead of httpx's certifi bundle:
+    # this way it works on machines with antivirus or proxies that inspect HTTPS. It respects
+    # SSL_CERT_FILE if it is set.
     return httpx.AsyncClient(
         timeout=TIMEOUT_S,
         transport=transport,
@@ -131,11 +131,11 @@ def read_snapshot(path: Path = SNAPSHOT_PATH) -> dict[str, Any]:
 
 def _error_text(exc: Exception) -> str:
     if isinstance(exc, httpx.HTTPStatusError):
-        return f"NASA respondió {exc.response.status_code}"
+        return f"NASA answered {exc.response.status_code}"
     if isinstance(exc, httpx.TimeoutException):
-        return "NASA no respondió a tiempo"
+        return "NASA did not answer in time"
     if isinstance(exc, httpx.TransportError):
-        return "sin conexión con NASA"
+        return "no connection to NASA"
     return f"respuesta inesperada de NASA ({type(exc).__name__})"
 
 
@@ -151,7 +151,7 @@ async def _one(
             data = await FETCHERS[key](client, now)
             _cache[key] = (now, data)
             return _source(key, "live", now), data
-        except Exception as exc:  # cualquier falla de NASA cae al respaldo
+        except Exception as exc:  # any NASA failure falls back to the saved copy
             error = _error_text(exc)
     if cached:
         return _source(key, "live", cached[0], error), cached[1]
@@ -210,9 +210,9 @@ async def get_live(
 async def build_snapshot(
     previous: dict[str, Any], transport: httpx.AsyncBaseTransport | None = None
 ) -> tuple[dict[str, Any], dict[str, str]]:
-    """Consulta cada fuente en vivo. La que falle conserva su parte de la copia anterior.
+    """Queries each source live. A source that fails keeps its part of the previous copy.
 
-    Devuelve la copia nueva y, por fuente, el motivo de lo que no se pudo actualizar.
+    Returns the new copy and, per source, the reason for what could not be updated.
     """
     now = datetime.now(UTC)
     out: dict[str, Any] = {}
@@ -221,7 +221,7 @@ async def build_snapshot(
         for key, fetch in FETCHERS.items():
             try:
                 out[key] = {"fetched_at": now.isoformat(), "data": await fetch(client, now)}
-            except Exception as exc:  # la parte vieja sigue valiendo como respaldo
+            except Exception as exc:  # the old part still works as a fallback
                 errors[key] = _error_text(exc)
                 if key in previous:
                     out[key] = previous[key]

@@ -1,4 +1,4 @@
-"""Modelo de O₂ por pendiente (Minetti) dentro del motor."""
+"""O₂ by slope model (Minetti) inside the engine."""
 
 import numpy as np
 import pytest
@@ -25,14 +25,14 @@ def test_slope_penalty_is_zero_on_flat_and_one_at_the_limit():
     pen = slope_penalty(np.array([0.0, 12.5, 25.0, 40.0]), 25.0)
     assert pen[0] == pytest.approx(0.0)
     assert pen[2] == pytest.approx(1.0)
-    assert pen[3] == pytest.approx(1.0)  # se satura más allá de la máxima
+    assert pen[3] == pytest.approx(1.0)  # it saturates beyond the maximum
     assert 0 < pen[1] < 1
 
 
 def test_o2_interval_on_flat_ground_is_exact_and_closed():
     dem = np.zeros((1, 11))
     low, high = o2_interval_kg(STRAIGHT, dem, CELL)
-    # Ida y vuelta de 100 m en plano: 200 m al costo en plano, sin importar la gravedad.
+    # A 100 m round trip on flat ground: 200 m at the flat cost, regardless of gravity.
     assert low == pytest.approx(200 * O2_FLAT_KG_PER_M)
     assert high == pytest.approx(low)
 

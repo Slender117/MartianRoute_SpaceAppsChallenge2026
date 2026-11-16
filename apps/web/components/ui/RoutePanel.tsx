@@ -10,9 +10,9 @@ import { useMediaQuery } from "@/lib/useMediaQuery";
 const MODES: WalkMode[] = ["safe", "fast", "science"];
 
 /**
- * Planear la caminata: modo, límites del traje, escenario solar y la tabla comparativa.
- * Las rutas se calculan solas al marcar el destino y se recalculan al cambiar el traje o el
- * escenario; el botón sirve para volver a pedirlas.
+ * Plan the walk: mode, suit limits, solar scenario and the comparison table.
+ * Routes are computed automatically when the destination is marked and recomputed when the suit or
+ * the scenario changes; the button requests them again.
  */
 export function RoutePanel() {
   const start = useMapStore((s) => s.start);
@@ -30,7 +30,7 @@ export function RoutePanel() {
   const computeRoutes = useMapStore((s) => s.computeRoutes);
   const clearPoints = useMapStore((s) => s.clearPoints);
   const loadDemo = useMapStore((s) => s.loadDemo);
-  // En pantallas táctiles se "toca" el terreno, no se hace clic.
+  // On touch screens you "tap" the terrain, you do not click.
   const touch = useMediaQuery("(pointer: coarse)");
 
   const t = useT();

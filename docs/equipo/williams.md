@@ -1,50 +1,49 @@
-# Williams · Columna vertebral: pruebas, equipo y video
+# Williams · Backbone: testing, equipment and video
 
-**Objetivo:** apoya OE4: que la herramienta sea fácil de entender y de usar para quien la ve por
-primera vez.
-**Hitos:** participa en H3 y H4. **Respaldo:** Tulio. **Presenta** el pitch con Tulio y Edgar.
+**Objective:** supports OE4: that the tool is easy to understand and use for someone seeing it for the first
+time.
+**Milestones:** takes part in H3 and H4. **Backup:** Tulio. **Presents** the pitch with Tulio and Edgar.
 
-## Alcance
+## Scope
 
-Que la demo salga bien el día de la presentación: encontrar los errores antes que los jueces, tener
-listos el equipo y la conexión, y grabar un video de respaldo por si la app falla en vivo. Si un
-compañero requiere apoyo, ayudarlo en la manera que le sea posible.
+Make the demo go well on presentation day: find the errors before the judges do, have the equipment and the
+connection ready, and record a backup video in case the app fails live. If a teammate needs support, help them
+in whatever way possible.
 
-## Carpetas
+## Folders
 
-- `docs/img/` (capturas)
-- Material de las diapositivas y video de respaldo
+- `docs/img/` (screenshots)
+- Slide material and backup video
 
-## Tareas
+## Tasks
 
-- [ ] Probar la app de principio a fin como la usaría alguien de fuera, primero con la región
-      sintética y luego con Jezero real cuando Tulio lo publique; reportar cada error a su dueño con
-      los pasos exactos para reproducirlo. Listo el 14 nov, con el motor sobre datos reales (H3)
-- [ ] Equipo de la demo: laptop, pantalla, conexión a internet y una red de respaldo (H4)
-- [ ] Grabar con Tulio el video de la demo terminada, plan B si el servidor se cae o tarda en
-      responder (H4)
-- [ ] Capturas y material visual para las diapositivas (H4)
-- [ ] Prueba de uso (HE4): conseguir a cinco personas que no conozcan la app y aplicarla con Milton
-      para medir si entienden lo que ven (H4)
-- [ ] Apoyar a cualquier compañero que lo necesite
+- [ ] Test the app from start to finish as an outsider would use it, first with the synthetic region and then
+      with real Jezero when Tulio publishes it; report each error to its owner with the exact steps to
+      reproduce it. Done on 14 Nov, with the engine on real data (H3)
+- [ ] Demo equipment: laptop, screen, internet connection and a backup network (H4)
+- [ ] Record with Tulio the video of the finished demo, plan B if the server goes down or is slow to
+      answer (H4)
+- [ ] Screenshots and visual material for the slides (H4)
+- [ ] Usability test (HE4): find five people who do not know the app and run it with Milton to measure
+      whether they understand what they see (H4)
+- [ ] Support any teammate who needs it
 
-El video, las capturas y la prueba de uso deben estar listos antes de congelar la demo, al cierre
-del 14 nov. Desde ese momento solo se agregan correcciones.
+The video, the screenshots and the usability test must be ready before the demo is frozen, at the end of
+14 Nov. From then on only fixes are added.
 
-## Por día
+## Per day
 
-| 13 nov | 14 nov | 15 nov |
+| 13 Nov | 14 Nov | 15 Nov |
 | --- | --- | --- |
-| Pruebas con la región sintética; revisar equipo y red | Pruebas con Jezero real, prueba de uso con las cinco personas y video de respaldo | Presenta el pitch |
+| Tests with the synthetic region; check equipment and network | Tests with real Jezero, usability test with the five people and backup video | Presents the pitch |
 
-## Recibe y entrega
+## Receives and delivers
 
-- **Recibe** de Tulio: la URL de la app publicada y la versión congelada de la demo. De Tulio y
-  Milton: la escena 3D y las pantallas para probar.
-- **Entrega** a cada dueño: los reportes de error de su parte. Al pitch: capturas, video y
-  resultados de la prueba de uso.
+- **Receives** from Tulio: the URL of the published app and the frozen demo version. From Tulio and Milton:
+  the 3D scene and the screens to test.
+- **Delivers** to each owner: the error reports for their part. To the pitch: screenshots, video and the
+  usability test results.
 
-## Fuera de alcance
+## Out of scope
 
-- Corregir código de partes que tienen otro dueño: reportar el error y dejar que lo arregle quien
-  mantiene esa parte.
+- Fixing code in parts that have another owner: report the error and let whoever maintains that part fix it.

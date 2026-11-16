@@ -1,0 +1,10 @@
+# Only the web workspace goes to Vercel (the project's Root Directory is apps/web).
+/*
+!/package.json
+!/package-lock.json
+!/apps
+/apps/*
+!/apps/web
+!/packages
+/apps/web/.next
+/apps/web/.env*.local

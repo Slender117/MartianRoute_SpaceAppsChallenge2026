@@ -1,15 +1,15 @@
-"""Procesa los GeoTIFF crudos de una región y produce las grillas para la API y la vista 3D.
+"""Processes a region's raw GeoTIFFs and produces the grids for the API and the 3D view.
 
-- DEM: promedio a la grilla, validado (flotante y en el rango de Marte); los huecos se rellenan con
-  la celda con dato más cercana.
-- Pendiente: con el tamaño real de la celda en cada dirección (el lado este-oeste es más corto).
-- Riesgo categórico (NOAH-H): se cuentan las clases por celda; de ahí salen el riesgo medio con la
-  tabla de Edgar, la fracción intransitable (clases con riesgo 1) y la clase dominante.
-- Riesgo sin clasificación (`hazard_proxy: roughness`, Gale): rugosidad del DEM sin reducir,
-  normalizada a 0–1 dentro de la región.
+- DEM: averaged to the grid, validated (float and within the Mars range); gaps are filled with
+  the nearest cell with data.
+- Slope: with the real cell size in each direction (the east-west side is shorter).
+- Categorical risk (NOAH-H): classes are counted per cell; from that come the mean risk with
+  Edgar's table, the impassable fraction (classes with risk 1) and the dominant class.
+- Risk without classification (`hazard_proxy: roughness`, Gale): roughness of the unreduced DEM,
+  normalized to 0–1 within the region.
 - Capas continuas (THEMIS...): bilineal y normalizadas a 0–1.
 
-La cobertura de cada capa (fracción con dato, HE1) se mide antes de rellenar y va al manifest.
+Each layer's coverage (fraction with data, HE1) is measured before filling and goes to the manifest.
 """
 
 from dataclasses import dataclass, field
@@ -30,9 +30,9 @@ from marsdata.process.terrain import (
 from marsdata.process.visual import class_colors, class_texture, legend, ortho_texture
 from marsdata.region import REPO_DIR, Region
 
-# Capas continuas opcionales; cada una se normaliza a 0–1 (alto = más firme / más valor).
+# Optional continuous layers; each one is normalized to 0–1 (high = firmer / more value).
 CONTINUOUS_KEYS = ("thermal_inertia", "ice", "minerals")
-# Texels por celda de la grilla en las texturas de clases: el borde de cada clase se ve más fino.
+# Texels per grid cell in the class textures: the edge of each class looks finer.
 CLASS_TEXTURE_SCALE = 2
 
 
@@ -40,11 +40,11 @@ CLASS_TEXTURE_SCALE = 2
 class BuildResult:
     grids: dict[str, np.ndarray]
     layer_meta: dict[str, dict] = field(default_factory=dict)
-    # Clases de la capa categórica a la resolución de la textura, para la vista 3D.
+    # Classes of the categorical layer at the texture resolution, for the 3D view.
     classes: ClassCounts | None = None
     class_info: list[ClassInfo] = field(default_factory=list)
-    missing: list[str] = field(default_factory=list)  # fuentes sin archivo en data/raw
-    # Solo visual: capas RGBA ya coloreadas, su leyenda y la ortofoto (uint8, escala de grises).
+    missing: list[str] = field(default_factory=list)  # sources with no file in data/raw
+    # Visual only: RGBA layers already colored, their legend and the orthophoto (uint8, grayscale).
     textures: dict[str, np.ndarray] = field(default_factory=dict)
     legends: dict[str, list[dict]] = field(default_factory=dict)
     ortho: np.ndarray | None = None
@@ -93,7 +93,7 @@ def build_region(region: Region) -> BuildResult:
         result.layer_meta[key] = {
             "coverage": coverage(raw),
             "fill": "nearest",
-            "normalization": "percentiles 2 a 98 de la región",
+            "normalization": "percentiles 2 to 98 of the region",
             **_stats(raw),
         }
         result.grids[key] = normalize(fill_nearest(raw))
@@ -109,7 +109,7 @@ def build_region(region: Region) -> BuildResult:
 
 
 def _roughness_hazard(region: Region, dem_path, result: BuildResult) -> None:
-    """Riesgo donde no hay clasificación de terreno: rugosidad del DEM, relativa a la región."""
+    """Risk where there is no terrain classification: DEM roughness, relative to the region."""
     rms = roughness_to_region(dem_path, region)
     result.layer_meta["hazard"] = {
         "provenance": "derived",
@@ -117,11 +117,11 @@ def _roughness_hazard(region: Region, dem_path, result: BuildResult) -> None:
         "coverage": coverage(rms),
         "fill": "nearest",
         "method": (
-            "rugosidad: RMS por celda del DEM menos su versión suavizada "
+            "roughness: per-cell RMS of the DEM minus its smoothed version "
             f"(gaussiana de {ROUGHNESS_SIGMA_M:g} m)"
         ),
         "units": "m",
-        "normalization": "percentiles 2 a 98 de la región",
+        "normalization": "percentiles 2 to 98 of the region",
         **_stats(rms),
     }
     result.grids["hazard"] = normalize(fill_nearest(rms))

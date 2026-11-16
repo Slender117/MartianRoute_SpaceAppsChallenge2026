@@ -7,7 +7,7 @@ import { useLang, useT } from "@/lib/i18n";
 import { useMapStore } from "@/lib/store";
 import type { LiveResponse, LiveSource } from "@/lib/types";
 
-const REFRESH_MS = 30 * 60 * 1000; // la API también guarda cada fuente 30 min
+const REFRESH_MS = 30 * 60 * 1000; // the API also keeps each source for 30 min
 const DONKI_DAYS = 30;
 
 const formatUtc = (iso: string, lang: string) =>
@@ -17,7 +17,7 @@ const formatUtc = (iso: string, lang: string) =>
     timeZone: "UTC",
   })} UTC`;
 
-/** "en vivo" o "copia del …", con la fuente y el motivo al pasar el cursor. */
+/** "live" or "copy from …", with the source and the reason on hover. */
 function SourceTag({ src }: { src: LiveSource }) {
   const t = useT();
   const lang = useLang((s) => s.lang);
@@ -32,9 +32,9 @@ function SourceTag({ src }: { src: LiveSource }) {
 }
 
 /**
- * Panel "Marte hoy": llegadas de eyecciones solares a Marte (DONKI), dónde está Perseverance y sus
- * últimas imágenes. Si una eyección llega cerca de hoy, propone activar el escenario de evento solar.
- * Es un botón de la barra de arriba que despliega el detalle debajo.
+ * "Mars today" panel: solar ejection arrivals at Mars (DONKI), where Perseverance is and its
+ * latest images. If an ejection arrives close to today, it suggests turning on the solar event scenario.
+ * It is a button in the top bar that unfolds the detail below.
  */
 export function LivePanel() {
   const regionId = useMapStore((s) => s.regionId);
@@ -135,7 +135,7 @@ export function LivePanel() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      {/* Imágenes de NASA servidas desde mars.nasa.gov: next/image exigiría configurar el dominio. */}
+                      {/* NASA images served from mars.nasa.gov: next/image would require configuring the domain. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={img.thumbnail_url}

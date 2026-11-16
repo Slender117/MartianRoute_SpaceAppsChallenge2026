@@ -18,8 +18,8 @@ import type { SafeReturnResponse } from "@/lib/types";
 const ZONES: Zone[] = [0, 1, 2, 3];
 
 /**
- * Zonas del mapa de regreso seguro como textura RGBA, con los mismos colores que la leyenda.
- * La API manda la fila norte primero y la textura empieza abajo (sur): las filas se invierten.
+ * Safe-return map zones as an RGBA texture, with the same colors as the legend.
+ * The API sends the north row first and the texture starts at the bottom (south): rows are flipped.
  */
 export function zoneTexture(res: SafeReturnResponse): DataTexture {
   const zones = zoneGrid(res);
@@ -43,7 +43,7 @@ export function zoneTexture(res: SafeReturnResponse): DataTexture {
   }
   const texture = new DataTexture(data, w, h, RGBAFormat);
   texture.colorSpace = SRGBColorSpace;
-  // Zonas, no un degradado: de cerca cada celda conserva su color.
+  // Zones, not a gradient: up close each cell keeps its color.
   texture.magFilter = NearestFilter;
   texture.minFilter = LinearFilter;
   texture.generateMipmaps = false;
@@ -57,8 +57,8 @@ export interface Displacement {
 }
 
 /**
- * Mapa de regreso seguro pintado sobre el relieve, encima de las capas. Sin heightmap.bin, el velo
- * usa el mismo displacementMap que el suelo (Lambert, porque Basic no lo soporta).
+ * Safe-return map painted over the relief, above the layers. Without heightmap.bin, the veil
+ * uses the same displacementMap as the ground (Lambert, because Basic does not support it).
  */
 export function SafeReturnVeil({
   geometry,

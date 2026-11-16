@@ -4,7 +4,7 @@ import { useT } from "@/lib/i18n";
 import { ZONE_COLORS, type Zone } from "@/lib/safeReturn";
 import { useMapStore } from "@/lib/store";
 
-/** Interruptor y leyenda del mapa de regreso seguro. */
+/** Toggle and legend of the safe-return map. */
 export function SafeReturnToggle() {
   const show = useMapStore((s) => s.showSafeReturn);
   const toggle = useMapStore((s) => s.toggleSafeReturn);

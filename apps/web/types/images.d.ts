@@ -1,3 +1,3 @@
-// Tipos para importar imágenes (import foto from "...webp"). Next los declara en next-env.d.ts,
-// pero ese archivo no se versiona y no existe cuando CI corre tsc antes de next build.
+// Types to import images (import photo from "...webp"). Next declares them in next-env.d.ts,
+// but that file is not versioned and does not exist when CI runs tsc before next build.
 /// <reference types="next/image-types/global" />

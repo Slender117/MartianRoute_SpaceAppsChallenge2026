@@ -6,9 +6,9 @@ import { assetUrl } from "@/lib/api";
 import type { RegionManifest } from "@/lib/types";
 
 /**
- * Datos de la vista 3D que el pipeline escribe en manifest.json y la API todavía no sirve
- * (propuesta de contrato en docs/arquitectura.md). Mientras Miguel no los agregue al esquema,
- * se leen del manifest.json publicado junto a los archivos de la región.
+ * 3D view data that the pipeline writes into manifest.json and the API does not serve yet
+ * (contract proposal in docs/arquitectura.md). Until Miguel adds them to the schema,
+ * they are read from the manifest.json published next to the region files.
  */
 export interface LegendItem {
   code: number;
@@ -24,7 +24,7 @@ export interface SceneLabel {
   lon: number;
   elev?: number;
   source?: string;
-  kind?: "traverse"; // inicio o final de un recorrido: solo con el recorrido visible
+  kind?: "traverse"; // start or end of a traverse: only with the traverse visible
 }
 
 export interface RegionExtras {
@@ -40,7 +40,7 @@ export interface RegionExtras {
 const extrasCache = new Map<string, Promise<RegionExtras>>();
 const heightsCache = new Map<string, Promise<Float32Array>>();
 
-/** Una sola descarga por región, compartida entre la escena y los paneles. */
+/** A single download per region, shared by the scene and the panels. */
 export function loadRegionExtras(regionId: string): Promise<RegionExtras> {
   let promise = extrasCache.get(regionId);
   if (!promise) {
@@ -52,22 +52,22 @@ export function loadRegionExtras(regionId: string): Promise<RegionExtras> {
   return promise;
 }
 
-/** Alturas en metros del heightmap Float32 little-endian, fila 0 al norte. */
+/** Heights in meters from the little-endian Float32 heightmap, row 0 to the north. */
 export function loadHeights(regionId: string, path: string, shape: [number, number]): Promise<Float32Array> {
   const key = `${regionId}/${path}`;
   let promise = heightsCache.get(key);
   if (!promise) {
     promise = fetch(assetUrl(regionId, path))
       .then((r) => {
-        if (!r.ok) throw new Error(`No se pudo leer ${path}: HTTP ${r.status}`);
+        if (!r.ok) throw new Error(`Could not read ${path}: HTTP ${r.status}`);
         return r.arrayBuffer();
       })
       .then((buffer) => {
         const n = shape[0] * shape[1];
         if (buffer.byteLength !== n * 4) {
-          throw new Error(`${path} mide ${buffer.byteLength} bytes; se esperaban ${n * 4}`);
+          throw new Error(`${path} is ${buffer.byteLength} bytes; ${n * 4} were expected`);
         }
-        // DataView fija el orden de bytes del archivo, sin depender del de la máquina.
+        // DataView fixes the file's byte order, without depending on the machine's.
         const view = new DataView(buffer);
         const heights = new Float32Array(n);
         for (let i = 0; i < n; i++) heights[i] = view.getFloat32(i * 4, true);
@@ -94,7 +94,7 @@ export function useRegionExtras(regionId: string | undefined): RegionExtras | nu
   return state && state.id === regionId ? state.extras : null;
 }
 
-/** Alturas de la región, o null mientras cargan o si la región no tiene heightmap.bin. */
+/** Region heights, or null while they load or if the region has no heightmap.bin. */
 export function useRegionHeights(
   manifest: RegionManifest | null,
   extras: RegionExtras | null,
@@ -119,7 +119,7 @@ export function useRegionHeights(
   return state && state.key === key ? state.heights : null;
 }
 
-/** Altura bilineal en (lat, lon), con la misma convención de grilla que la API. */
+/** Bilinear height at (lat, lon), with the same grid convention as the API. */
 export function heightAt(heights: Float32Array, manifest: RegionManifest, lat: number, lon: number): number {
   const [h, w] = manifest.shape;
   const [lonMin, latMin, lonMax, latMax] = manifest.bbox;

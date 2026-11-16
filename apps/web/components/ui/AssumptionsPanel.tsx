@@ -8,13 +8,13 @@ import type { AssumptionsResponse } from "@/lib/types";
 
 const PENDING = "[__]";
 
-// 3.5e-5 en vez de 0.000035000000000000004: tres cifras significativas bastan para leer.
+// 3.5e-5 instead of 0.000035000000000000004: three significant figures are enough to read.
 const formatValue = (v: number | string | null, noValue: string) =>
   v === null ? noValue : typeof v === "number" ? String(Number(v.toPrecision(3))) : v;
 
 /**
- * Panel "Supuestos y límites": cada parámetro del modelo con su valor, procedencia y fuente.
- * `defaultOpen`: en la pestaña de celular ya se abrió a propósito, no hace falta otro clic.
+ * "Assumptions and limits" panel: each model parameter with its value, provenance and source.
+ * `defaultOpen`: in the phone tab it was opened on purpose, no need for another click.
  */
 export function AssumptionsPanel({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -23,7 +23,7 @@ export function AssumptionsPanel({ defaultOpen = false }: { defaultOpen?: boolea
   const lang = useLang((s) => s.lang);
   const t = useT();
 
-  // Los textos vienen de la API en el idioma activo: al cambiarlo, se vuelven a pedir.
+  // The texts come from the API in the active language: when it changes, they are requested again.
   useEffect(() => setData(null), [lang]);
   useEffect(() => {
     if (!open || data) return;

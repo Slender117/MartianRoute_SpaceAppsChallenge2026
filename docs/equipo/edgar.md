@@ -1,50 +1,49 @@
-# Edgar · Ciencia y validación
+# Edgar · Science and validation
 
-**Objetivo:** OE3 · HE3 y la hipótesis general.
-**Hitos:** responsable de H1; participa en H2 y H3. **Respaldo:** Tulio. Es respaldo de Tulio y de
-Miguel. **Presenta** el pitch y responde las preguntas técnicas.
+**Objective:** OE3 · HE3 and the general hypothesis.
+**Milestones:** owner of H1; takes part in H2 and H3. **Backup:** Tulio. He is the backup for Tulio and
+Miguel. **Presents** the pitch and answers the technical questions.
 
-## Alcance
+## Scope
 
-Que cada número del modelo tenga fuente o esté marcado como supuesto, clasificar el terreno por
-riesgo y demostrar con el recorrido real de Perseverance que las rutas son creíbles.
+Make sure every number in the model has a source or is marked as an assumption, classify the terrain by risk
+and show with Perseverance's real traverse whether the routes are credible.
 
-## Carpetas
+## Folders
 
-- `science/` (`model/eva_cost.py`, `calibrate.py`, `convert_traverse.py`)
+- `science/` (`model/eva_cost.py`, `calibrate.py`, `convert_traverse.py`, `validation/`)
 - `docs/supuestos.md`
 
-## Tareas
+## Tasks
 
-- [ ] Parámetros con fuente en `docs/supuestos.md`: tasas de Apollo vía Bellcomm, curva de Minetti,
-      RAD 0.64 mSv/día (H1)
-- [ ] Fijar los tramos: calibración con sol 606 o menos, medición con los posteriores, no contiguos
-      (H1). Dentro de la región real quedan 18 de calibración y 18 de medición (los trechos 37 y
-      38 caen fuera del recuadro); con el corte en 1000 serían muy pocos de medición para la
-      Wilcoxon pareada (`science/validation/trechos.csv`)
-- [ ] Tabla clase a riesgo de NOAH-H con fuente, para Tulio (H2)
-- [ ] Recorrido de Perseverance recortado y con elevación, junto con Tulio (H2)
-- [ ] Acompañar a Miguel en la integración de su modelo de O₂ (H3)
-- [ ] Script de métricas: separación media, distancia, desnivel y Wilcoxon pareada (HE3) (H3)
-- [ ] Correr la validación con las rutas congeladas y armar la tabla de resultados, incluido lo que falló (H4)
-- [ ] Elegir con Miguel los puntos de demo donde la ruta corta gaste más O₂ (H4)
-- [ ] Fotos de Perseverance por tramo para las paradas (H4) **(recortable)**
+- [x] Sourced parameters in `docs/supuestos.md`: Apollo rates (Waligora and Horrigan, 1975), the Minetti
+      curve, RAD 0.64 mSv/day, and the Mars O₂ scenario with NASA suited data at 3/8 g (H1)
+- [x] Fix the stretches: calibration with sol 606 or earlier, measurement with the later ones, not contiguous
+      (H1). Inside the real region there are 18 for calibration and 18 for measurement (stretches 37 and 38
+      fall outside the box); with the cut at 1000 there would be too few measurement stretches for the paired
+      Wilcoxon (`science/validation/trechos.csv`)
+- [x] NOAH-H class-to-risk table with sources, for Tulio (H2)
+- [ ] Perseverance traverse cropped and with elevation, together with Tulio (H2)
+- [x] Support Miguel in integrating the O₂ model (H3)
+- [x] Metrics script: mean separation, distance, ascent and paired Wilcoxon (HE3) (H3)
+- [x] Run the validation with frozen weights and build the results table, including what failed (H4):
+      `science/validation/he3_resultados.md`
+- [x] Pick with Miguel the demo points where the short route uses more O₂ (H4)
+- [ ] Perseverance photos per segment for the stops (H4) **(droppable)**
 
-## Por día
+## Per day
 
-| 13 nov | 14 nov | 15 nov |
+| 13 Nov | 14 Nov | 15 Nov |
 | --- | --- | --- |
-| Parámetros, tramos y tabla clase a riesgo | Validación con rutas congeladas; hablar con mentores | Presenta y responde preguntas técnicas |
+| Parameters, stretches and class-to-risk table | Validation with frozen weights; talk to mentors | Presents and answers technical questions |
 
-## Recibe y entrega
+## Receives and delivers
 
-- **Recibe** de Tulio: recorrido con elevación. De Miguel: rutas congeladas para validar.
-- **Entrega** a Tulio: tabla clase a riesgo. A Miguel: modelo de O₂ y parámetros. Al pitch: cifras
-  citables y la tabla de validación.
+- **Receives** from Tulio: the traverse with elevation. From Miguel: the routes to validate.
+- **Delivers** to Tulio: the class-to-risk table. To Miguel: the O₂ model and parameters. To the pitch:
+  citable figures and the validation table.
 
-## Fuera de alcance
+## Out of scope
 
-- Trasladar a Marte el paso a saltos lunar, el balance térmico de Apollo o el comportamiento del
-  polvo lunar.
-- Revisión sistemática de literatura.
-- Inventar cifras: si no hay fuente abierta, `[__]` y avisar.
+- Carrying over to Mars the lunar bunny hop, the Apollo thermal balance or the behavior of lunar dust.
+- Inventing figures: if there is no open source, `[__]` and say so.

@@ -1,8 +1,8 @@
-"""Textos en inglés del panel "Supuestos y límites" (GET /assumptions?lang=en).
+"""English texts of the "Assumptions and limits" panel (GET /assumptions, the default language).
 
-Solo traduce textos: los valores, las unidades numéricas y las fuentes salen de assumptions.py. Un
-parámetro o un límite sin traducción aquí se muestra en español, así que agregar uno nuevo en
-assumptions.py no rompe nada; solo hay que sumar aquí su texto en inglés.
+It only translates text: the values, numeric units and sources come from assumptions.py. A
+parameter or limit without a translation here is shown in Spanish, so adding one to
+assumptions.py breaks nothing; you only need to add its English text here.
 """
 
 from app.engine.assumptions import LIMITS
@@ -10,7 +10,7 @@ from app.schemas.assumptions import Assumption, AssumptionsResponse
 
 LUNAR_ON_MARS = "Lunar (Artemis) value applied to Mars: Mars EVAs are still being planned."
 
-# id -> (etiqueta, nota). La nota None deja la nota original (vacía en esos parámetros).
+# id -> (label, note). A None note keeps the original note (empty for those parameters).
 PARAMETERS_EN: dict[str, tuple[str, str | None]] = {
     "base_speed": (
         "Suited walking speed on flat ground",
@@ -99,7 +99,7 @@ PARAMETERS_EN: dict[str, tuple[str, str | None]] = {
     "weights_baseline": ("Baseline (shortest distance) weights", None),
 }
 
-# Fuentes y unidades que son texto en español.
+# Sources and units that are text in Spanish.
 TEXT_EN = {
     "Decisión del proyecto": "Project decision",
     "Convención del proyecto (radio medio)": "Project convention (mean radius)",
@@ -111,10 +111,10 @@ TEXT_EN = {
     "puntos de la ruta": "route points",
 }
 
-# Palabras en español dentro de las referencias ("Drake y Watts", "tabla 2", "Derivado: ...").
+# Spanish words inside the references ("Drake y Watts", "tabla 2", "Derivado: ...").
 SOURCE_WORDS_EN = {" y ": " and ", "tabla": "table", "Derivado:": "Derived:"}
 
-# Pesos de los modos: "pendiente 4, riesgo 4, ..." -> "slope 4, hazard 4, ...".
+# Mode weights: "pendiente 4, riesgo 4, ..." -> "slope 4, hazard 4, ...".
 WEIGHT_WORDS_EN = {
     "pendiente": "slope",
     "riesgo": "hazard",
@@ -122,8 +122,8 @@ WEIGHT_WORDS_EN = {
     "ciencia": "science",
 }
 
-# Cada límite en el mismo orden que LIMITS de assumptions.py. Si cambias LIMITS, cambia esta lista:
-# test_every_limit_has_an_english_version lo revisa.
+# Each limit in the same order as LIMITS in assumptions.py. If you change LIMITS, change this list:
+# test_every_limit_has_an_english_version checks it.
 LIMITS_EN = [
     "While a region has synthetic data, its figures do not describe the real terrain of Mars.",
     "EVA duration counts the walk plus fixed work (`task_h`), which is 0 until the team sets a"
@@ -180,7 +180,7 @@ def _translate(p: Assumption) -> Assumption:
 
 
 def to_english(res: AssumptionsResponse) -> AssumptionsResponse:
-    """Misma respuesta con los textos en inglés. Si LIMITS cambia de largo, deja los límites en
-    español en vez de emparejarlos mal."""
+    """Same response with the texts in English. If LIMITS changes length, it leaves the limits in
+    Spanish instead of pairing them wrongly."""
     limits = LIMITS_EN if len(LIMITS_EN) == len(LIMITS) else res.limits
     return AssumptionsResponse(parameters=[_translate(p) for p in res.parameters], limits=limits)

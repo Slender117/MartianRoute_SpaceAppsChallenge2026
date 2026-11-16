@@ -1,9 +1,9 @@
-"""Recorrido real de un rover en la región: el trecho continuo más largo, con la elevación del DEM.
+"""A rover's real traverse in the region: the longest continuous stretch, with DEM elevation.
 
-Misma lógica que science/convert_traverse.py (Edgar): el archivo de MMGIS trae una LineString por
-sol; se unen en orden, se parten donde el recorrido sale del recuadro o hay un salto mayor que
-`max_gap_m` (la API uniría esos puntos con una recta e inventaría camino) y se conserva el trecho
-más largo. La elevación se muestrea de la grilla de la región, la misma que usan las rutas.
+Same logic as science/convert_traverse.py (Edgar): the MMGIS file has one LineString per
+sol; they are joined in order, split where the traverse leaves the box or there is a jump larger
+than `max_gap_m` (the API would join those points with a straight line and invent a path), and
+the longest stretch is kept. Elevation is sampled from the region grid, the same the routes use.
 """
 
 import json
@@ -15,7 +15,7 @@ import numpy as np
 
 from marsdata.region import MARS_RADIUS_M, REPO_DIR, Region
 
-MAX_GAP_M = 30.0  # el espaciado normal del archivo llega a 12 m
+MAX_GAP_M = 30.0  # the file's normal spacing reaches 12 m
 
 Point = tuple[float, float, int]  # lon, lat, sol
 
@@ -30,7 +30,7 @@ def haversine_m(a: Point, b: Point) -> float:
 
 
 def load_points(path: Path) -> list[Point]:
-    """(lon, lat, sol) en orden de sol, sin los puntos repetidos en las uniones de tramos."""
+    """(lon, lat, sol) in sol order, without the points repeated at segment joins."""
     features = json.loads(path.read_text(encoding="utf-8"))["features"]
     out: list[Point] = []
     for f in sorted(features, key=lambda f: f["properties"]["sol"]):
@@ -42,7 +42,7 @@ def load_points(path: Path) -> list[Point]:
 
 
 def continuous_runs(points: list[Point], bbox, max_gap_m: float = MAX_GAP_M) -> list[list[Point]]:
-    """Trechos dentro del bbox y sin saltos mayores que `max_gap_m`."""
+    """Stretches inside the bbox and with no jumps larger than `max_gap_m`."""
     lon_min, lat_min, lon_max, lat_max = bbox
     runs, cur = [], []
     for p in points:
@@ -61,7 +61,7 @@ def run_length_m(run: list[Point]) -> float:
 
 
 def sample_grid(grid: np.ndarray, region: Region, lats, lons) -> np.ndarray:
-    """Interpolación bilineal en la grilla de la región (fila 0 = lat_max, como en la API)."""
+    """Bilinear interpolation on the region grid (row 0 = lat_max, as in the API)."""
     lon_min, lat_min, lon_max, lat_max = region.bbox
     h, w = grid.shape
     rows = np.clip((lat_max - np.asarray(lats)) / (lat_max - lat_min) * (h - 1), 0, h - 1)
@@ -77,9 +77,9 @@ def sample_grid(grid: np.ndarray, region: Region, lats, lons) -> np.ndarray:
 def build_traverse(
     region: Region, dem: np.ndarray, rover: str, max_gap_m: float | None = None
 ) -> tuple[list[tuple[float, float, float]], dict] | None:
-    """[(lat, lon, elevación)] del trecho más largo y sus propiedades; None si no entra ninguno.
+    """[(lat, lon, elevation)] of the longest stretch and its properties; None if none fits.
 
-    El salto máximo sale de `max_gap_m`, de la región (`traverse_max_gap_m`) o de MAX_GAP_M.
+    The maximum jump comes from `max_gap_m`, from the region (`traverse_max_gap_m`) or MAX_GAP_M.
     """
     max_gap_m = max_gap_m or region.traverse_max_gap_m or MAX_GAP_M
     path = REPO_DIR / region.traverse_files[rover]

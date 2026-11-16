@@ -1,145 +1,156 @@
 # Martian Route
 
-Mapa 3D multicapa del cráter Jezero que planifica caminatas humanas en Marte por oxígeno, riesgo y regreso
-seguro a la base, y no solo por distancia.
+A multi-layer 3D map of Jezero Crater that plans human walks on Mars by oxygen, risk and safe return to
+base, not just by distance.
 
-Proyecto para el NASA Space Apps Challenge 2026, reto *Interplanetary Survival Guide: Martian Map*. El explorador
-elige un inicio y un destino y recibe tres rutas, Segura, Rápida y Científica, comparadas con la ruta más corta.
-Cada una trae su consumo de oxígeno, su riesgo, su tiempo, su dosis de radiación y su punto de no retorno.
+Project for the NASA Space Apps Challenge 2026, *Interplanetary Survival Guide: Martian Map* challenge. The
+explorer picks a start and a destination and gets three routes, Safe, Fast and Science, compared with the
+shortest route. Each one comes with its oxygen use, risk, time, radiation dose and point of no return.
 
-![El planificador en el cráter Jezero: la ruta de la base al destino sobre el relieve y la ortofoto de CTX, con el mapa de regreso seguro en verde, amarillo y rojo](apps/web/public/img/planificador.webp)
+![The planner in Jezero Crater: the route from the base to the destination over the CTX relief and orthophoto, with the safe-return map in green, yellow and red](apps/web/public/img/planificador.webp)
 
-## El problema
+## The problem
 
-En una caminata en Marte, el límite no es la distancia sino el oxígeno que el explorador lleva en el traje.
-Entre la base y el destino hay escarpes, campos de bloques y arena suelta. Los rovers lo han vivido: Curiosity
-ha tenido que adaptar sus rutas durante años por rocas y arena (Rankin et al., 2021), y Perseverance depende de
-su navegación autónoma para cruzar Jezero (Verma et al., 2023).
+On a walk on Mars, the limit is not distance but the oxygen the explorer carries in the suit. Between the
+base and the destination there are scarps, boulder fields and loose sand. Rovers have lived through it:
+Curiosity has had to adapt its routes for years because of rocks and sand (Rankin et al., 2021), and
+Perseverance relies on its autonomous navigation to cross Jezero (Verma et al., 2023).
 
-Para una persona, una ruta corta que sube una pendiente fuerte o cruza terreno irregular puede gastar más oxígeno
-que un rodeo y dejarla sin margen para volver. Planear una caminata exige saber, antes de salir, cuánto oxígeno
-cuesta cada tramo, qué zonas no se pueden cruzar y desde dónde ya no alcanza para regresar.
+For a person, a short route that climbs a steep slope or crosses rough terrain can use more oxygen than a
+detour and leave no margin to get back. Planning a walk means knowing, before leaving, how much oxygen each
+segment costs, which areas cannot be crossed and from where there is no longer enough to return.
 
-## Qué existe y qué falta
+## What exists and what is missing
 
-Hicimos una revisión sistemática con la guía PRISMA 2020 (Page et al., 2021): de 2,448 registros incluimos 97
-estudios.
+We ran a systematic review following the PRISMA 2020 guideline (Page et al., 2021): out of 2,448 records we
+included 97 studies.
 
-| Antecedente | Qué hace | Qué no cubre |
+| Prior work | What it does | What it does not cover |
 | --- | --- | --- |
-| Travesías de mínima carga metabólica (Peña-Asensio et al., 2024) | Calcula rutas de astronautas que minimizan el esfuerzo hacia zonas en sombra del polo sur lunar | Es para la Luna; no usa capas de Marte ni punto de no retorno |
-| NaviGATOR (Richardson et al., 2024) | Asigna costo metabólico por celda y visualiza rutas de EVA lunar | Es para la Luna; sin datos marcianos |
-| Métricas de rutas de rovers (Muñoz et al., 2023) y AutoNav (Verma et al., 2023) | Planifican y evalúan rutas de rovers en Marte | Optimizan la movilidad de un rover, no el oxígeno de una persona |
-| Visores de datos, como NASA Mars Trek | Publican capas orbitales y miden distancias y perfiles de elevación | No proponen rutas ni calculan su costo para una persona |
+| Minimum metabolic workload traverses (Peña-Asensio et al., 2024) | Computes astronaut routes that minimize effort toward shadowed regions near the lunar south pole | It is for the Moon; no Mars layers or point of no return |
+| NaviGATOR (Richardson et al., 2024) | Assigns a metabolic cost per cell and visualizes lunar EVA routes | It is for the Moon; no Martian data |
+| CSRM from NASA's Johnson Space Center (Kim et al., 2025) | Plans traverses by metabolic workload; demonstrated on a virtual Jezero | Limited to terrestrial applications by its authors; not checked against a real Mars traverse |
+| Rover route metrics (Muñoz et al., 2023) and AutoNav (Verma et al., 2023) | Plan and evaluate rover routes on Mars | They optimize a rover's mobility, not a person's oxygen |
+| Data viewers, such as NASA Mars Trek | Publish orbital layers and measure distances and elevation profiles | They do not propose routes or compute their cost for a person |
 
-**El vacío:** no encontramos una herramienta que planifique caminatas de una persona en Marte con datos reales y
-que se valide contra el recorrido de un rover. Nuestro aporte no es la idea de optimizar por energía, sino la
-integración de esas piezas para Marte y su validación.
+**The gap:** we found no tool that plans a person's walks on Mars with real data and is checked against a
+rover's traverse. Our contribution is not the idea of optimizing by energy, but integrating those pieces for
+Mars and validating them.
 
-## Datos y para qué se usa cada uno
+## Data and what each one is used for
 
-Los datos son públicos y vienen de varias misiones de NASA. En la región de Jezero, todas las capas se llevan a
-una grilla común de 600 × 600 celdas de unos 25 m. Cada capa y cada cifra de la app indica su procedencia:
-observada, derivada o modelada. Fuentes y citas completas: [docs/creditos.md](docs/creditos.md).
+The data is public and comes from several NASA missions. In the Jezero region, every layer is brought to a
+common grid of 600 × 600 cells of about 25 m. Every layer and every figure in the app states its provenance:
+observed, derived or modeled. Full sources and citations: [docs/creditos.md](docs/creditos.md).
 
-| Capa | Misión o producto | Uso en el motor |
+| Layer | Mission or product | Use in the engine |
 | --- | --- | --- |
-| Relieve y pendiente | Modelo de terreno de CTX para Mars 2020 (MRO, USGS), 20 m | Pendiente, ascenso y celdas intransitables |
-| Imagen del terreno | Ortomosaico de CTX para Mars 2020, 6 m | Textura del mapa 3D |
-| Peligro del terreno | Clases NOAH-H sobre HiRISE (Barrett et al., 2022; Wright et al., 2022) | Peligro de 0 a 1 y zonas intransitables; clasifica el 95.4 % de las celdas |
-| Firmeza del suelo | Inercia térmica de THEMIS (Mars Odyssey), 100 m | Inestabilidad del suelo |
-| Minerales | Mineralogía de CRISM (MRO) | Valor científico del modo Científica; en integración (hoy solo en la región de prueba) |
-| Recorrido real | Trayecto de Perseverance (Mars 2020, MMGIS de JPL) | Validación de las rutas |
-| Radiación | RAD de Curiosity en Gale (Hassler et al., 2014; Guo et al., 2021) | Dosis por caminata, con el valor medido en Gale |
-| Clima espacial | DONKI de NASA (CCMC, WSA-ENLIL) | Eyecciones solares previstas para Marte, en el panel "Marte hoy" |
-| Rover en vivo | Posición e imágenes crudas de Perseverance | Ubicación del rover y sus imágenes recientes, en el panel "Marte hoy" |
+| Relief and slope | CTX terrain model for Mars 2020 (MRO, USGS), 20 m | Slope, ascent and impassable cells |
+| Terrain image | CTX orthomosaic for Mars 2020, 6 m | Texture of the 3D map |
+| Terrain hazard | NOAH-H classes on HiRISE (Barrett et al., 2022; Wright et al., 2022) | Hazard from 0 to 1 and impassable areas; it classifies 95.4 % of the cells |
+| Ground firmness | THEMIS thermal inertia (Mars Odyssey), 100 m | Ground instability |
+| Minerals | CRISM mineralogy (MRO) | Science value for the Science mode; being integrated (today only in the test region) |
+| Real traverse | Perseverance's path (Mars 2020, JPL MMGIS) | Route validation |
+| Radiation | Curiosity RAD in Gale (Hassler et al., 2014; Guo et al., 2021) | Dose per walk, with the value measured in Gale |
+| Space weather | NASA DONKI (CCMC, WSA-ENLIL) | Solar ejections forecast for Mars, in the "Mars today" panel |
+| Live rover | Perseverance's position and raw images | Rover location and its recent images, in the "Mars today" panel |
 
-Además de `jezero`, el repositorio trae dos regiones más con la misma arquitectura:
+Besides `jezero`, the repository has two more regions with the same architecture:
 
-- `jezero_walk`: la zona de una caminata con el modelo de terreno y el ortomosaico de HiRISE, a unos 3 m por celda.
-- `gale`: alrededor de Curiosity, con el DEM y el ortomosaico de HiRISE de la misión MSL. Gale no tiene NOAH-H, así
-  que su peligro se deriva de la rugosidad del relieve.
+- `jezero_walk`: the area of one walk with the HiRISE terrain model and orthomosaic, at about 3 m per cell.
+- `gale`: around Curiosity, with the HiRISE DEM and orthomosaic from the MSL mission. Gale has no NOAH-H,
+  so its hazard is derived from the roughness of the relief.
 
-## Cómo funciona
+## How it works
 
-- **Modos de caminata.** Segura da más peso a la pendiente, el peligro y la inestabilidad del suelo. Rápida
-  prioriza el tiempo. Científica suma el valor de los minerales del camino. La línea base, la ruta de distancia
-  mínima que respeta la pendiente, sirve de referencia.
-- **Oxígeno.** El motor parte de 0.07 kg de O₂ por hora y por persona en terreno plano a 2 km/h (unos
-  3.5 × 10⁻⁵ kg por metro) y lo ajusta según la pendiente (Minetti et al., 2002) y el terreno. Como no hay
-  mediciones con traje a la gravedad de Marte, el oxígeno se reporta como intervalo.
-- **Límites del traje, editables.** Pendiente máxima de 20°, 2 km/h en plano, 8 h de autonomía con 20 % de reserva
-  y 10 km desde la base.
-- **Punto de no retorno.** Cada ruta marca el punto desde el que el regreso ya no cabe en la autonomía planeable.
-- **Mapa de regreso seguro.** Colorea en verde las zonas desde las que se vuelve dentro de la autonomía, en
-  amarillo las que exigen usar la reserva y en rojo las que no permiten volver.
-- **Arquitectura.** El trabajo pesado (recortes, reproyección y grillas) se hace fuera de línea en el pipeline. La
-  API combina las grillas según el modo y calcula la ruta en segundos, y la web la dibuja en 3D.
+- **Walking modes.** Safe gives more weight to slope, hazard and ground instability. Fast prioritizes time.
+  Science adds the value of the minerals along the way. The baseline, the minimum-distance route that
+  respects the maximum slope, is the reference.
+- **Oxygen.** The engine starts from 0.07 kg of O₂ per hour per person on flat ground at 2 km/h (about
+  3.5 × 10⁻⁵ kg per meter), the mean of the Apollo lunar walks, and adjusts it by slope (Minetti et al., 2002)
+  and terrain. That is the lunar scenario. NASA's suited tests at Mars gravity (3/8 g) give 0.12 to 0.15 kg
+  per hour, 1.6 to 2.2 times more: that is the Mars scenario, documented in
+  [docs/supuestos.md](docs/supuestos.md). Oxygen is always reported as an interval.
+- **Suit limits, editable.** Maximum slope of 20°, 2 km/h on flat ground, 8 h of autonomy with a 20 % reserve
+  and 10 km from the base.
+- **Point of no return.** Each route marks the point from which the way back no longer fits the plannable
+  autonomy.
+- **Safe-return map.** It colors in green the areas from which you get back within the autonomy, in yellow
+  the ones that require using the reserve and in red the ones you cannot return from.
+- **Live data.** The "Mars today" panel queries NASA live: solar ejections reaching Mars (DONKI), and
+  Perseverance's position and latest images. If an ejection arrives close to the walk, the app suggests the
+  solar event scenario.
+- **Architecture.** The heavy work (crops, reprojection and grids) is done offline in the pipeline. The API
+  combines the grids by mode and computes the route in seconds with a least-cost path search (Dijkstra), and
+  the web draws it in 3D.
 
-Todos los parámetros del modelo, con su fuente y sus límites, están en [docs/supuestos.md](docs/supuestos.md).
+Every model parameter, with its source and limits, is in [docs/supuestos.md](docs/supuestos.md).
 
-## Impacto
+## Impact
 
-- **Exploración:** apoya la planificación de caminatas y el entrenamiento en análogos terrestres.
-- **Educación:** convierte datos públicos de NASA en una experiencia que estudiantes y público pueden usar.
-- **Ciencia abierta:** el código, los datos crudos de las regiones y los supuestos son abiertos, y el método se
-  puede repetir en otros sitios, como ya se hizo con Gale.
+- **Exploration:** supports walk planning and training in Earth analogs.
+- **Education:** turns public NASA data into an experience that students and the public can use.
+- **Open science:** the code, the raw region data and the assumptions are open, and the method can be
+  repeated at other sites, as was already done with Gale.
 
-## Estado y límites
+## Status and limits
 
-**Logrado:** región real de Jezero en una grilla común, motor con tres modos, línea base, punto de no retorno, mapa
-de regreso seguro y dosis, y visor 3D con tabla comparativa y panel de supuestos.
+**Done:** real Jezero region on a common grid, an engine with three modes, baseline, point of no return,
+safe-return map and dose, a 3D viewer with a comparison table and an assumptions panel, and live NASA data.
 
-**Falta medir:** la comparación con el recorrido de Perseverance y las pruebas con usuarios se harán con rutas
-congeladas después del evento. Todavía no reportamos cifras de ahorro de oxígeno, para no presentar como hallazgo
-lo que aún es hipótesis.
+**Measured:** we compared the planner with Perseverance's traverse using a method fixed before measuring
+(HE3, `science/validation/`). The terrain map marks the right zone: Perseverance drove over terrain with a
+mean risk of 0.28 against 0.42 for the crater. With 25 m cells it does not predict the rover's exact track
+(9 against 8, p = 0.25), a null result we report as is: the rover chooses its path on board about 6 m ahead.
+In scenarios on real Jezero, when the short path climbs, the safe route uses 13 to 29 % less oxygen, and on
+flat ground it cuts risk by 65 % for 11 to 12 % more oxygen.
 
-**Límites conocidos:** el costo de oxígeno se calibra con datos lunares y terrestres, y la tasa de radiación se
-midió en Gale, no en Jezero.
+**Known limits:** the oxygen cost in the app is the lunar scenario, and the radiation rate was measured in
+Gale, not in Jezero.
 
-**Trabajo futuro:**
+**Future work:**
 
-- Validar las rutas contra al menos 20 tramos del recorrido de Perseverance.
-- Probar el visor con cinco evaluadores ajenos al equipo.
-- Usar los avisos de eventos solares para suspender caminatas cuando suba la radiación.
-- Actualizar el costo de oxígeno cuando existan mediciones con traje a la gravedad de Marte.
+- Repeat the validation against Perseverance at HiRISE scale (1 m), where the rover makes its decisions.
+- Bring the Mars oxygen scenario into the app and integrate the mineral map on real Jezero.
+- Test the viewer with five evaluators from outside the team.
+- Add to the DONKI alerts a warning for particle storms measured on Mars.
 
-## Equipo
+## Team
 
-Maestría en Ingeniería para la Innovación y Desarrollo Tecnológico (MIIDT), Universidad Autónoma de Guerrero,
-Chilpancingo, Guerrero.
+Master's in Engineering for Innovation and Technological Development (MIIDT), Universidad Autónoma de
+Guerrero, Chilpancingo, Guerrero, Mexico.
 
-| Integrante | Rol |
+| Member | Role |
 | --- | --- |
-| Marco Tulio Ramirez Reyes | Líder del equipo; pipeline de capas, infraestructura y despliegue |
-| Edgar David Mariano Ruiz | Ciencia y validación |
-| Miguel Ángel Florencio Flores | Backend y dirección del frontend |
-| Milton Azael Jiménez Gregorio | Componentes de interfaz |
-| Williams Reyna Pérez | Pruebas de uso, demo y video |
-| Jairo A. Hernández | Idea inicial del proyecto |
+| Marco Tulio Ramirez Reyes | Team lead; layer pipeline, infrastructure and deployment |
+| Edgar David Mariano Ruiz | Science and validation |
+| Miguel Ángel Florencio Flores | Backend and frontend direction |
+| Milton Azael Jiménez Gregorio | Interface components |
+| Williams Reyna Pérez | Usability testing, demo and video |
+| Jairo A. Hernández | Initial project idea |
 
-El reparto de trabajo por integrante está en [docs/equipo/](docs/equipo/README.md).
+The work split per member is in [docs/equipo/](docs/equipo/README.md).
 
 ---
 
-## Estructura del repositorio
+## Repository structure
 
 ```
-apps/web       Next.js + React Three Fiber  → Vercel
-apps/api       FastAPI + motor de rutas A*  → Render / Railway
-pipeline       GDAL/Rasterio, offline       → Cloudflare R2
-packages/contracts  tipos TS generados del OpenAPI
-data/raw       crudos de cada región (sí se versionan)
-data/regions   salida del pipeline (no se versiona)
+apps/web       Next.js + React Three Fiber          → Vercel
+apps/api       FastAPI + least-cost route engine    → Render / Railway
+pipeline       GDAL/Rasterio, offline               → Cloudflare R2
+packages/contracts  TS types generated from the OpenAPI
+data/raw       raw files of each region (versioned)
+data/regions   pipeline output (not versioned)
 ```
 
-Arquitectura, contrato de la API y formato de datos: [docs/arquitectura.md](docs/arquitectura.md).
+Architecture, API contract and data format: [docs/arquitectura.md](docs/arquitectura.md).
 
-## Arranque local
+## Local setup
 
-Requisitos: Node 22+, Python 3.11+.
+Requirements: Node 22+, Python 3.11+.
 
-**1. Datos de prueba** (región sintética de Jezero en `data/regions/`; vuelve a generarla cuando un pull cambie
+**1. Test data** (synthetic Jezero region in `data/regions/`; regenerate it when a pull changes
 `pipeline/`):
 
 ```bash
@@ -148,7 +159,7 @@ python -m venv .venv && .venv/Scripts/pip install -e ".[dev]"   # macOS/Linux: .
 .venv/Scripts/marsdata synthetic
 ```
 
-**2. API** en http://localhost:8000 (docs en `/docs`):
+**2. API** at http://localhost:8000 (docs at `/docs`):
 
 ```bash
 cd apps/api
@@ -157,11 +168,11 @@ cp .env.example .env
 .venv/Scripts/uvicorn app.main:app --reload
 ```
 
-El panel "Marte hoy" consulta a NASA en vivo (`GET /live`). Saca una llave gratuita en https://api.nasa.gov y
-ponla en `apps/api/.env` como `NASA_API_KEY`; sin internet, la API usa la copia de `app/live/snapshot.json`.
-Para actualizar esa copia antes de una demo: `.venv/Scripts/python -m app.live` desde `apps/api`.
+The "Mars today" panel queries NASA live (`GET /live`). Get a free key at https://api.nasa.gov and put it in
+`apps/api/.env` as `NASA_API_KEY`; without internet, the API uses the copy in `app/live/snapshot.json`. To
+refresh that copy before a demo: `.venv/Scripts/python -m app.live` from `apps/api`.
 
-**3. Web** en http://localhost:3000 (repite `npm install` cuando un pull cambie `package-lock.json`):
+**3. Web** at http://localhost:3000 (run `npm install` again when a pull changes `package-lock.json`):
 
 ```bash
 npm install
@@ -169,16 +180,17 @@ cp apps/web/.env.example apps/web/.env.local
 npm run dev:web
 ```
 
-La portada está en `/` y el planificador de rutas en `/planner`; el botón fijo de la portada lleva ahí.
+The landing page is at `/` and the route planner at `/planner`; the landing's fixed button leads there. The
+interface opens in English; the ES / EN buttons switch the language.
 
-## Jezero y Gale con datos reales
+## Jezero and Gale with real data
 
-`marsdata synthetic` genera una región inventada para las pruebas. Las regiones reales, `jezero` (CTX, ~25 m por
-celda), `jezero_walk` (HiRISE, ~3 m por celda) y `gale` (HiRISE leído a 5 m, alrededor de Curiosity), se construyen
-en `data/regions-real/`, que no se versiona. Fuentes y citas: [docs/creditos.md](docs/creditos.md).
+`marsdata synthetic` generates a made-up region for the tests. The real regions, `jezero` (CTX, ~25 m per
+cell), `jezero_walk` (HiRISE, ~3 m per cell) and `gale` (HiRISE read at 5 m, around Curiosity), are built in
+`data/regions-real/`, which is not versioned. Sources and citations: [docs/creditos.md](docs/creditos.md).
 
-**1. Datos.** Los archivos crudos de cada región ya vienen en el repo, en `data/raw/<región>/`, así que no hay que
-descargar nada: basta con construir.
+**1. Data.** The raw files of each region are already in the repo, in `data/raw/<region>/`, so nothing has to
+be downloaded: building is enough.
 
 ```bash
 cd pipeline
@@ -187,20 +199,20 @@ cd pipeline
 .venv/Scripts/marsdata build --region gale --out ../data/regions-real
 ```
 
-Sin `--out`, `build` reemplaza la región sintética de `data/regions/`, que es la que esperan las pruebas de la API.
-Gale no tiene NOAH-H: su capa de riesgo sale de la rugosidad del DEM (ver `docs/supuestos.md`). Minerales e hielo
-todavía no tienen producto: `build` los omite.
+Without `--out`, `build` replaces the synthetic region in `data/regions/`, which is the one the API tests
+expect. Gale has no NOAH-H: its risk layer comes from DEM roughness (see `docs/supuestos.md`). Minerals and ice
+do not have a product yet: `build` skips them.
 
-`marsdata fetch --region <región>` solo hace falta para regenerar los crudos o agregar una región: baja completos el
-DEM y la ortofoto de CTX, y de THEMIS y HiRISE lee solo la ventana de cada región. NOAH-H no se descarga solo,
-porque su repositorio bloquea las descargas automáticas. El del repo es el mosaico de
-[doi:10.21954/ou.rd.17121482.v2](https://doi.org/10.21954/ou.rd.17121482.v2) recomprimido sin pérdida, para que
-quepa en GitHub.
+`marsdata fetch --region <region>` is only needed to regenerate the raw files or add a region: it downloads
+the CTX DEM and orthophoto in full, and reads only each region's window from THEMIS and HiRISE. NOAH-H is not
+downloaded automatically, because its repository blocks automated downloads. The one in the repo is the
+mosaic from [doi:10.21954/ou.rd.17121482.v2](https://doi.org/10.21954/ou.rd.17121482.v2), losslessly
+recompressed so it fits on GitHub.
 
-**2. API.** En `apps/api/.env`, pon `ASSETS_DIR=../../data/regions-real` y reinicia la API; la web no cambia. Para
-volver a la sintética, regresa a `ASSETS_DIR=../../data/regions`.
+**2. API.** In `apps/api/.env`, set `ASSETS_DIR=../../data/regions-real` and restart the API; the web does
+not change. To go back to the synthetic one, return to `ASSETS_DIR=../../data/regions`.
 
-## Pruebas
+## Tests
 
 ```bash
 cd apps/api && .venv/Scripts/pytest -q
@@ -210,18 +222,18 @@ cd apps/api && .venv/Scripts/pytest -q
 npm run lint:web && npm run typecheck:web
 ```
 
-## Roles → carpetas
+## Roles → folders
 
-| Rol | Dónde trabaja |
+| Role | Where they work |
 |---|---|
-| Producto y pitch | `docs/`, guion de la demo, `apps/web/lib/theatre.ts` |
-| Visualización 3D | `apps/web/components/scene/` |
-| Frontend y UX | `apps/web/components/ui/`, `apps/web/lib/` |
-| Backend y rutas | `apps/api/app/engine/`, `apps/api/app/routers/` |
-| Datos geoespaciales | `pipeline/marsdata/fetch/`, `pipeline/marsdata/process/` |
-| Ciencia y validación | pesos en `apps/api/app/engine/cost.py`, umbrales en `science.py`, recorridos reales |
+| Product and pitch | `docs/`, demo script, `apps/web/lib/theatre.ts` |
+| 3D visualization | `apps/web/components/scene/` |
+| Frontend and UX | `apps/web/components/ui/`, `apps/web/lib/` |
+| Backend and routes | `apps/api/app/engine/`, `apps/api/app/routers/` |
+| Geospatial data | `pipeline/marsdata/fetch/`, `pipeline/marsdata/process/` |
+| Science and validation | `science/`, weights in `apps/api/app/engine/cost.py`, thresholds in `science.py`, real traverses |
 
-## Referencias
+## References
 
 - Barrett, A. M., Balme, M. R., Woods, M., Karachalios, S., Petrocelli, D., Joudrier, L., & Sefton-Nash, E.
   (2022). NOAH-H, a deep-learning, terrain classification system for Mars: Results for the ExoMars Rover
@@ -232,6 +244,9 @@ npm run lint:web && npm run typecheck:web
   Astronomy and Astrophysics Review, 29*(1), 8. https://doi.org/10.1007/s00159-021-00136-5
 - Hassler, D. M., et al. (2014). Mars' surface radiation environment measured with the Mars Science
   Laboratory's Curiosity rover. *Science, 343*(6169), 1244797. https://doi.org/10.1126/science.1244797
+- Kim, K. J., Hoffmann, B., Estep, P. N., Kring, D. A., Marshall-Goebel, K. J., & Buckland, D. M. (2025). *A
+  consolidated tool for planning and analyzing simulated exploration traverses and associated metabolic
+  workload* (ICES-2025-129). https://doi.org/10.32865/2346/102632
 - Minetti, A. E., Moia, C., Roi, G. S., Susta, D., & Ferretti, G. (2002). Energy cost of walking and running at
   extreme uphill and downhill slopes. *Journal of Applied Physiology, 93*(3), 1039–1046.
   https://doi.org/10.1152/japplphysiol.01177.2001
@@ -258,4 +273,4 @@ npm run lint:web && npm run typecheck:web
   *NOAH-H terrain classifications of Jezero Crater, Mars* [Data set]. The Open University.
   https://doi.org/10.21954/ou.rd.17121482.v2
 
-Proyecto para el NASA Space Apps Challenge 2026. No está respaldado por NASA.
+Project for the NASA Space Apps Challenge 2026. Not endorsed by NASA.

@@ -1,56 +1,56 @@
-# Tulio · Líder del equipo: pipeline de capas, navegación, 3D e infraestructura
+# Tulio · Team lead: layer pipeline, navigation, 3D and infrastructure
 
-**Objetivo:** OE1 · HE1: corregistro de 1 celda o menos y al menos 95 % de la zona con dato.
-**Hitos:** responsable de H2, H4 y H5; participa en H3. **Respaldo:** Edgar. **Presenta** el pitch.
+**Objective:** OE1 · HE1: registration of 1 cell or less and at least 95 % of the area with data.
+**Milestones:** owner of H2, H4 and H5; takes part in H3. **Backup:** Edgar. **Presents** the pitch.
 
-## Alcance
+## Scope
 
-Convertir los productos de NASA y USGS en la región de Jezero real (grillas, texturas, recorrido y
-manifest), mostrarla en 3D con las rutas y las capas, desplegar la app y llevarla hasta la demo
-congelada y la entrega. Es el camino crítico.
+Turn the NASA and USGS products into the real Jezero region (grids, textures, traverse and manifest), show
+it in 3D with the routes and layers, deploy the app and take it to the frozen demo and the submission. It is
+the critical path.
 
-## Carpetas
+## Folders
 
 - `pipeline/` (`fetch/sources.py`, `process/`, `export.py`, `publish.py`, `config/regions.yaml`)
-- `data/raw/` (crudos de cada región, se versionan) y `data/regions/` (salida, no se versiona)
-- `apps/web/components/scene/` y `apps/web/components/debug/` (escena 3D y Leva)
-- Configuración de despliegue (Vercel, Render o Railway, Cloudflare R2)
+- `data/raw/` (raw files of each region, versioned) and `data/regions/` (output, not versioned)
+- `apps/web/components/scene/` and `apps/web/components/debug/` (3D scene and Leva)
+- Deployment configuration (Vercel, Render or Railway, Cloudflare R2)
 
-## Tareas
+## Tasks
 
-- [x] Recuadro decidido (13 nov): `[77.316, 18.339, 77.566, 18.590]`, donde NOAH-H tiene dato en el
-      95.4 % de las celdas, con grilla de 600 × 600 (~24.8 m por celda). El recorrido se recorta a
-      esa zona (H2)
-- [ ] DEM real recortado y validado como Float32; heightmap y normal map para la escena 3D (H2)
-- [ ] Ortofoto, mapa mineral de Parente y THEMIS en la grilla común; medir el error de corregistro y
-      el % con dato para HE1 (H2)
-- [ ] Capa NOAH-H en la grilla con la tabla clase a riesgo de Edgar. Corte del protocolo: si al cierre
-      de hoy no está, se usa THEMIS (H2)
-- [ ] Recorrido de Perseverance recortado y con elevación, junto con Edgar (H2)
-- [ ] Manifest con procedencia y archivo de créditos (H2)
-- [ ] Despliegue estable en Vercel, Render o Railway y R2, con ping programado a `/health` (H3)
-- [ ] Con la región publicada, terreno real en 3D con las rutas, la línea base y el mapa de regreso
-      seguro (H3)
-- [ ] Integrar y congelar la demo; revisar las guías de entrega y evaluación y armar la lista de entrega (H4)
-- [ ] Grabar con Williams el video de respaldo de la demo congelada (H4)
-- [ ] Subir la entrega (H5)
+- [x] Box decided (13 Nov): `[77.316, 18.339, 77.566, 18.590]`, where NOAH-H has data in 95.4 % of the
+      cells, with a 600 × 600 grid (~24.8 m per cell). The traverse is cropped to that area (H2)
+- [ ] Real DEM cropped and validated as Float32; heightmap and normal map for the 3D scene (H2)
+- [ ] Orthophoto, Parente mineral map and THEMIS on the common grid; measure the registration error and the
+      % with data for HE1 (H2)
+- [ ] NOAH-H layer on the grid with Edgar's class-to-risk table. Protocol cutoff: if it is not ready by the
+      end of today, THEMIS is used (H2)
+- [ ] Perseverance traverse cropped and with elevation, together with Edgar (H2)
+- [ ] Manifest with provenance and the credits file (H2)
+- [ ] Stable deployment on Vercel, Render or Railway and R2, with a scheduled ping to `/health` (H3)
+- [ ] With the region published, real terrain in 3D with the routes, the baseline and the safe-return
+      map (H3)
+- [ ] Integrate and freeze the demo; review the submission and judging guidelines and build the submission
+      checklist (H4)
+- [ ] Record the backup video of the frozen demo with Williams (H4)
+- [ ] Upload the submission (H5)
 
-## Por día
+## Per day
 
-| 13 nov | 14 nov | 15 nov |
+| 13 Nov | 14 Nov | 15 Nov |
 | --- | --- | --- |
-| Recuadro decidido, capas reales publicadas, corte de NOAH-H al cierre; revisar el despliegue | Integrar, desplegar y congelar la demo; terreno, rutas y capas en 3D | Presenta y sube la entrega |
+| Box decided, real layers published, NOAH-H cutoff at end of day; review the deployment | Integrate, deploy and freeze the demo; terrain, routes and layers in 3D | Presents and uploads the submission |
 
-## Recibe y entrega
+## Receives and delivers
 
-- **Recibe** de Edgar: tabla clase a riesgo de NOAH-H y apoyo con el recorrido de Perseverance. De
-  Miguel: geometría de rutas, línea base y grilla de regreso seguro para la escena 3D.
-- **Entrega** a Miguel: grillas `.npy` y manifest.
-  A Edgar: recorrido con elevación para la validación.
+- **Receives** from Edgar: the NOAH-H class-to-risk table and help with Perseverance's traverse. From
+  Miguel: route geometry, baseline and the safe-return grid for the 3D scene.
+- **Delivers** to Miguel: `.npy` grids and manifest.
+  To Edgar: the traverse with elevation for the validation.
 
-## Fuera de alcance
+## Out of scope
 
-- Procesamiento geoespacial dentro de la API: todo va en el pipeline.
-- Combinar el costo en el pipeline: el costo se combina en la API.
-- Productos que no son DEM de Jezero (InSight, Color Hillshade, "Jezero NE Syrtis Midway").
-- Después de H4, fusionar algo que no sea una corrección.
+- Geospatial processing inside the API: it all goes in the pipeline.
+- Combining the cost in the pipeline: the cost is combined in the API.
+- Products that are not Jezero DEMs (InSight, Color Hillshade, "Jezero NE Syrtis Midway").
+- After H4, merging anything that is not a fix.

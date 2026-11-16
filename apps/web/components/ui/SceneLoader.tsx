@@ -6,8 +6,8 @@ import { dataName, useLang, useT } from "@/lib/i18n";
 import { useMapStore } from "@/lib/store";
 
 /**
- * Aviso de carga sobre la escena: grande mientras llega la región o su relieve, y una etiqueta
- * pequeña mientras se descargan la ortofoto o una capa (el terreno ya se puede usar).
+ * Loading notice over the scene: large while the region or its relief arrives, and a small
+ * label while the orthophoto or a layer downloads (the terrain can already be used).
  */
 export function SceneLoader() {
   const view = useMapStore((s) => s.view);

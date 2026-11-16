@@ -1,4 +1,4 @@
-"""Datos en vivo de NASA (/live). Ninguna prueba sale a internet: NASA se simula con httpx."""
+"""Live NASA data (/live). No test goes to the internet: NASA is simulated with httpx."""
 
 import asyncio
 from datetime import UTC, datetime
@@ -15,7 +15,7 @@ from app.storage import load_manifest
 NOW = datetime(2026, 11, 14, 19, 30, tzinfo=UTC)
 
 ENLIL = [
-    {  # simulación vieja de la misma eyección: debe quedar la nueva
+    {  # old simulation of the same ejection: the new one must remain
         "simulationID": "WSA-ENLIL/49472/1",
         "modelCompletionTime": "2026-11-09T18:00Z",
         "cmeInputs": [{"CMEID": "2026-11-09T10:00:00-CME-001", "speed": 610.0}],
@@ -112,7 +112,7 @@ def offline(request: httpx.Request) -> httpx.Response:
 
 @pytest.fixture(autouse=True)
 def fresh(monkeypatch):
-    """Cada prueba arranca sin caché y con la consulta en vivo encendida."""
+    """Each test starts with no cache and with live querying on."""
     service.clear_cache()
     monkeypatch.setattr(get_settings(), "live_data", True)
     yield
@@ -134,8 +134,8 @@ def test_enlil_keeps_mars_and_the_newest_run_of_each_cme():
     ("now", "expected"),
     [
         (datetime(2026, 11, 10, 13, tzinfo=UTC), "WSA-ENLIL/49473/1"),  # 71 h antes
-        (datetime(2026, 11, 15, 11, tzinfo=UTC), "WSA-ENLIL/49473/1"),  # 47 h después
-        (datetime(2026, 11, 15, 13, tzinfo=UTC), None),  # 49 h después: ya no
+        (datetime(2026, 11, 15, 11, tzinfo=UTC), "WSA-ENLIL/49473/1"),  # 47 h after
+        (datetime(2026, 11, 15, 13, tzinfo=UTC), None),  # 49 h after: no longer
         (datetime(2026, 11, 5, 0, tzinfo=UTC), "WSA-ENLIL/49326/1"),
     ],
 )
@@ -146,9 +146,9 @@ def test_solar_alert_window(now, expected):
 
 def test_alert_prefers_the_arrival_still_to_come():
     arrivals = sources.parse_enlil(ENLIL)
-    # 2026-11-06: la de 11-04 llegó hace 40 h y la de 11-13 llega en 174 h (fuera): queda la vieja.
+    # 2026-11-06: the 11-04 one arrived 40 h ago, the 11-13 one comes in 174 h (outside): old stays.
     assert sources.solar_alert(arrivals, datetime(2026, 11, 6, tzinfo=UTC)).minor_impact
-    # 2026-11-11: la de 11-13 llega en 48 h y es la única dentro.
+    # 2026-11-11: the 11-13 one arrives in 48 h and is the only one inside.
     alert = sources.solar_alert(arrivals, datetime(2026, 11, 11, 12, tzinfo=UTC))
     assert alert.simulation_id == "WSA-ENLIL/49473/1"
 
@@ -179,7 +179,7 @@ def test_live_reads_the_three_sources():
 
 def test_rover_distance_to_the_base_of_a_region(assets_dir):
     res = live(httpx.MockTransport(nasa), region=load_manifest("test"))
-    # Base de la región de prueba en (0.5, 0.0): el rover está a miles de km y fuera del bbox.
+    # Base of the test region at (0.5, 0.0): the rover is thousands of km away and outside the bbox.
     assert res.rover.in_region is False and res.rover.distance_to_base_km > 1000
 
 
@@ -203,7 +203,7 @@ def test_without_internet_it_uses_the_snapshot_and_says_so():
         ("rover", res.rover.source),
         ("images", res.images.source),
     ]:
-        assert src.status == "snapshot" and src.error == "sin conexión con NASA"
+        assert src.status == "snapshot" and src.error == "no connection to NASA"
         assert src.fetched_at == sources.parse_time(snap[key]["fetched_at"])
     assert res.rover.sol >= 2022
 
@@ -213,7 +213,7 @@ def test_nasa_error_after_a_good_answer_keeps_the_good_answer():
     later = datetime(2026, 11, 14, 21, tzinfo=UTC)
     res = live(httpx.MockTransport(lambda r: httpx.Response(429)), now=later)
     assert res.space_weather.source.status == "live"
-    assert res.space_weather.source.error == "NASA respondió 429"
+    assert res.space_weather.source.error == "NASA answered 429"
     assert res.space_weather.source.fetched_at == NOW
 
 
@@ -247,6 +247,6 @@ def test_snapshot_update_keeps_the_old_part_of_a_failing_source():
 
     old = {"images": {"fetched_at": "2026-11-01T00:00:00+00:00", "data": {"images": []}}}
     new, errors = asyncio.run(service.build_snapshot(old, httpx.MockTransport(images_down)))
-    assert errors == {"images": "NASA respondió 503"}
+    assert errors == {"images": "NASA answered 503"}
     assert new["images"] == old["images"]
     assert new["rover"]["data"]["sol"] == 2022 and len(new["space_weather"]["data"]) == 2

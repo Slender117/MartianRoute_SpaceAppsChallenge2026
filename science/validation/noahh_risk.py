@@ -1,18 +1,18 @@
-"""Riesgo de terreno (0-1) por grupo interpretativo de NOAH-H, en el orden de Barrett et al., 2022.
+"""Terrain risk (0-1) per NOAH-H interpretive group, in the order of Barrett et al., 2022.
 
-El riesgo sale de lo que Barrett afirma de cada grupo, escalado por rango (IG_RISK): los extremos
-tienen cita directa y los tres del medio son una interpolación lineal supuesta (modeled).
+The risk comes from what Barrett states about each group, scaled by rank (IG_RISK): the extremes
+have a direct quote and the three in the middle are an assumed linear interpolation (modeled).
 
-Respaldo (no entra al costo): el riesgo que dan las 14 etiquetas de Barrett (Tabla 2), en un orden
-ordinal propio (Alta 1 < Aceptable con peligros locales 2 < Peligros locales 3 < Incierta 4 <
-Posiblemente baja 5 < Baja 6 < Muy baja 7; riesgo = (nivel - 1) / 6), con la media de cada grupo
-pesada por el área de cada clase DC, en todo el mosaico y en las ventanas (rectángulo envolvente)
-de los trechos de calibración de trechos.csv; los de medición no se leen. Las dos ponderaciones
-ponen a la roca madre por encima de la no roca madre, al revés de Barrett: sobre el camino de
-Perseverance domina la roca madre rugosa, etiquetada "Muy baja" para el rover ExoMars en Oxia
-Planum. Las etiquetas por clase no se trasladan a Jezero; las 14 clases quedan como trabajo a
-futuro. Cada ventana o franja pesa cos(lat), porque el píxel de la Plate Carrée encoge hacia el
-norte; nunca se lee el ráster entero.
+Backup (it does not enter the cost): the risk given by Barrett's 14 labels (Table 2), in an order
+of its own (Alta 1 < Aceptable con peligros locales 2 < Peligros locales 3 < Incierta 4 <
+Possibly low 5 < Low 6 < Very low 7; risk = (level - 1) / 6), with each group's mean
+weighted by the area of each DC class, over the whole mosaic and over the windows (bounding box)
+of the calibration stretches in trechos.csv; the measurement ones are not read. Both weightings
+put bedrock above non-bedrock, the reverse of Barrett: along Perseverance's path
+rough bedrock dominates, labeled "Very low" for the ExoMars rover at Oxia
+Planum. The per-class labels do not carry over to Jezero; the 14 classes remain future
+work. Each window or strip is weighted by cos(lat), because the Plate Carrée pixel shrinks to the
+north; the raster is never read whole.
 
     python science/validation/noahh_risk.py RUTA/Jezero_NOAHH_mosaic_DC.tif
 
@@ -44,7 +44,7 @@ LABELS = [
     "Baja",
     "Muy baja",
 ]
-# valor de píxel del mosaico DC (Wright et al., 2022, Tabla 1) -> (clase de Barrett, etiqueta, IG)
+# DC pixel value (Wright et al., 2022, Table 1) -> (Barrett class, label, IG); labels go to the CSV.
 DC = {
     1: (1, "Incierta", 1),
     2: (5, "Aceptable con peligros locales", 2),
@@ -70,7 +70,7 @@ IG = {
 }
 BARRETT = "Barrett et al. (2022), doi:10.1016/j.icarus.2021.114701,"
 DATASET = "Wright et al. (2022b), doi:10.21954/ou.rd.17121482.v2"
-# IG -> (riesgo, base, afirmación de Barrett et al., 2022)
+# IG -> (risk, basis, statement by Barrett et al., 2022), in Spanish: they go to noahh_ig_risk.csv.
 IG_RISK = {
     2: (0.0, "cita directa", "§2.3: la roca madre da agarre sea rugosa o lisa"),
     1: (0.25, "interpolación supuesta", "§2.3 y §6.3: peligro bastante incierto, puede ser arena"),
@@ -78,7 +78,7 @@ IG_RISK = {
     4: (0.75, "interpolación supuesta", "§6.3: las ondulaciones chicas a veces son transitables"),
     5: (1.0, "cita directa", "§6.3: las ondulaciones grandes nunca son transitables"),
 }
-R_MOSAIC = 3_396_190.0  # m, esfera del CRS del mosaico
+R_MOSAIC = 3_396_190.0  # m, sphere of the mosaic CRS
 
 
 def class_risk(label):
@@ -86,7 +86,7 @@ def class_risk(label):
 
 
 def trecho_windows(src, trechos_csv, conjunto="calibracion"):
-    """Una ventana por trecho del conjunto: el rectángulo de píxeles que envuelve sus vértices."""
+    """One window per stretch of the set: the pixel rectangle that encloses its vertices."""
     from rasterio.windows import Window
 
     xy = {}
@@ -104,10 +104,10 @@ def trecho_windows(src, trechos_csv, conjunto="calibracion"):
 
 
 def dc_areas_km2(path, trechos_csv=None, rows=128):
-    """Área (km²) por valor de píxel, en las ventanas de calibración o, sin `trechos_csv`, en todo
-    el mosaico por franjas de `rows` filas (una fila de tiles).
+    """Area (km²) per pixel value, in the calibration windows or, without `trechos_csv`, in all the
+    mosaic in strips of `rows` rows (one row of tiles).
 
-    El caché de bloques de GDAL se limita para que tampoco retenga el ráster descomprimido.
+    GDAL's block cache is limited so it does not hold the decompressed raster either.
     """
     import rasterio
     from rasterio.windows import Window
@@ -131,7 +131,7 @@ def dc_areas_km2(path, trechos_csv=None, rows=128):
 
 
 def group_risk(area):
-    """IG -> (riesgo ponderado por área, riesgo_min, riesgo_max, área km²); nan si no hay área."""
+    """IG -> (area-weighted risk, min risk, max risk, area km²); nan if there is no area."""
     out = {}
     for g in IG:
         vals = [v for v, (_, _, ig) in DC.items() if ig == g]
@@ -153,7 +153,7 @@ def main():
     mosaic = dc_areas_km2(args.dc_tif)
     for name, area in (("calibración", cal), ("mosaico", mosaic)):
         other = {v: round(a, 4) for v, a in enumerate(area) if a and v not in DC}
-        print(f"{name}: área fuera de las 14 clases (km²): {other}")
+        print(f"{name}: area outside the 14 classes (km²): {other}")
 
     out = Path(args.out_dir)
     with open(out / "noahh_dc_risk.csv", "w", newline="", encoding="utf-8") as f:
@@ -193,7 +193,7 @@ def main():
             f"{g:>2}  {IG[g]:<22}  {risk:6.2f}  {base:<22}  {groups[g][0]:13.3f}  "
             f"{groups_mosaic[g][0]:7.3f}"
         )
-    print(f"nodata en las ventanas de calibración: {cal[127]:.4f} km²")
+    print(f"nodata in the calibration windows: {cal[127]:.4f} km²")
 
 
 if __name__ == "__main__":

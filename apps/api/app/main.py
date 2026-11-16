@@ -12,7 +12,7 @@ from app.geo import OutOfRegionError
 from app.routers import assumptions, health, live, regions, routes
 from app.storage import NotFoundError, RegionDataError
 
-# Código HTTP de cada error del dominio. El mensaje llega a la UI en `detail`.
+# HTTP status of each domain error. The message reaches the UI in `detail`.
 ERROR_STATUS: dict[type[Exception], int] = {
     NotFoundError: 404,
     NoPathError: 422,
@@ -35,7 +35,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    # El mapa de regreso seguro y la comparación de rutas pesan cientos de KB: comprimirlos.
+    # The safe-return map and the route comparison weigh hundreds of KB: compress them.
     app.add_middleware(GZipMiddleware, minimum_size=1024)
     for error in ERROR_STATUS:
         app.add_exception_handler(error, _domain_error)
@@ -46,7 +46,7 @@ def create_app() -> FastAPI:
     app.include_router(assumptions.router)
     app.include_router(live.router)
 
-    # En desarrollo servimos los assets locales para no depender de R2.
+    # In development we serve the local assets so we do not depend on R2.
     if settings.assets_dir and Path(settings.assets_dir).is_dir():
         app.mount("/assets", StaticFiles(directory=settings.assets_dir), name="assets")
 

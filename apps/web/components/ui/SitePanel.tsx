@@ -3,7 +3,7 @@
 import { dataName, useLang, useT } from "@/lib/i18n";
 import { useMapStore } from "@/lib/store";
 
-/** Lista de sitios en la vista de globo (equivale a hacer clic en su marcador). */
+/** List of sites in the globe view (same as clicking their marker). */
 export function SitePanel() {
   const regions = useMapStore((s) => s.regions);
   const selectRegion = useMapStore((s) => s.selectRegion);

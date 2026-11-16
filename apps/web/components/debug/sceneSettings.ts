@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-/** Ajustes de la escena. En desarrollo se cambian en vivo con Leva (DebugControls). */
+/** Scene settings. In development they change live with Leva (DebugControls). */
 export const SCENE_DEFAULTS = {
   sunIntensity: 2.2,
   exaggeration: 2,

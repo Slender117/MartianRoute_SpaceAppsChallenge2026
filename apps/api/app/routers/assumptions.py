@@ -10,7 +10,7 @@ router = APIRouter(tags=["assumptions"])
 
 
 @router.get("/assumptions", response_model=AssumptionsResponse)
-def get_assumptions(lang: Literal["es", "en"] = "es") -> AssumptionsResponse:
-    """Parámetros del modelo con su fuente y límites conocidos, en español o en inglés."""
+def get_assumptions(lang: Literal["es", "en"] = "en") -> AssumptionsResponse:
+    """Model parameters with their sources and known limits, in English (default) or Spanish."""
     res = build_assumptions()
     return to_english(res) if lang == "en" else res

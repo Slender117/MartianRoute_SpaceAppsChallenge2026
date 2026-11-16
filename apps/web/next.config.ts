@@ -5,9 +5,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ["three"],
-  // Raíz del monorepo (donde está package-lock.json). Sin esto, si hay otro package-lock.json en una
-  // carpeta superior (por ejemplo en el home de Windows), Next la toma como raíz y resuelve mal los
-  // módulos.
+  // Monorepo root (where package-lock.json is). Without this, if there is another package-lock.json in a
+  // parent folder (for example in the Windows home), Next takes it as the root and resolves the
+  // modules wrongly.
   outputFileTracingRoot: path.join(__dirname, "../.."),
 };
 

@@ -18,5 +18,5 @@ def get_region(region_id: str) -> RegionManifest:
 
 @router.get("/{region_id}/traverse/{rover}")
 def get_traverse(region_id: str, rover: str) -> dict:
-    """Recorrido real del rover en GeoJSON, para comparar con la ruta propuesta."""
+    """The rover's real traverse as GeoJSON, to compare with the proposed route."""
     return load_traverse(region_id, rover)

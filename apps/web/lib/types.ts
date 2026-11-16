@@ -1,8 +1,8 @@
-// Espejo a mano de los esquemas Pydantic de la API.
-// Reemplazar por los tipos generados en @wazemars/contracts (`npm run contracts`).
+// Hand-written mirror of the API's Pydantic schemas.
+// Replace with the types generated in @wazemars/contracts (`npm run contracts`).
 
-// "baseline" es la línea base de mínima distancia: no es un modo que elija el astronauta,
-// solo la referencia contra la que se comparan los otros tres.
+// "baseline" is the minimum-distance baseline: it is not a mode the astronaut picks,
+// only the reference the other three are compared against.
 export type WalkMode = "safe" | "fast" | "science" | "baseline";
 
 export type Provenance = "observed" | "derived" | "modeled";
@@ -17,7 +17,7 @@ export interface SuitLimits {
   max_slope_deg: number;
   max_dist_km: number;
   max_dose_msv?: number | null;
-  /** Horas de trabajo fijo sin caminar (paradas, muestreo); 0 por defecto. */
+  /** Hours of fixed work without walking (stops, sampling); 0 by default. */
   task_h?: number;
 }
 
@@ -62,7 +62,7 @@ export interface PathPoint extends LatLon {
 export interface Stop extends LatLon {
   type: "science" | "ice";
   reason: string;
-  /** Índice de minerales o de hielo en la parada (0-1). */
+  /** Mineral or ice index at the stop (0-1). */
   value: number;
 }
 
@@ -70,13 +70,13 @@ export interface Alert {
   at: number;
   type: "slope" | "autonomy" | "distance" | "radiation" | "climate";
   severity: "warning" | "critical";
-  /** Texto en español; para otros idiomas la web lo arma con `code` y `values` (lib/i18n.ts). */
+  /** Text in English; the web builds each language from `code` and `values` (lib/i18n.ts). */
   message: string;
   code: string;
   values: Record<string, number>;
 }
 
-/** O₂ por astronauta entre las dos cotas de gravedad del modelo de Minetti (no hay valor central). */
+/** O₂ per astronaut between the two gravity bounds of the Minetti model (no central value). */
 export interface O2Interval {
   low_kg: number;
   high_kg: number;
@@ -164,13 +164,13 @@ export interface TraverseGeoJSON {
   geometry: { type: "LineString"; coordinates: [number, number][] };
 }
 
-/** Respuesta de POST /routes/safe-return. */
+/** Response of POST /routes/safe-return. */
 export interface SafeReturnResponse {
   region: string;
   base: LatLon;
   shape: [number, number];
   bbox: [number, number, number, number];
-  /** uint16 little-endian en base64, fila norte primero; `no_return_value` = sin regreso. */
+  /** Little-endian uint16 in base64, north row first; `no_return_value` = no return. */
   return_minutes: string;
   no_return_value: number;
   planned_limit_min: number;
@@ -183,7 +183,7 @@ export interface SafeReturnResponse {
   provenance: Record<string, Provenance>;
 }
 
-// Datos en vivo de NASA (GET /live). `status` dice si vienen de NASA ahora o de la copia guardada.
+// Live NASA data (GET /live). `status` says whether it comes from NASA now or from the saved copy.
 export interface LiveSource {
   name: string;
   url: string;

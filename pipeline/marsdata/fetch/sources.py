@@ -1,14 +1,14 @@
-"""Descarga de productos de NASA y USGS a data/raw/<region>/.
+"""Downloads NASA and USGS products into data/raw/<region>/.
 
-data/raw/ se versiona con los archivos de cada región: esto solo hace falta para regenerarlos o para
-agregar una región, y no repite lo que ya está en disco.
+data/raw/ is versioned with each region's files: this is only needed to regenerate them or to
+add a region, and it does not repeat what is already on disk.
 
-Cada clave de `sources` en config/regions.yaml (dem, ortho, thermal_inertia...) se resuelve con
-el catálogo PRODUCTS de este archivo. Un producto se baja completo o, si es un mosaico grande, se
-lee solo la ventana de la región desde el archivo remoto (GDAL pide únicamente los bloques
-necesarios). Las claves sin producto en el catálogo se colocan a mano en data/raw/<region>/.
+Each `sources` key in config/regions.yaml (dem, ortho, thermal_inertia...) is resolved with
+this file's PRODUCTS catalog. A product is downloaded whole or, if it is a large mosaic, only
+the region's window is read from the remote file (GDAL only requests the blocks it needs).
+Keys with no product in the catalog are placed by hand in data/raw/<region>/.
 
-Las citas de cada producto están en docs/creditos.md.
+The citations of each product are in docs/creditos.md.
 """
 
 import math
@@ -34,37 +34,37 @@ THEMIS_TI = (
 @dataclass(frozen=True)
 class Product:
     url: str
-    # True: leer solo la ventana del bbox (más `margin_deg` por lado) en vez de bajar el archivo.
+    # True: read only the bbox window (plus `margin_deg` per side) instead of downloading the file.
     window: bool = False
-    # Margen para que el paso a la grilla tenga vecinos en el borde de la región.
+    # Margin so the step to the grid has neighbors at the region edge.
     margin_deg: float = 0.05
-    # Con window: promediar bloques de decimate × decimate píxeles. Para mosaicos de HiRISE de una
-    # región entera, que a resolución completa pesarían gigabytes.
+    # With window: average blocks of decimate × decimate pixels. For HiRISE mosaics of a whole
+    # region, which would weigh gigabytes at full resolution.
     decimate: int = 1
 
 
 PRODUCTS: dict[str, dict[str, Product]] = {
     "jezero": {
-        # USGS (2020), doi:10.5066/P906QQT8. Float32, 20 m. Mismo conjunto que la ortofoto.
+        # USGS (2020), doi:10.5066/P906QQT8. Float32, 20 m. Same set as the orthophoto.
         "dem": Product(
             f"{USGS_TRN}/JEZ_ctx_B_soc_008_DTM_MOLAtopography_DeltaGeoid_20m_Eqc_latTs0_lon0.tif"
         ),
-        # USGS (2020), doi:10.5066/P9GV1ND3. 8 bits, 6 m.
+        # USGS (2020), doi:10.5066/P9GV1ND3. 8-bit, 6 m.
         "ortho": Product(f"{USGS_TRN}/JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif"),
-        # USGS, ASU y NASA (2014). Float32, 100 m. El tile 00N060E pesa 2.5 GB: solo la ventana.
+        # USGS, ASU and NASA (2014). Float32, 100 m. Tile 00N060E weighs 2.5 GB: window only.
         "thermal_inertia": Product(
             f"{THEMIS_TI}/THEMIS_TI_Mosaic_Quant_00N060E_100mpp.cub", window=True
         ),
-        # hazard: mosaico NOAH-H (Wright et al., 2022), 7.4 GB; se copia a mano.
+        # hazard: NOAH-H mosaic (Wright et al., 2022), 7.4 GB; copied by hand.
     },
     "jezero_walk": {
-        # USGS (2020), doi:10.5066/P9REJ9JN. Float32, 1 m; el archivo completo pesa 1.8 GB.
+        # USGS (2020), doi:10.5066/P9REJ9JN. Float32, 1 m; the full file weighs 1.8 GB.
         "dem": Product(
             f"{USGS_TRN_HIRISE}/JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif",
             window=True,
             margin_deg=0.003,
         ),
-        # USGS (2020), doi:10.5066/P9QJDP48. 8 bits, 25 cm; el archivo completo pesa 6.9 GB.
+        # USGS (2020), doi:10.5066/P9QJDP48. 8-bit, 25 cm; the full file weighs 6.9 GB.
         "ortho": Product(
             f"{USGS_TRN_HIRISE}/JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first.tif",
             window=True,
@@ -75,22 +75,22 @@ PRODUCTS: dict[str, dict[str, Product]] = {
         ),
     },
     "gale": {
-        # Calef y Parker (2016), USGS. DEM de HiRISE, Float32, 1 m; 3.9 GB completo. Se baja a 5 m.
+        # Calef and Parker (2016), USGS. HiRISE DEM, Float32, 1 m; 3.9 GB in full. Taken at 5 m.
         "dem": Product(
             f"{USGS_MSL}/MSL_Gale_DEM_Mosaic_1m_v3.tif", window=True, margin_deg=0.02, decimate=5
         ),
-        # Calef y Parker (2016), USGS. Ortomosaico de HiRISE, 8 bits, 25 cm; 24 GB completo. A 5 m.
+        # Calef and Parker (2016), USGS. HiRISE orthomosaic, 8-bit, 25 cm; 24 GB in full. At 5 m.
         "ortho": Product(
             f"{USGS_MSL}/MSL_Gale_Orthophoto_Mosaic_25cm_v3.tif",
             window=True,
             margin_deg=0.02,
             decimate=20,
         ),
-        # USGS, ASU y NASA (2014). El tile que cubre Gale (30° S a 0°, 120° E a 180° E).
+        # USGS, ASU and NASA (2014). The tile that covers Gale (30° S to 0°, 120° E to 180° E).
         "thermal_inertia": Product(
             f"{THEMIS_TI}/THEMIS_TI_Mosaic_Quant_30S120E_100mpp.cub", window=True
         ),
-        # hazard: no hay NOAH-H de Gale.
+        # hazard: there is no NOAH-H for Gale.
     },
 }
 
@@ -99,7 +99,7 @@ class FetchStatus(StrEnum):
     downloaded = "descargado"
     cropped = "recortado"
     present = "ya existe"
-    manual = "sin producto: colocarlo a mano"
+    manual = "no product: place it by hand"
 
 
 def raw_path(region: Region, key: str) -> Path:
@@ -107,7 +107,7 @@ def raw_path(region: Region, key: str) -> Path:
 
 
 def download(url: str, dest: Path) -> Path:
-    """Descarga en streaming a un archivo temporal y lo renombra al terminar."""
+    """Streams the download to a temporary file and renames it when finished."""
     dest.parent.mkdir(parents=True, exist_ok=True)
     part = dest.with_name(dest.name + ".part")
     with httpx.stream("GET", url, follow_redirects=True, timeout=None) as r:
@@ -122,11 +122,11 @@ def download(url: str, dest: Path) -> Path:
 def crop_window(
     src_path: str, region: Region, dest: Path, margin_deg: float = 0.05, decimate: int = 1
 ) -> Path:
-    """Guarda como GeoTIFF la ventana del bbox de la región (más el margen) de `src_path`.
+    """Saves as GeoTIFF the window of the region bbox (plus the margin) from `src_path`.
 
-    `src_path` puede ser local o remoto (`/vsicurl/https://...`). Conserva CRS, tipo y nodata. Con
-    `decimate` > 1 promedia bloques de decimate × decimate píxeles; si el mosaico tiene vistas
-    reducidas (.ovr), GDAL lee de ellas y no baja la resolución completa.
+    `src_path` can be local or remote (`/vsicurl/https://...`). It keeps CRS, dtype and nodata. With
+    `decimate` > 1 averages blocks of decimate × decimate pixels; if the mosaic has overviews
+    (.ovr), GDAL reads from them and does not download the full resolution.
     """
     import rasterio
     from rasterio.enums import Resampling
@@ -137,7 +137,7 @@ def crop_window(
     from marsdata.process.reproject import geographic_crs
 
     lon_min, lat_min, lon_max, lat_max = region.bbox
-    # EMPTY_DIR evita listar la carpeta remota; YES deja que GDAL encuentre el .ovr del mosaico.
+    # EMPTY_DIR avoids listing the remote folder; YES lets GDAL find the mosaic's .ovr.
     readdir = "EMPTY_DIR" if decimate == 1 else "YES"
     with rasterio.Env(GDAL_DISABLE_READDIR_ON_OPEN=readdir), rasterio.open(src_path) as src:
         bounds = transform_bounds(
@@ -178,7 +178,7 @@ def crop_window(
 
 
 def fetch_region(region: Region) -> dict[str, FetchStatus]:
-    """Baja o recorta cada fuente de la región; no repite las que ya están en disco."""
+    """Downloads or crops each source of the region; skips the ones already on disk."""
     catalog = PRODUCTS.get(region.id, {})
     status = {}
     for key in region.sources:

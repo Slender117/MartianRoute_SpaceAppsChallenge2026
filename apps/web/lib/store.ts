@@ -12,14 +12,14 @@ import type {
   WalkMode,
 } from "./types";
 
-/** globe → zooming (cámara se acerca al sitio) → region (terreno detallado). */
+/** globe → zooming (camera approaches the site) → region (detailed terrain). */
 export type View = "globe" | "zooming" | "region";
 
-// Al mover un deslizador del traje llegan muchos cambios seguidos: se espera a que se detenga
-// antes de pedir otra vez el mapa de regreso seguro o las rutas.
+// Moving a suit slider sends many changes in a row: it waits until it stops
+// before requesting the safe-return map or the routes again.
 const SUIT_DEBOUNCE_MS = 300;
 let suitTimer: ReturnType<typeof setTimeout> | undefined;
-// Solo vale la respuesta de la última petición de rutas (si se piden dos seguidas, la vieja se ignora).
+// Only the response to the last route request counts (if two are requested in a row, the old one is ignored).
 let routeRequest = 0;
 
 interface MapState {
@@ -37,11 +37,11 @@ interface MapState {
   showTraverse: boolean;
   safeReturn: SafeReturnResponse | null;
   showSafeReturn: boolean;
-  /** Escenario de evento solar durante la EVA (dosis del evento de mayo de 2024). */
+  /** Solar event scenario during the EVA (dose of the May 2024 event). */
   solarEvent: boolean;
   loading: boolean;
   error: string | null;
-  /** El relieve de la región ya está en pantalla (para el aviso de carga). */
+  /** The region relief is already on screen (for the loading notice). */
   terrainReady: boolean;
 
   loadRegions: () => Promise<void>;
@@ -55,7 +55,7 @@ interface MapState {
   setSolarEvent: (on: boolean) => void;
   pickPoint: (p: LatLon) => void;
   clearPoints: () => void;
-  /** Marca el inicio y el destino del escenario de la región y calcula las rutas. */
+  /** Marks the start and destination of the region's scenario and computes the routes. */
   loadDemo: () => void;
   computeRoutes: () => Promise<void>;
   setTerrainReady: (ready: boolean) => void;
@@ -111,7 +111,7 @@ export const useMapStore = create<MapState>((set, get) => ({
     }
   },
 
-  // Entra directo a la vista de ruta, sin la animación desde el globo.
+  // It goes straight to the route view, without the animation from the globe.
   openRegion: async (id) => {
     routeRequest++;
     set({ regionId: id, start: null, end: null, routes: {}, traverse: null, safeReturn: null, terrainReady: false });
@@ -136,8 +136,8 @@ export const useMapStore = create<MapState>((set, get) => ({
     })),
 
   setMode: (mode) => set({ mode }),
-  // Otro traje cambia los límites del mapa de regreso y las alertas de las rutas: los dos se piden
-  // de nuevo (si están en pantalla) cuando el deslizador se detiene.
+  // Another suit changes the return-map limits and the route alerts: both are requested
+  // again (if they are on screen) when the slider stops.
   setSuit: (suit) => {
     set(({ suit: prev }) => ({ suit: { ...prev, ...suit } }));
     clearTimeout(suitTimer);
@@ -149,13 +149,13 @@ export const useMapStore = create<MapState>((set, get) => ({
     }, SUIT_DEBOUNCE_MS);
   },
 
-  // Con rutas ya calculadas, se recalculan para que las alertas reflejen el escenario.
+  // With routes already computed, they are recomputed so the alerts reflect the scenario.
   setSolarEvent: (on) => {
     set({ solarEvent: on });
     if (Object.keys(get().routes).length) void get().computeRoutes();
   },
 
-  // Primer clic = inicio, segundo = destino (y se calculan las rutas), tercero empieza de nuevo.
+  // First click = start, second = destination (and the routes are computed), third starts over.
   pickPoint: (p) => {
     const { start, end } = get();
     if (!start || end) {
@@ -196,7 +196,7 @@ export const useMapStore = create<MapState>((set, get) => ({
 
   setTerrainReady: (ready) => set({ terrainReady: ready }),
 
-  // La casilla cambia al instante; el recorrido se descarga la primera vez y aparece al llegar.
+  // The checkbox changes instantly; the traverse downloads the first time and appears when it arrives.
   toggleTraverse: async () => {
     const { showTraverse, traverse, manifest } = get();
     set({ showTraverse: !showTraverse });
@@ -209,7 +209,7 @@ export const useMapStore = create<MapState>((set, get) => ({
     }
   },
 
-  // Pide el mapa la primera vez que se enciende; después solo lo muestra u oculta.
+  // It requests the map the first time it is turned on; afterwards it only shows or hides it.
   toggleSafeReturn: async () => {
     const { showSafeReturn, safeReturn } = get();
     set({ showSafeReturn: !showSafeReturn });
@@ -221,7 +221,7 @@ export const useMapStore = create<MapState>((set, get) => ({
     if (!regionId) return;
     try {
       const res = await api.safeReturn({ region: regionId, suit });
-      // Al mover el deslizador llegan varias respuestas: solo vale la del traje actual.
+      // Moving the slider brings several responses: only the one for the current suit counts.
       if (get().suit === suit && get().regionId === regionId) set({ safeReturn: res });
     } catch (e) {
       set({ error: (e as Error).message, showSafeReturn: false });

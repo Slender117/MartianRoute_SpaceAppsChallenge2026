@@ -1,4 +1,4 @@
-"""Datos recientes de NASA: clima espacial (DONKI), posición de Perseverance y sus imágenes."""
+"""Recent NASA data: space weather (DONKI), Perseverance's position and its images."""
 
 from datetime import datetime
 from typing import Literal
@@ -10,13 +10,13 @@ from app.schemas.route import Provenance
 
 class SourceInfo(BaseModel):
     name: str
-    url: str = Field(description="Página pública de la fuente, para citarla")
+    url: str = Field(description="Public page of the source, to cite it")
     status: Literal["live", "snapshot"] = Field(
-        description="live: consultada a NASA mientras corre la API; snapshot: copia guardada"
+        description="live: queried from NASA while the API runs; snapshot: saved copy"
     )
-    fetched_at: datetime = Field(description="Cuándo se obtuvo de NASA (UTC)")
+    fetched_at: datetime = Field(description="When it was obtained from NASA (UTC)")
     provenance: Provenance
-    error: str | None = Field(None, description="Por qué no se pudo consultar en vivo")
+    error: str | None = Field(None, description="Why it could not be queried live")
 
 
 class CmeArrival(BaseModel):
@@ -24,7 +24,7 @@ class CmeArrival(BaseModel):
     cme_id: str | None = None
     cme_start: datetime | None = None
     speed_km_s: float | None = None
-    arrival_time: datetime = Field(description="Llegada prevista a Marte (UTC), según WSA-ENLIL")
+    arrival_time: datetime = Field(description="Forecast arrival at Mars (UTC), per WSA-ENLIL")
     glancing_blow: bool
     minor_impact: bool
     model_completion: datetime
@@ -33,14 +33,12 @@ class CmeArrival(BaseModel):
 
 class SpaceWeather(BaseModel):
     source: SourceInfo
-    arrivals: list[CmeArrival] = Field(
-        description="Llegadas previstas a Marte, la más reciente primero"
-    )
+    arrivals: list[CmeArrival] = Field(description="Forecast arrivals at Mars, most recent first")
     alert: CmeArrival | None = Field(
-        None, description="Llegada dentro de la ventana de alerta alrededor de la hora actual"
+        None, description="Arrival inside the alert window around the current time"
     )
-    alert_before_h: float = Field(description="La alerta empieza estas horas antes de la llegada")
-    alert_after_h: float = Field(description="La alerta sigue estas horas después de la llegada")
+    alert_before_h: float = Field(description="The alert starts this many hours before arrival")
+    alert_after_h: float = Field(description="The alert lasts this many hours after arrival")
 
 
 class RoverPosition(BaseModel):
@@ -54,9 +52,9 @@ class RoverPosition(BaseModel):
     elevation_m: float | None = None
     odometry_km: float | None = Field(None, description="Distancia total recorrida")
     distance_to_base_km: float | None = Field(
-        None, description="Distancia en línea recta a la base de la región pedida"
+        None, description="Straight-line distance to the base of the requested region"
     )
-    in_region: bool | None = Field(None, description="Si cae dentro del bbox de la región pedida")
+    in_region: bool | None = Field(None, description="Whether it is inside the region's bbox")
 
 
 class RoverImage(BaseModel):

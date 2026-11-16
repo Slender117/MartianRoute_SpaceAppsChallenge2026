@@ -1,18 +1,18 @@
-"""H2: recorrido de Perseverance (capa M20_Traverse_Path de JPL, un tramo por sol) a GeoJSON.
+"""H2: Perseverance traverse (JPL M20_Traverse_Path layer, one segment per sol) to GeoJSON.
 
-La API espera un Feature con una sola LineString en (lon, lat) y `properties.rover`. Este script:
-  - une los tramos en orden de sol y quita los puntos repetidos en las uniones;
-  - parte el recorrido donde se sale del bbox de la región o donde falta un tramo (salto mayor
-    que --max-gap-m, 30 m por defecto: el espaciado normal llega a 12 m), porque la API une con
-    línea recta los puntos que quedan y eso inventaría camino;
-  - se queda con el trecho continuo más largo del rango de sols pedido.
+The API expects a Feature with one LineString in (lon, lat) and `properties.rover`. This script:
+  - joins the segments in sol order and removes the points repeated at the joins;
+  - splits the traverse where it leaves the region bbox or where a segment is missing (a jump larger
+    than --max-gap-m, 30 m by default: the normal spacing reaches 12 m), because the API joins the
+    remaining points with a straight line and that would invent a path;
+  - keeps the longest continuous stretch in the requested sol range.
 
     python convert_traverse.py M20_traverse_2026-11-12.json --out perseverance.geojson
     python convert_traverse.py M20_traverse_2026-11-12.json --sols 389 413 --out tramo.geojson
     python convert_traverse.py M20_traverse_2026-11-12.json --candidates
 
-Solo biblioteca estándar. La elevación (tercera coordenada del archivo) no se copia: la API la
-toma del DEM.
+Standard library only. The elevation (the file's third coordinate) is not copied: the API
+takes it from the DEM.
 """
 
 import argparse
@@ -20,10 +20,10 @@ import json
 import math
 from itertools import pairwise
 
-R_MARS = 3389.5e3  # m, radio medio (convención del proyecto, docs/supuestos.md)
-# lon_min, lat_min, lon_max, lat_max de `jezero` en pipeline/config/regions.yaml
+R_MARS = 3389.5e3  # m, mean radius (project convention, docs/supuestos.md)
+# lon_min, lat_min, lon_max, lat_max of `jezero` in pipeline/config/regions.yaml
 BBOX = (77.25, 18.30, 77.60, 18.65)
-SOURCE = "capa M20_Traverse_Path (JPL), archivo M20_traverse_2026-11-12.json de este repositorio"
+SOURCE = "M20_Traverse_Path layer (JPL), file M20_traverse_2026-11-12.json in this repository"
 
 
 def hav(a, b):
@@ -34,7 +34,7 @@ def hav(a, b):
 
 
 def points(features, sols):
-    """(lon, lat, sol) en orden, sin los repetidos en las uniones de tramos."""
+    """(lon, lat, sol) in order, without the points repeated at segment joins."""
     out = []
     for f in features:
         sol = f["properties"]["sol"]
@@ -47,7 +47,7 @@ def points(features, sols):
 
 
 def runs(pts, bbox, max_gap_m):
-    """Trechos continuos: dentro del bbox y sin saltos mayores que max_gap_m."""
+    """Continuous stretches: inside the bbox and with no jumps larger than max_gap_m."""
 
     def inside(p):
         return bbox[0] <= p[0] <= bbox[2] and bbox[1] <= p[1] <= bbox[3]
@@ -68,9 +68,9 @@ def length_m(run):
 
 
 def candidates(run_list, lo=3000.0, hi=6000.0, top=6):
-    """Trechos de lo a hi metros lo más rectos posible (cuerda / longitud).
+    """Stretches of lo to hi meters, as straight as possible (chord / length).
 
-    Sirven para validar rutas punto a punto: el recorrido completo da vueltas y no compara con una
+    They validate point-to-point routes: the full traverse loops around and does not compare with a
     sola ruta de A a B.
     """
     found = []
@@ -103,12 +103,12 @@ def candidates(run_list, lo=3000.0, hi=6000.0, top=6):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("traverse", help="M20_traverse_*.json (una LineString por sol)")
+    ap.add_argument("traverse", help="M20_traverse_*.json (one LineString per sol)")
     ap.add_argument("--out", help="GeoJSON de salida")
     ap.add_argument("--sols", nargs=2, type=int, default=(0, 10**6), metavar=("DESDE", "HASTA"))
     ap.add_argument("--bbox", nargs=4, type=float, default=BBOX, metavar="GRADOS")
     ap.add_argument("--max-gap-m", type=float, default=30.0)
-    ap.add_argument("--candidates", action="store_true", help="los trechos de 3 a 6 km más rectos")
+    ap.add_argument("--candidates", action="store_true", help="the straightest 3 to 6 km stretches")
     args = ap.parse_args()
 
     with open(args.traverse, encoding="utf-8") as f:

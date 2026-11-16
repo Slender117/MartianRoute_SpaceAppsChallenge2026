@@ -9,13 +9,13 @@ const OPTIONS: { id: Lang; label: string; title: string }[] = [
   { id: "en", label: "EN", title: "English" },
 ];
 
-/** Botones ES / EN en la barra de arriba. El idioma elegido se recuerda en el navegador. */
+/** ES / EN buttons in the top bar. The chosen language is remembered in the browser. */
 export function LanguageToggle() {
   const lang = useLang((s) => s.lang);
   const setLang = useLang((s) => s.setLang);
   const restore = useLang((s) => s.restore);
 
-  // Si el usuario eligió inglés en otra visita, se aplica al cargar.
+  // If the user picked Spanish on another visit, it is applied on load.
   useEffect(restore, [restore]);
 
   return (

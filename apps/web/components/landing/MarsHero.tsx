@@ -5,7 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AdditiveBlending, BackSide, CanvasTexture, Color, ShaderMaterial, SRGBColorSpace, type Mesh } from "three";
 
-// Pseudoaleatorio con semilla: el planeta se ve igual en cada visita.
+// Seeded pseudo-random: the planet looks the same on every visit.
 function rng(seed: number) {
   return () => {
     seed = (seed + 0x6d2b79f5) | 0;
@@ -15,7 +15,7 @@ function rng(seed: number) {
   };
 }
 
-/** Textura procedural (manchas, cráteres y casquetes). Es decorativa, no es un mapa real de Marte. */
+/** Procedural texture (spots, craters and polar caps). It is decorative, not a real map of Mars. */
 function marsTexture(): CanvasTexture {
   const w = 1024;
   const h = 512;
@@ -28,7 +28,7 @@ function marsTexture(): CanvasTexture {
   ctx.fillStyle = "#b4532f";
   ctx.fillRect(0, 0, w, h);
 
-  // Regiones claras y oscuras grandes, luego detalle fino.
+  // Large light and dark regions, then fine detail.
   const blobs: [number, number, number, string][] = [
     [40, 60, 160, "rgba(90, 38, 22, 0.18)"],
     [60, 30, 120, "rgba(214, 120, 74, 0.16)"],
@@ -47,7 +47,7 @@ function marsTexture(): CanvasTexture {
     }
   }
 
-  // Cráteres: borde claro y fondo oscuro.
+  // Craters: light rim and dark floor.
   for (let i = 0; i < 420; i++) {
     const x = rand() * w;
     const y = h * 0.1 + rand() * h * 0.8;
@@ -79,8 +79,8 @@ function marsTexture(): CanvasTexture {
 }
 
 /**
- * Halo de la atmósfera: una esfera un poco mayor, vista por dentro, que brilla más cerca del borde
- * del planeta y se desvanece hacia afuera (solo decorativo).
+ * Atmosphere halo: a slightly larger sphere, seen from inside, that glows more near the edge
+ * of the planet and fades outward (decorative only).
  */
 function atmosphereMaterial(): ShaderMaterial {
   return new ShaderMaterial({
@@ -116,7 +116,7 @@ function Planet({ spin }: { spin: boolean }) {
     },
     [map, atmosphere],
   );
-  // En pantallas anchas el planeta va a la derecha para no tapar el título.
+  // On wide screens the planet goes to the right so it does not cover the title.
   const wide = useThree((s) => s.viewport.aspect > 1.2);
 
   useFrame((_, dt) => {
@@ -141,8 +141,8 @@ function Planet({ spin }: { spin: boolean }) {
 }
 
 /**
- * Marte girando para la portada. Respeta "reducir movimiento" del sistema (el planeta queda quieto)
- * y deja de dibujar cuando sale de la pantalla: al leer las secciones de abajo no gasta GPU.
+ * Spinning Mars for the landing. It respects the system's "reduce motion" (the planet stays still)
+ * and stops drawing when it leaves the screen: reading the sections below uses no GPU.
  */
 export default function MarsHero() {
   const spin = useMemo(
@@ -165,11 +165,11 @@ export default function MarsHero() {
       <Canvas
         camera={{ position: [0, 0, 3.1], fov: 45 }}
         dpr={[1, 2]}
-        // Quieto o fuera de la pantalla: un cuadro cuando haga falta (al cambiar el tamaño), no 60 por segundo.
+        // Still or off-screen: one frame when needed (on resize), not 60 per second.
         frameloop={spin && visible ? "always" : "demand"}
         aria-hidden
       >
-        {/* Fondo opaco del color de la página: el halo se suma a él sin dejar un aro oscuro. */}
+        {/* Opaque background in the page color: the halo adds to it without leaving a dark ring. */}
         <color attach="background" args={["#0b0605"]} />
         <ambientLight intensity={0.12} />
         <directionalLight position={[5, 2, 4]} intensity={2.6} />

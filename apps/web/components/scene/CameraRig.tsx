@@ -11,14 +11,14 @@ import { useMapStore } from "@/lib/store";
 const GLOBE_POSE = new Vector3(0, 0, 3.2);
 const ORIGIN = new Vector3(0, 0, 0);
 const REGION_POSE = new Vector3(0, TERRAIN_SIZE * 0.6, TERRAIN_SIZE * 0.9);
-// Pantalla vertical de celular: más alta y más lejos, mirando un poco al sur del centro.
+// Portrait phone screen: higher and farther, looking a little south of the center.
 const PORTRAIT_POSE = new Vector3(0, TERRAIN_SIZE * 1.3, TERRAIN_SIZE * 1.2);
 const PORTRAIT_TARGET = new Vector3(0, 0, TERRAIN_SIZE * 0.25);
 
 /**
- * Pose al llegar a la región según la proporción de la pantalla. En vertical el campo de visión
- * horizontal es angosto: la cámara sube y se aleja para que el terreno quepa a lo ancho, y apunta
- * al sur del centro para que el sitio quede arriba de la hoja de paneles.
+ * Pose on arriving at the region, by screen aspect. In portrait the horizontal field of view
+ * is narrow: the camera rises and moves back so the terrain fits the width, and it points
+ * south of the center so the site stays above the panel sheet.
  */
 function regionPose(aspect: number) {
   const t = Math.min(Math.max((1 - aspect) / 0.55, 0), 1); // 0 = cuadrada o ancha, 1 = celular vertical
@@ -29,9 +29,9 @@ function regionPose(aspect: number) {
 }
 
 /**
- * Transición continua globo → región: la cámara se acerca al sitio y, al llegar,
- * se cambia el globo por el terreno detallado.
- * TODO(3D): reemplazar el lerp por la secuencia de Theatre.js (lib/theatre.ts) para la demo.
+ * Continuous globe → region transition: the camera approaches the site and, on arrival,
+ * the globe is swapped for the detailed terrain.
+ * TODO(3D): replace the lerp with the Theatre.js sequence (lib/theatre.ts) for the demo.
  */
 export function CameraRig() {
   const camera = useThree((s) => s.camera);
@@ -50,8 +50,8 @@ export function CameraRig() {
   }, [regions, regionId]);
 
   useEffect(() => {
-    // La proporción se lee solo al cambiar de vista: al girar el celular no se mueve la cámara
-    // que el usuario ya acomodó.
+    // The aspect is only read when the view changes: rotating the phone does not move the camera
+    // the user already set.
     const { width, height } = get().size;
     const pose = view === "region" ? regionPose(width / Math.max(height, 1)) : { position: GLOBE_POSE, target: ORIGIN };
     if (view !== "zooming") {
@@ -60,10 +60,10 @@ export function CameraRig() {
     } else {
       camera.lookAt(ORIGIN);
     }
-    // OrbitControls guarda su propia distancia: hay que sincronizarlo con la nueva pose.
+    // OrbitControls keeps its own distance: it has to be synced with the new pose.
     controls?.target.copy(view === "zooming" ? ORIGIN : pose.target);
     controls?.update();
-    // En la región la escena se dibuja a pedido: la nueva pose necesita su cuadro.
+    // In the region the scene is drawn on demand: the new pose needs its frame.
     invalidate();
   }, [view, camera, controls, invalidate, get]);
 

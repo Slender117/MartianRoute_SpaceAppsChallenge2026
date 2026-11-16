@@ -1,7 +1,7 @@
 [project]
 name = "wazemars-api"
 version = "0.1.0"
-description = "API de rutas para caminatas en Marte (motor A*)"
+description = "Route API for walks on Mars (least-cost path engine)"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",

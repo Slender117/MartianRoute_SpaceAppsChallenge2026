@@ -1,4 +1,4 @@
-"""Orquesta el cálculo de una EVA: costo → A* → tiempos de ida y vuelta → paradas → alertas."""
+"""Orchestrates an EVA: cost → least-cost path → out and back times → stops → alerts."""
 
 import numpy as np
 
@@ -49,7 +49,7 @@ ROUTE_PROVENANCE: dict[str, Provenance] = {
     "o2_estimate_kg": Provenance.modeled,
     "o2_crew_kg": Provenance.modeled,
     "o2_interval_kg": Provenance.modeled,
-    # La tasa se midió en Gale; aplicarla a otra EVA ya es un modelo.
+    # The rate was measured in Gale; applying it to another EVA is already a model.
     "radiation_msv": Provenance.modeled,
     "solar_event_mgy": Provenance.observed,
 }
@@ -77,7 +77,7 @@ def plan_route(
     dist_m, hours = segment_profile(path, grids.dem, cell_m)
     _, back_hours = segment_profile(path[::-1], grids.dem, cell_m)
     elapsed = np.concatenate([[0.0], np.cumsum(hours)])
-    # back[i] = tiempo de regresar desde el punto i hasta la base, por el mismo camino.
+    # back[i] = time to return from point i to the base, along the same path.
     back = np.concatenate([[0.0], np.cumsum(back_hours[::-1])])
 
     coords = np.array([cell_to_latlon(m, int(r), int(c)) for r, c in path])
@@ -110,7 +110,7 @@ def plan_route(
     )
     interesting = grids.minerals[path[1:, 0], path[1:, 1]] >= SCIENCE_THRESHOLD
     o2_kg = duration_h * O2_KG_PER_HOUR
-    # Caminata según la pendiente (Minetti) más el trabajo fijo a la tasa por hora.
+    # Walk by slope (Minetti) plus the fixed task at the hourly rate.
     o2_task = suit.task_h * O2_KG_PER_HOUR
     o2_low, o2_high = (o2 + o2_task for o2 in o2_interval_kg(path, grids.dem, cell_m))
     pnr = point_of_no_return(elapsed, back, usable_h - suit.task_h)
@@ -148,7 +148,7 @@ def plan_route(
 
 
 def route_delta(route: RouteResponse, ref: RouteResponse) -> RouteDelta:
-    """Diferencia de `route` menos `ref`, con la fracción de camino que comparten."""
+    """Difference of `route` minus `ref`, with the fraction of path they share."""
     ref_points = {(p.lat, p.lon) for p in ref.path}
     shared = sum((p.lat, p.lon) in ref_points for p in route.path)
     return RouteDelta(
@@ -173,7 +173,7 @@ def compare_routes(
     suit: SuitLimits,
     solar_event: bool = False,
 ) -> dict[WalkMode, RouteResponse]:
-    """Los tres modos y la línea base, cada uno con su diferencia contra la Segura y la base."""
+    """The three modes and the baseline, each with its difference against Safe and the baseline."""
     routes = {mode: plan_route(grids, start, end, mode, suit, solar_event) for mode in WalkMode}
 
     safe, baseline = routes[WalkMode.safe], routes[WalkMode.baseline]

@@ -1,4 +1,4 @@
-"""Reproyección de cualquier GeoTIFF a la grilla común de la región."""
+"""Reprojects any GeoTIFF to the region's common grid."""
 
 from pathlib import Path
 
@@ -10,14 +10,14 @@ from scipy.ndimage import distance_transform_edt
 
 from marsdata.region import MARS_RADIUS_M, Region
 
-# Coordenadas geográficas sobre la esfera de Marte (IAU 2000). Latitud y longitud planetocéntricas
-# no cambian entre esferas de distinto radio (3,389.5 km aquí y 3,396.19 km en los mosaicos de
-# USGS): solo cambia la altura, que no se reproyecta.
+# Geographic coordinates on the Mars sphere (IAU 2000). Planetocentric latitude and longitude
+# do not change between spheres of different radius (3,389.5 km here and 3,396.19 km in the USGS
+# mosaics): only the height changes, and it is not reprojected.
 MARS_GEOGRAPHIC = f"+proj=longlat +R={MARS_RADIUS_M} +no_defs"
 
 
 def geographic_crs(crs) -> str:
-    """Coordenadas geográficas sobre el mismo cuerpo que `crs` (esfera o elipsoide)."""
+    """Geographic coordinates on the same body as `crs` (sphere or ellipsoid)."""
     params = crs.to_dict()
     if "R" in params:
         return f"+proj=longlat +R={params['R']} +no_defs"
@@ -31,10 +31,10 @@ def warp_to_region(
     shape: tuple[int, int] | None = None,
     bounds: tuple[float, float, float, float] | None = None,
 ) -> np.ndarray:
-    """Reproyecta la banda 1 a la grilla de la región; NaN donde el archivo no tiene dato.
+    """Reprojects band 1 to the region grid; NaN where the file has no data.
 
-    Por defecto usa la grilla de la API (`region.grid_bounds`). Las texturas pasan `shape` y
-    `bounds=region.bbox`, porque una textura se estira de borde a borde de la malla.
+    By default it uses the API grid (`region.grid_bounds`). Textures pass `shape` and
+    `bounds=region.bbox`, because a texture stretches from edge to edge of the mesh.
     """
     h, w = shape or region.shape
     dst = np.full((h, w), np.nan, dtype=np.float32)
@@ -53,7 +53,7 @@ def warp_to_region(
 def warp_array_to_region(
     data: np.ndarray, transform, crs, region: Region, resampling: Resampling = Resampling.average
 ) -> np.ndarray:
-    """Como `warp_to_region`, para una banda en memoria con su transform y CRS (NaN = sin dato)."""
+    """Like `warp_to_region`, for an in-memory band with its transform and CRS (NaN = no data)."""
     h, w = region.shape
     dst = np.full((h, w), np.nan, dtype=np.float32)
     reproject(
@@ -71,22 +71,22 @@ def warp_array_to_region(
 
 
 def coverage(grid: np.ndarray) -> float:
-    """Fracción de celdas con dato (HE1). Se mide antes de rellenar."""
+    """Fraction of cells with data (HE1). It is measured before filling."""
     return float(np.isfinite(grid).mean())
 
 
 def fill_nearest(grid: np.ndarray) -> np.ndarray:
-    """Rellena cada hueco con el valor de la celda con dato más cercana."""
+    """Fills each gap with the value of the nearest cell with data."""
     holes = ~np.isfinite(grid)
     if not holes.any():
         return grid.astype(np.float32)
     if holes.all():
-        raise ValueError("la grilla no tiene ninguna celda con dato")
+        raise ValueError("the grid has no cell with data")
     nearest = distance_transform_edt(holes, return_distances=False, return_indices=True)
     return grid[tuple(nearest)].astype(np.float32)
 
 
 def fill_nodata(grid: np.ndarray, value: float | None = None) -> np.ndarray:
-    """Rellena huecos con un valor fijo o con la mediana de la grilla."""
+    """Fills gaps with a fixed value or with the grid median."""
     fill = np.nanmedian(grid) if value is None else value
     return np.where(np.isfinite(grid), grid, fill).astype(np.float32)

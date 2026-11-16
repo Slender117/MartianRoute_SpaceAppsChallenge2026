@@ -1,20 +1,20 @@
-"""Escribe una región procesada en el formato que leen la API y la web.
+"""Writes a processed region in the format the API and the web read.
 
 data/regions/
 ├── index.json
 └── <region>/
     ├── manifest.json
     ├── dem.npy, slope.npy
-    ├── layers/<capa>.npy
-    ├── heightmap.bin          (Float32 little-endian, fila 0 al norte: terreno 3D)
-    ├── heightmap.png          (16 bits; lo usaba la escena antes del .bin)
-    ├── textures/<capa>.png    (RGBA, para los overlays)
-    ├── textures/ortho.jpg     (ortofoto en escala de grises, si la región tiene)
+    ├── layers/<layer>.npy
+    ├── heightmap.bin          (Float32 little-endian, row 0 to the north: 3D terrain)
+    ├── heightmap.png          (16-bit; the scene used it before the .bin)
+    ├── textures/<layer>.png   (RGBA, for the overlays)
+    ├── textures/ortho.jpg     (grayscale orthophoto, if the region has one)
     └── traverses/<rover>.geojson
 
-El manifest trae además `assets`, `legends`, `labels` y `cell_size_m` para la vista 3D (propuesta
-de contrato en docs/arquitectura.md). La API todavía no los declara y los descarta al servir el
-manifest, así que la web los lee del manifest.json publicado junto a los archivos.
+The manifest also carries `assets`, `legends`, `labels` and `cell_size_m` for the 3D view (contract
+proposal in docs/arquitectura.md). The API does not declare them yet and drops them when serving the
+manifest, so the web reads them from the manifest.json published next to the files.
 """
 
 import hashlib
@@ -30,10 +30,10 @@ from marsdata.region import Region
 
 OUT_DIR = Path(__file__).resolve().parents[2] / "data" / "regions"
 
-# CRS de todas las grillas y recorridos (el mismo de process/reproject.py).
+# CRS of every grid and traverse (the same as in process/reproject.py).
 CRS = "+proj=longlat +R=3389500 +no_defs"
 
-# Color de cada capa en su textura; la opacidad sale del valor normalizado.
+# Color of each layer in its texture; the opacity comes from the normalized value.
 LAYER_COLORS = {
     "slope": (255, 80, 40),
     "hazard": (255, 200, 0),
@@ -53,7 +53,7 @@ def _texture(values01: np.ndarray, rgb: tuple[int, int, int]) -> Image.Image:
 
 
 def _pipeline_commit() -> str | None:
-    """Commit del pipeline, o None si la carpeta no está en un repositorio de git."""
+    """Pipeline commit, or None if the folder is not in a git repository."""
     try:
         out = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
@@ -70,9 +70,9 @@ def _pipeline_commit() -> str | None:
 def _layer_meta(
     region: Region, names: list[str], synthetic: bool, extra: dict[str, dict] | None = None
 ) -> dict[str, dict]:
-    """Procedencia de cada capa. Los productos reales pasan por estéreo o por un modelo: derived.
+    """Provenance of each layer. Real products go through stereo or a model: derived.
 
-    `extra` (del build) agrega la cobertura de cada capa y puede corregir la procedencia.
+    `extra` (from the build) adds each layer's coverage and can correct the provenance.
     """
     if synthetic:
         return {name: {"provenance": "modeled", "source": "marsdata.synthetic"} for name in names}
@@ -92,9 +92,9 @@ def _layer_meta(
 def _labels(
     region: Region, dem: np.ndarray, traverses: dict, traverse_properties: dict, synthetic: bool
 ) -> list[dict]:
-    """Nombres de regions.yaml más el inicio y el final de cada recorrido, con su elevación.
+    """Names from regions.yaml plus the start and end of each traverse, with their elevation.
 
-    Una etiqueta con `only` entra solo en la versión que nombra (sintética o real).
+    A label with `only` goes only into the version it names (synthetic or real).
     """
     version = "synthetic" if synthetic else "real"
     labels = [
@@ -141,10 +141,10 @@ def write_region(
     legends: dict[str, list[dict]] | None = None,
     ortho: np.ndarray | None = None,
 ) -> Path:
-    """Escribe la región. Cada punto de un recorrido es (lat, lon) o (lat, lon, elevación).
+    """Writes the region. Each traverse point is (lat, lon) or (lat, lon, elevation).
 
-    `textures` son capas solo visuales ya coloreadas (RGBA), como las clases de NOAH-H: se listan
-    en `layers` para que la web las muestre, pero no tienen grilla .npy.
+    `textures` are visual-only layers already colored (RGBA), like the NOAH-H classes: they are
+    listed in `layers` so the web shows them, but they have no .npy grid.
     """
     rdir = out_dir / region.id
     (rdir / "layers").mkdir(parents=True, exist_ok=True)

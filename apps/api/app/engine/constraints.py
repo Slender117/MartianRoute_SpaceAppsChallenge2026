@@ -1,4 +1,4 @@
-"""Alertas por límites de la Marswalk."""
+"""Alerts for the Marswalk limits."""
 
 import numpy as np
 
@@ -13,7 +13,7 @@ SLOPE_WARNING_RATIO = 0.8
 
 
 def _hours(h: float) -> str:
-    return f"{h:.1f} h ({h / SOL_HOURS:.2f} soles)"
+    return f"{h:.1f} h ({h / SOL_HOURS:.2f} sols)"
 
 
 def check_limits(
@@ -25,7 +25,7 @@ def check_limits(
     suit: SuitLimits,
     solar_event: bool = False,
 ) -> list[Alert]:
-    """Devuelve una alerta por cada límite cercano o superado."""
+    """Return one alert for each limit that is close or exceeded."""
     alerts: list[Alert] = []
 
     steep = np.nonzero(slope_along >= SLOPE_WARNING_RATIO * suit.max_slope_deg)[0]
@@ -37,11 +37,11 @@ def check_limits(
                 type="slope",
                 code="steep_segment",
                 values={"slope_deg": round(float(slope_along[i]))},
-                message=f"Tramo empinado: {slope_along[i]:.0f}°",
+                message=f"Steep segment: {slope_along[i]:.0f}°",
             )
         )
 
-    # El trabajo fijo se hace en el destino: cuenta para la EVA completa.
+    # The fixed task is done at the destination: it counts for the whole EVA.
     round_trip = elapsed_h + back_h + suit.task_h
     total = float(round_trip[-1])
     usable = usable_autonomy_h(suit.autonomy_h)
@@ -49,11 +49,11 @@ def check_limits(
         over_suit = total > suit.autonomy_h
         limit = suit.autonomy_h if over_suit else usable
         message = (
-            f"La EVA de ida y vuelta ({_hours(total)}) supera la autonomía del traje"
+            f"The round-trip EVA ({_hours(total)}) exceeds the suit autonomy"
             f" ({_hours(suit.autonomy_h)})"
             if over_suit
-            else f"La EVA de ida y vuelta ({_hours(total)}) consume la reserva"
-            f" ({_hours(suit.autonomy_h - usable)}): el límite planeable es {_hours(usable)}"
+            else f"The round-trip EVA ({_hours(total)}) uses the reserve"
+            f" ({_hours(suit.autonomy_h - usable)}): the plannable limit is {_hours(usable)}"
         )
         alerts.append(
             Alert(
@@ -80,7 +80,7 @@ def check_limits(
                 severity=AlertSeverity.critical,
                 code="too_far",
                 values={"max_dist_km": suit.max_dist_km},
-                message=f"Más de {suit.max_dist_km:g} km de la base",
+                message=f"More than {suit.max_dist_km:g} km from base",
             )
         )
 
@@ -92,7 +92,7 @@ def check_limits(
                 severity=AlertSeverity.critical,
                 code="dose_over_limit",
                 values={"dose_msv": dose_msv, "limit_msv": suit.max_dose_msv},
-                message=f"Dosis estimada de {dose_msv:.2f} mSv, sobre el límite de"
+                message=f"Estimated dose of {dose_msv:.2f} mSv, above the"
                 f" {suit.max_dose_msv:g} mSv",
             )
         )
@@ -104,9 +104,9 @@ def check_limits(
                 type="radiation",
                 code="solar_event",
                 values={"dose_mgy": SOLAR_EVENT_MGY, "return_h": float(back_h[-1])},
-                message=f"Escenario de evento solar: hasta {SOLAR_EVENT_MGY:g} mGy de dosis"
-                " absorbida (mayo de 2024, el mayor medido por RAD hasta esa fecha). Desde el"
-                f" destino, el regreso a la base toma {_hours(float(back_h[-1]))}",
+                message=f"Solar event scenario: up to {SOLAR_EVENT_MGY:g} mGy of absorbed"
+                " dose (May 2024, the largest measured by RAD up to that date). From the"
+                f" destination, the way back to base takes {_hours(float(back_h[-1]))}",
             )
         )
 

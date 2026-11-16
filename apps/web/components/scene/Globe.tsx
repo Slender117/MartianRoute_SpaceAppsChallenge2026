@@ -8,8 +8,8 @@ import { bboxCenter, latLonToSphere } from "@/lib/geo";
 import { useMapStore } from "@/lib/store";
 
 /**
- * Globo de Marte con los sitios disponibles (los nombres están en SitePanel).
- * TODO(3D): textura de color + mapa de relieve MOLA (Mars Trek) en lugar del color plano.
+ * Mars globe with the available sites (their names are in SitePanel).
+ * TODO(3D): color texture + MOLA relief map (Mars Trek) instead of the flat color.
  */
 export function Globe() {
   const regions = useMapStore((s) => s.regions);

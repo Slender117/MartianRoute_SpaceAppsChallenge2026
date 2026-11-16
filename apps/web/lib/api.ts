@@ -34,7 +34,7 @@ export const api = {
     request<TraverseGeoJSON>(`/regions/${id}/traverse/${rover}`),
   route: (body: { region: string; start: LatLon; end: LatLon; mode: WalkMode; suit?: SuitLimits }) =>
     request<RouteResponse>("/routes", { method: "POST", body: JSON.stringify(body) }),
-  // Devuelve los tres modos y la línea base ("baseline").
+  // Returns the three modes and the baseline ("baseline").
   compare: (body: {
     region: string;
     start: LatLon;
@@ -49,7 +49,7 @@ export const api = {
   safeReturn: (body: { region: string; base?: LatLon; suit?: SuitLimits }) =>
     request<SafeReturnResponse>("/routes/safe-return", { method: "POST", body: JSON.stringify(body) }),
   assumptions: (lang: Lang) => request<AssumptionsResponse>(`/assumptions?lang=${lang}`),
-  // Marte hoy: eyecciones solares (DONKI), posición de Perseverance y sus últimas imágenes.
+  // Mars today: solar ejections (DONKI), Perseverance's position and its latest images.
   live: (region?: string) =>
     request<LiveResponse>(region ? `/live?region=${encodeURIComponent(region)}` : "/live"),
 };

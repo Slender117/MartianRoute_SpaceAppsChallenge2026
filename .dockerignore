@@ -1,0 +1,12 @@
+# Only what deploy/api.Dockerfile copies goes into the build context.
+*
+!apps/api/pyproject.toml
+!apps/api/app
+!pipeline/pyproject.toml
+!pipeline/marsdata
+!pipeline/config
+!data/raw
+!science/validation/noahh_ig_risk.csv
+!M20_traverse_2026-11-12.json
+!MSL_traverse_2026-11-14.json
+**/__pycache__

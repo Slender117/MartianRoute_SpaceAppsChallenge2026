@@ -1,4 +1,4 @@
-"""Textos en inglés: la API manda lo necesario para que la web cambie de idioma."""
+"""English texts: the API sends what the web needs to switch language."""
 
 from fastapi.testclient import TestClient
 
@@ -18,7 +18,7 @@ def test_every_limit_has_an_english_version():
 
 def test_assumptions_in_english_keep_values_and_sources(assets_dir):
     client = TestClient(create_app())
-    es = client.get("/assumptions").json()
+    es = client.get("/assumptions", params={"lang": "es"}).json()
     en = client.get("/assumptions", params={"lang": "en"}).json()
 
     assert [p["id"] for p in en["parameters"]] == [p["id"] for p in es["parameters"]]

@@ -6,7 +6,7 @@ import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { LivePanel } from "@/components/ui/LivePanel";
 import { useT } from "@/lib/i18n";
 
-/** Barra de arriba al centro: regreso a la portada, idioma y "Marte hoy". */
+/** Top center bar: back to the landing, language and "Mars today". */
 export function PlannerBar() {
   const t = useT();
   return (
