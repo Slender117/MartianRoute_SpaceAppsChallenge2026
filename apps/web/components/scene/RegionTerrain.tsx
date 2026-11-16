@@ -208,7 +208,7 @@ function LayerVeil({
   const map = useTexture(url, prepareColorTexture) as Texture;
   return (
     <mesh geometry={geometry} renderOrder={order}>
-      {/* Lambert y no Basic: MeshBasicMaterial no soporta displacementMap */}
+      {/* Lambert, not Basic: MeshBasicMaterial does not support displacementMap */}
       <meshLambertMaterial
         map={map}
         transparent

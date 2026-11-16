@@ -135,7 +135,7 @@ export function LivePanel() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      {/* Imágenes de NASA servidas desde mars.nasa.gov: next/image exigiría configurar el dominio. */}
+                      {/* NASA images served from mars.nasa.gov: next/image would require configuring the domain. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={img.thumbnail_url}

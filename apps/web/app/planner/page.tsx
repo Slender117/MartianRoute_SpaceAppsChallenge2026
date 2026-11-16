@@ -41,7 +41,7 @@ export default function Planner() {
       <SceneLoader />
       <div className={narrow ? "hud hud-narrow" : "hud"}>
         <PlannerBar />
-        {/* Mientras se abre una región no se ofrece elegir otra. */}
+        {/* While a region is opening, picking another one is not offered. */}
         {view === "globe" && !regionId && (
           <div className="hud-col hud-left">
             <SitePanel />

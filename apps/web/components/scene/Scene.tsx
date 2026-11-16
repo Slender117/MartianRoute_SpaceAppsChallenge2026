@@ -41,7 +41,7 @@ export default function Scene() {
       >
         <color attach="background" args={["#0b0605"]} />
         <ambientLight intensity={0.25} />
-        {/* Luz de cielo: rellena las laderas en sombra sin aplanar el relieve. */}
+        {/* Sky light: fills the shaded slopes without flattening the relief. */}
         <hemisphereLight args={["#f6d8c4", "#2a1510", 0.35]} />
         <directionalLight position={[5, 6, 3]} intensity={sunIntensity} />
         <Stars radius={80} depth={40} count={3000} factor={3} fade />

@@ -169,7 +169,7 @@ export default function MarsHero() {
         frameloop={spin && visible ? "always" : "demand"}
         aria-hidden
       >
-        {/* Fondo opaco del color de la página: el halo se suma a él sin dejar un aro oscuro. */}
+        {/* Opaque background in the page color: the halo adds to it without leaving a dark ring. */}
         <color attach="background" args={["#0b0605"]} />
         <ambientLight intensity={0.12} />
         <directionalLight position={[5, 2, 4]} intensity={2.6} />
