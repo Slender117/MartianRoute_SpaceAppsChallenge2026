@@ -113,9 +113,9 @@ Chilpancingo, Guerrero.
 | --- | --- |
 | Marco Tulio Ramirez Reyes | Líder del equipo; pipeline de capas, infraestructura y despliegue |
 | Edgar David Mariano Ruiz | Ciencia y validación |
-| Miguel Angel Florencio Flores | Backend y dirección del frontend |
+| Miguel Ángel Florencio Flores | Backend y dirección del frontend |
 | Milton [__] | Componentes de interfaz |
-| Williams Reyna Perez | Pruebas de uso, demo y video |
+| Williams Reyna Pérez | Pruebas de uso, demo y video |
 | Jairo [__] | Idea inicial del proyecto |
 
 El reparto de trabajo por integrante está en [docs/equipo/](docs/equipo/README.md).
