@@ -1,0 +1,16 @@
+# Render Blueprint for the API (New > Blueprint in the Render dashboard, pick this repository).
+services:
+  - type: web
+    name: martian-route-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./deploy/api.Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      # Public read-only API with no cookies: any origin can read it. Narrow it to the Vercel URL if needed.
+      - key: CORS_ORIGINS
+        value: "*"
+      # Free key from https://api.nasa.gov; without it the API uses DEMO_KEY and the saved copy.
+      - key: NASA_API_KEY
+        sync: false

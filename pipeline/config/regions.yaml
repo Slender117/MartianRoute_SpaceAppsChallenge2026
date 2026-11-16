@@ -15,14 +15,14 @@ regions:
     dataset_version: 0.4.0
     # Demo scenario of the synthetic region: synthetic.py shapes the terrain for these points.
     demo:
-      label: Base al frente del delta (escenario sintético)
+      label: Base in front of the delta (synthetic scenario)
       start: { lat: 18.4447, lon: 77.4508 }
       end: { lat: 18.4685, lon: 77.3932 }
     # Demo scenario with real data (marsdata build). Edgar tested ~1,500 destinations: in this one,
     # to the southeast, the three modes take different paths (HE2) and Safe avoids almost all the
     # risk for a little more O₂.
     demo_real:
-      label: Base al sureste del delta (Jezero real)
+      label: Base southeast of the delta (real Jezero)
       start: { lat: 18.4447, lon: 77.4508 }
       end: { lat: 18.4088, lon: 77.4886 }
     traverses: [perseverance]
